@@ -97,7 +97,7 @@ function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; cooli
           <div className="font-black" style={{ fontFamily: "'Sora', sans-serif", fontSize: "2rem", color: TEAL, textShadow: `0 0 24px ${TEAL}50` }}>
             ${inv.amount.toFixed(2)}
           </div>
-          <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.4)" }}>Earning HC Tokens Daily</div>
+          <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.4)" }}>Earning WTA Daily</div>
         </div>
 
         {/* Cooling period banner */}
@@ -154,7 +154,7 @@ function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; cooli
                 className="text-xs font-semibold"
                 style={{
                   color: row.label === "Earned So Far" ? "#34d399"
-                    : row.label === "HYPERCOIN" ? "#b87fff"
+                    : row.label === "WTA" ? "#b87fff"
                     : row.label === "Expected Total" ? "rgba(194,210,255,0.6)"
                     : "rgba(200,240,255,0.85)",
                   fontFamily: row.label === "Investment ID" ? "monospace" : "inherit",
@@ -401,7 +401,7 @@ export default function Invest({ user }: { user: any }) {
             <div className="font-black text-lg" style={{ fontFamily: "'Sora', sans-serif", color: TEAL }}>
               Variable Token Returns
             </div>
-            <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Earn HC tokens daily · rate depends on trading profit</div>
+            <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Earn WTA daily · rate depends on trading profit</div>
           </div>
           <div
             className="px-3 py-1.5 rounded-xl text-xs font-bold"
@@ -468,7 +468,7 @@ export default function Invest({ user }: { user: any }) {
                   <span style={{ color: TEAL, fontWeight: 600 }}>{plan.days} days</span>
                 </div>
                 <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>
-                  Daily HC tokens are credited proportional to your share of total platform investment, based on each day's real trading profit.
+                  Daily WTA is credited proportional to your share of total platform investment, based on each day's real trading profit.
                 </div>
               </div>
             )}
@@ -539,7 +539,7 @@ export default function Invest({ user }: { user: any }) {
                             color: TEAL,
                           }}
                         >
-                          HC Tokens Daily
+                          WTA Daily
                         </span>
                       </div>
                     </div>

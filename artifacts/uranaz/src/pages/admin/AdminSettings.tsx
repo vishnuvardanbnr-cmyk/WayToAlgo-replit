@@ -791,8 +791,8 @@ export default function AdminSettings() {
                 { label: "Min Deposit (USDT)",           testId: "input-min-deposit",        name: "minDeposit" as const,          type: "number", extra: {} },
                 { label: "Max Deposit (USDT)",           testId: "input-max-deposit",        name: "maxDeposit" as const,          type: "number", extra: {} },
                 { label: "Max Total Investment (USDT)",  testId: "input-max-total-invest",   name: "maxTotalInvestment" as const,  type: "number", extra: { step: "100", min: "100" } },
-                { label: "Min HYPERCOIN % (0–100)",      testId: "input-hypercoin-pct",      name: "hyperCoinMinPercent" as const,  type: "number", extra: { step: "1", min: "0", max: "100" } },
-                { label: "HYPERCOIN Price (USDT)",       testId: "input-hypercoin-price",    name: "hyperCoinPrice" as const,       type: "number", extra: { step: "0.0001", min: "0.0001" } },
+                { label: "Min WTA % (0–100)",      testId: "input-hypercoin-pct",      name: "hyperCoinMinPercent" as const,  type: "number", extra: { step: "1", min: "0", max: "100" } },
+                { label: "WTA Price (USDT)",       testId: "input-hypercoin-price",    name: "hyperCoinPrice" as const,       type: "number", extra: { step: "0.0001", min: "0.0001" } },
               ].map(f => (
                 <div key={f.name}>
                   <FieldLabel>{f.label}</FieldLabel>
@@ -807,10 +807,10 @@ export default function AdminSettings() {
                 </div>
               ))}
             </div>
-            <SubHeader>HyperCoin Deposit Account</SubHeader>
+            <SubHeader>WTA Deposit Account</SubHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FieldLabel>HC Deposit Username</FieldLabel>
+                <FieldLabel>WTA Deposit Username</FieldLabel>
                 <input
                   type="text"
                   placeholder="e.g. waytoalgo_official"
@@ -818,7 +818,7 @@ export default function AdminSettings() {
                   className={INPUT_CLS}
                   style={INPUT_STYLE}
                 />
-                <FieldHint>Users will be shown this username to send HyperCoin to during HC deposits.</FieldHint>
+                <FieldHint>Users will be shown this username to send WTA to during WTA deposits.</FieldHint>
               </div>
             </div>
 
@@ -1218,7 +1218,7 @@ export default function AdminSettings() {
 
               {/* Investment Plan */}
               <div>
-                <SubHeader hint="Returns are distributed as HC tokens proportional to investment size — no fixed daily % rate.">
+                <SubHeader hint="Returns are distributed as WTA proportional to investment size — no fixed daily % rate.">
                   <span className="inline-flex items-center gap-1.5"><Coins size={12} />Investment Plan</span>
                 </SubHeader>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">

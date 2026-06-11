@@ -740,8 +740,8 @@ function ConvertModal({
   onSuccess,
 }: {
   source: "trading" | "team";
-  sourceBalance: number;   // in HC tokens
-  tokenPrice: number;      // HC price in USDT (for estimate only)
+  sourceBalance: number;   // in WTA
+  tokenPrice: number;      // WTA price in USDT (for estimate only)
   onClose: () => void;
   onSuccess: (data: { walletBalance: number; tradingProfitBalance: number; teamBenefitBalance: number }) => void;
 }) {
@@ -757,7 +757,7 @@ function ConvertModal({
   const handleConvert = async () => {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) { setResult({ error: "Enter a valid token amount" }); return; }
-    if (amt > sourceBalance) { setResult({ error: `Insufficient balance. Available: ${sourceBalance.toFixed(4)} HC` }); return; }
+    if (amt > sourceBalance) { setResult({ error: `Insufficient balance. Available: ${sourceBalance.toFixed(4)} WTA` }); return; }
     setConverting(true); setResult(null);
     try {
       const res = await fetch("/api/wallet/convert", {
@@ -800,7 +800,7 @@ function ConvertModal({
               <div className="font-bold" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.8rem" }}>
                 Sell Tokens → Main Wallet
               </div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>{label} HC → USDT</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>{label} WTA → USDT</div>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center"
@@ -830,7 +830,7 @@ function ConvertModal({
               <div className="rounded-xl px-4 py-2.5 text-center"
                 style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)" }}>
                 <div className="text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Available in {label}</div>
-                <div className="font-bold text-sm" style={{ color: TEAL }}>{sourceBalance.toFixed(4)} HC</div>
+                <div className="font-bold text-sm" style={{ color: TEAL }}>{sourceBalance.toFixed(4)} WTA</div>
                 {tokenPrice > 0 && (
                   <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.3)" }}>
                     ≈ ${(sourceBalance * tokenPrice).toFixed(2)} USDT at current price
@@ -840,7 +840,7 @@ function ConvertModal({
 
               <div>
                 <label className="block text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.55)" }}>
-                  Tokens to Sell (HC)
+                  WTA to Sell
                 </label>
                 <div className="relative">
                   <input
@@ -865,7 +865,7 @@ function ConvertModal({
                   style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.2)" }}>
                   <div className="flex justify-between text-xs">
                     <span style={{ color: "rgba(194,210,255,0.45)" }}>Selling</span>
-                    <span style={{ color: "rgba(200,240,255,0.85)", fontWeight: 600 }}>{tokenAmt.toFixed(4)} HC</span>
+                    <span style={{ color: "rgba(200,240,255,0.85)", fontWeight: 600 }}>{tokenAmt.toFixed(4)} WTA</span>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span style={{ color: "rgba(194,210,255,0.45)" }}>Token price (est.)</span>
@@ -922,7 +922,7 @@ export default function WalletPage({ user }: { user: any }) {
   const [tokenPrice, setTokenPrice] = useState(0);
 
   const usdtBalance = localUsdtBal ?? (user?.walletBalance ?? 0);
-  // Trading Profit and Team Benefit are stored in HC token amounts
+  // Trading Profit and Team Benefit are stored in WTA amounts
   const tradingBal = localTradingBal ?? (parseFloat(user?.tradingProfitBalance ?? "0") || 0);
   const teamBal = localTeamBal ?? (parseFloat(user?.teamBenefitBalance ?? "0") || 0);
 
@@ -999,7 +999,7 @@ export default function WalletPage({ user }: { user: any }) {
           <div className="font-black" style={{ fontFamily: "'Sora', sans-serif", color: "#34d399", fontSize: "1.1rem", lineHeight: 1.1 }}>
             {tradingBal.toFixed(4)}
           </div>
-          <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(52,211,153,0.6)" }}>HC tokens</div>
+          <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(52,211,153,0.6)" }}>WTA</div>
           {tokenPrice > 0 && (
             <div className="text-xs mb-2" style={{ color: "rgba(194,210,255,0.3)" }}>≈${(tradingBal * tokenPrice).toFixed(2)}</div>
           )}
@@ -1029,7 +1029,7 @@ export default function WalletPage({ user }: { user: any }) {
           <div className="font-black" style={{ fontFamily: "'Sora', sans-serif", color: "#c084fc", fontSize: "1.1rem", lineHeight: 1.1 }}>
             {teamBal.toFixed(4)}
           </div>
-          <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(168,85,247,0.6)" }}>HC tokens</div>
+          <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(168,85,247,0.6)" }}>WTA</div>
           {tokenPrice > 0 && (
             <div className="text-xs mb-2" style={{ color: "rgba(194,210,255,0.3)" }}>≈${(teamBal * tokenPrice).toFixed(2)}</div>
           )}

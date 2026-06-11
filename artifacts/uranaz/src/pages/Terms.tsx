@@ -11,13 +11,13 @@ All investments carry risk. Past performance does not guarantee future results. 
 You must be at least 18 years of age to use this platform. By registering, you represent that you are of legal age in your jurisdiction and have the legal capacity to enter into this agreement.
 
 4. Investment Plans
-Investments must be in multiples of $100 USDT. Minimum investment is $100 and maximum is $1,500 per plan. A minimum of 50% of your deposit must be in HYPERCOIN. Returns are distributed every weekday (5 business days per week). Investment duration depends on your plan tier.
+Investments must be in multiples of $100 USDT. Minimum investment is $100 and maximum is $1,500 per plan. Returns are distributed every weekday (5 business days per week). Investment duration depends on your plan.
 
 5. Referral & Commission Program
 WaytoAlgo operates a multi-level referral system. A 5% spot referral commission is paid on the investment amount of your direct referrals. Level commissions (1–8) are paid on return amounts as specified in the commission schedule. Level unlocking is based on your total earnings milestones.
 
-6. HYPERCOIN Requirement
-All deposits must include a minimum of 50% in HYPERCOIN. WaytoAlgo is not responsible for the value fluctuation of HYPERCOIN. Users are responsible for understanding the risks associated with HYPERCOIN.
+6. WTA Token
+WaytoAlgo is not responsible for the value fluctuation of WTA. Users are responsible for understanding the risks associated with WTA.
 
 7. Withdrawals
 Withdrawal requests are processed within 24–48 business hours. Minimum withdrawal amount is $10 USDT. Withdrawals are processed to the BEP20 wallet address provided in your profile.

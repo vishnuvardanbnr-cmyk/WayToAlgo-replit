@@ -80,7 +80,7 @@ function ApproveModal({ request, onClose, onDone }: { request: HcRequest; onClos
   const usdPreview = (hcVal * hcPrice).toFixed(2);
 
   async function handleApprove() {
-    if (!hcVal || hcVal <= 0) { setError("Enter a valid positive HC amount"); return; }
+    if (!hcVal || hcVal <= 0) { setError("Enter a valid positive WTA amount"); return; }
     setSubmitting(true);
     setError("");
     try {
@@ -121,7 +121,7 @@ function ApproveModal({ request, onClose, onDone }: { request: HcRequest; onClos
               <Check size={17} style={{ color: "#34d399" }} />
             </div>
             <div>
-              <div className="text-sm font-bold" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif" }}>Approve HC Deposit</div>
+              <div className="text-sm font-bold" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif" }}>Approve WTA Deposit</div>
               <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{request.userName} · {request.userEmail}</div>
             </div>
           </div>
@@ -136,14 +136,14 @@ function ApproveModal({ request, onClose, onDone }: { request: HcRequest; onClos
               <span style={{ color: "rgba(194,210,255,0.7)" }}>{formatDate(request.createdAt)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span style={{ color: "rgba(194,210,255,0.4)" }}>HC Rate</span>
-              <span className="font-bold" style={{ color: TEAL }}>1 HC = ${hcPrice.toFixed(4)} USDT</span>
+              <span style={{ color: "rgba(194,210,255,0.4)" }}>WTA Rate</span>
+              <span className="font-bold" style={{ color: TEAL }}>1 WTA = ${hcPrice.toFixed(4)} USDT</span>
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-semibold mb-2" style={{ color: "rgba(194,210,255,0.6)" }}>
-              HyperCoins to Credit
+              WTA to Credit
             </label>
             <input
               type="number"
@@ -265,7 +265,7 @@ export default function AdminHcDeposits() {
   const filtered = filter === "all" ? requests : requests.filter(r => r.status === filter);
 
   async function handleReject(req: HcRequest) {
-    if (!confirm(`Reject HC deposit request from ${req.userName}?`)) return;
+    if (!confirm(`Reject WTA deposit request from ${req.userName}?`)) return;
     setRejectingId(req.id);
     try {
       await rejectRequest(req.id);
@@ -299,10 +299,10 @@ export default function AdminHcDeposits() {
               backgroundClip: "text",
             }}
           >
-            HC Deposits
+            WTA Deposits
           </h1>
           <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.4)" }}>
-            Review and credit HyperCoin deposit requests
+            Review and credit WTA deposit requests
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -365,7 +365,7 @@ export default function AdminHcDeposits() {
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl p-12 text-center" style={GLASS}>
           <CircleDollarSign size={32} className="mx-auto mb-3" style={{ color: "rgba(194,210,255,0.15)" }} />
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.3)" }}>No {filter !== "all" ? filter : ""} HC deposit requests</p>
+          <p className="text-sm" style={{ color: "rgba(194,210,255,0.3)" }}>No {filter !== "all" ? filter : ""} WTA deposit requests</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -397,7 +397,7 @@ export default function AdminHcDeposits() {
                         {req.amount && (
                           <>
                             <span style={{ color: "rgba(194,210,255,0.25)" }}>·</span>
-                            <span className="text-xs font-bold" style={{ color: PURPLE }}>${parseFloat(req.amount).toFixed(2)} HC</span>
+                            <span className="text-xs font-bold" style={{ color: PURPLE }}>${parseFloat(req.amount).toFixed(2)} WTA</span>
                           </>
                         )}
                       </div>

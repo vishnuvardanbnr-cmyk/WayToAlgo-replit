@@ -265,7 +265,7 @@ export default function AdminReports() {
           {tab === "p2p" && (<>
             <StatCard label="Total Transfers" value={summary.totalCount}       sub={fmtMoney(summary.totalAmount)} color={TEAL} />
             <StatCard label="USDT"            value={summary.usdtCount}                                           color="#34d399" />
-            <StatCard label="HYPERCOIN"       value={summary.hyperCount}                                          color="#a78bfa" />
+            <StatCard label="WTA"       value={summary.hyperCount}                                          color="#a78bfa" />
           </>)}
           {tab === "income" && (<>
             <StatCard label="Total Records"   value={summary.totalCount}           sub={fmtMoney(summary.totalAmount)}       color={TEAL} />
@@ -276,7 +276,7 @@ export default function AdminReports() {
           {tab === "balance-adjustments" && (<>
             <StatCard label="Total Records"   value={summary.totalCount}           color={TEAL} />
             <StatCard label="USDT Added"      value={summary.usdtCount}            sub={fmtMoney(summary.totalUsdtAmount)}  color="#34d399" />
-            <StatCard label="HC Added"        value={summary.hyperCount}           sub={`${(Number(summary.totalHyperAmount) || 0).toFixed(4)} HC`} color="#a78bfa" />
+            <StatCard label="WTA Added"        value={summary.hyperCount}           sub={`${(Number(summary.totalHyperAmount) || 0).toFixed(4)} WTA`} color="#a78bfa" />
           </>)}
         </div>
       )}
@@ -324,7 +324,7 @@ export default function AdminReports() {
             <select value={currency} onChange={e => { setCurrency(e.target.value); setPage(1); }} className="text-xs px-3 py-2 rounded-lg outline-none" style={INPUT_STYLE}>
               <option value="">All currencies</option>
               <option value="usdt">USDT</option>
-              <option value="hypercoin">HYPERCOIN</option>
+              <option value="hypercoin">WTA</option>
             </select>
           )}
 
@@ -342,7 +342,7 @@ export default function AdminReports() {
             <select value={currency} onChange={e => { setCurrency(e.target.value); setPage(1); }} className="text-xs px-3 py-2 rounded-lg outline-none" style={INPUT_STYLE}>
               <option value="">All types</option>
               <option value="usdt">USDT</option>
-              <option value="hypercoin">HyperCoin</option>
+              <option value="hypercoin">WTA</option>
             </select>
           )}
         </div>
@@ -420,7 +420,7 @@ export default function AdminReports() {
                         <Td><UserCell name={r.senderName} email={r.senderEmail} id={r.senderId} /></Td>
                         <Td><UserCell name={r.recipientName} email={r.recipientEmail} id={r.recipientId} /></Td>
                         <Td><span className="font-bold" style={{ color: TEAL }}>{fmtMoney(r.amount)}</span></Td>
-                        <Td><Pill label={isUsdt ? "USDT" : "HYPERCOIN"} color={isUsdt ? "#34d399" : "#a78bfa"} bg={isUsdt ? "rgba(52,211,153,0.10)" : "rgba(167,139,250,0.10)"} /></Td>
+                        <Td><Pill label={isUsdt ? "USDT" : "WTA"} color={isUsdt ? "#34d399" : "#a78bfa"} bg={isUsdt ? "rgba(52,211,153,0.10)" : "rgba(167,139,250,0.10)"} /></Td>
                         <Td><span style={{ color: "rgba(194,210,255,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
                       </Tr>
                     );
@@ -446,8 +446,8 @@ export default function AdminReports() {
                     return (
                       <Tr key={r.id} testId={`row-adj-${r.id}`}>
                         <Td><UserCell name={r.userName} email={r.userEmail} id={r.userId} /></Td>
-                        <Td><Pill label={isUsdt ? "USDT" : "HyperCoin"} color={isUsdt ? "#34d399" : "#a78bfa"} bg={isUsdt ? "rgba(52,211,153,0.10)" : "rgba(167,139,250,0.10)"} /></Td>
-                        <Td><span className="font-bold" style={{ color: "#34d399" }}>+{isUsdt ? fmtMoney(r.amount) : `${r.amount} HC`}</span></Td>
+                        <Td><Pill label={isUsdt ? "USDT" : "WTA"} color={isUsdt ? "#34d399" : "#a78bfa"} bg={isUsdt ? "rgba(52,211,153,0.10)" : "rgba(167,139,250,0.10)"} /></Td>
+                        <Td><span className="font-bold" style={{ color: "#34d399" }}>+{isUsdt ? fmtMoney(r.amount) : `${r.amount} WTA`}</span></Td>
                         <Td><span className="text-[11px]" style={{ color: "rgba(194,210,255,0.65)" }}>{r.adminName}</span></Td>
                         <Td className="hidden sm:table-cell"><span className="text-[11px]" style={{ color: "rgba(194,210,255,0.45)" }}>{r.note || "—"}</span></Td>
                         <Td><span style={{ color: "rgba(194,210,255,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>

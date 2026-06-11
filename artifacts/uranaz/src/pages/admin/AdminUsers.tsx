@@ -306,7 +306,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
       if (!r.ok) { const e = await r.json(); throw new Error(e.message || "Failed"); }
       const updated = await r.json();
       setLiveUser(updated as AdminUser);
-      toast({ title: "Balance added", description: `+${amt} ${addBalCurrency === "usdt" ? "USDT" : "HC"} credited` });
+      toast({ title: "Balance added", description: `+${amt} ${addBalCurrency === "usdt" ? "USDT" : "WTA"} credited` });
       setAddBalModal(false);
       setAddBalAmount("");
       setAddBalNote("");
@@ -453,7 +453,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                 <Toggle
                   testId="toggle-p2p-blocked"
                   label="Block P2P transfers"
-                  description="User cannot send USDT or HYPERCOIN to other users."
+                  description="User cannot send USDT or WTA to other users."
                   icon={<ArrowLeftRight size={14} />}
                   value={p2pBlocked}
                   onChange={setP2pBlocked}
@@ -520,8 +520,8 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                   <div className="text-lg font-bold" style={{ color: GREEN }}>${liveUser.totalEarnings.toFixed(2)}</div>
                 </div>
                 <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(167,139,250,0.18)" }}>
-                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>HyperCoin Balance</div>
-                  <div className="text-lg font-bold" style={{ color: "#a78bfa" }}>{liveUser.hyperCoinBalance.toFixed(4)} HC</div>
+                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>WTA Balance</div>
+                  <div className="text-lg font-bold" style={{ color: "#a78bfa" }}>{liveUser.hyperCoinBalance.toFixed(4)} WTA</div>
                 </div>
                 <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.4)", border: "1px solid rgba(91,140,255,0.08)" }}>
                   <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Total Invested</div>
@@ -576,7 +576,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                   <div className="grid grid-cols-2 gap-2">
                     {([
                       { val: "usdt" as const, label: "Deposit Balance (USDT)", color: TEAL },
-                      { val: "hypercoin" as const, label: "HyperCoin Balance", color: "#a78bfa" },
+                      { val: "hypercoin" as const, label: "WTA Balance", color: "#a78bfa" },
                     ]).map(opt => (
                       <button
                         key={opt.val}
@@ -601,7 +601,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
 
                 <div>
                   <label className="text-xs font-semibold block mb-1.5" style={{ color: "rgba(194,210,255,0.6)" }}>
-                    Amount ({addBalCurrency === "usdt" ? "USDT" : "HC"})
+                    Amount ({addBalCurrency === "usdt" ? "USDT" : "WTA"})
                   </label>
                   <Input
                     type="number"
