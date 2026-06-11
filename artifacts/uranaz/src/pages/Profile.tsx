@@ -221,40 +221,6 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
         </div>
       </div>
 
-      {/* Edit Form */}
-      <div className="rounded-2xl p-5" style={GLASS}>
-        <h2 className="font-semibold text-sm mb-4" style={{ color: "rgba(194,210,255,0.75)" }}>Update Profile</h2>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField control={form.control} name="walletAddress" render={({ field }) => (
-              <FormItem>
-                <FormLabel style={LABEL_STYLE}>USDT Wallet Address (BEP20)</FormLabel>
-                <FormControl><Input data-testid="input-wallet" placeholder="0x0000000000000000000000000000000000000000" {...field} style={INPUT_STYLE} /></FormControl>
-                <FormMessage />
-                {!!user?.walletAddress && (
-                  <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: "rgba(194,210,255,0.45)" }}>
-                    <ShieldCheck size={11} /> Changing this address may require email OTP verification
-                  </p>
-                )}
-              </FormItem>
-            )} />
-            <button
-              data-testid="button-save-profile"
-              type="submit"
-              disabled={setup.isPending}
-              className="w-full py-2.5 rounded-xl font-bold transition-all disabled:opacity-60"
-              style={{
-                background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                color: "#060814",
-                letterSpacing: "0.04em",
-                boxShadow: "0 0 16px rgba(91,140,255,0.3)",
-              }}
-            >
-              {setup.isPending ? "Saving..." : "Save Changes"}
-            </button>
-          </form>
-        </Form>
-      </div>
 
       {/* Links */}
       <div className="grid grid-cols-2 gap-3">
