@@ -276,23 +276,31 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
         const u = userById.get(userId)!;
         const current = ethers.parseUnits((u.roiTokenBalance || "0"), TOKEN_DECIMALS);
         const next = current + addWei;
-        // Determine USD value to credit to the appropriate earning wallet
-        const usdAdd = Number(ethers.formatUnits(addWei, TOKEN_DECIMALS)) * profitUsdt / Number(ethers.formatUnits(tokensBoughtWei, TOKEN_DECIMALS));
-        // Check if this user received roi (investor) or level (upline) tokens
-        const isRoiRecipient = rewardRows.some(r => r.userId === userId && r.type === "roi");
-        const isLevelRecipient = rewardRows.some(r => r.userId === userId && r.type === "level");
-        const roiUsd = rewardRows.filter(r => r.userId === userId && r.type === "roi").reduce((s, r) => s + r.usdValue, 0);
-        const levelUsd = rewardRows.filter(r => r.userId === userId && r.type === "level").reduce((s, r) => s + r.usdValue, 0);
+
+        // Sum token amounts per wallet type (tokens, not USD)
+        const roiTokenWei = rewardRows
+          .filter(r => r.userId === userId && r.type === "roi")
+          .reduce((s, r) => s + r.tokenAmount, 0n);
+        const levelTokenWei = rewardRows
+          .filter(r => r.userId === userId && r.type === "level")
+          .reduce((s, r) => s + r.tokenAmount, 0n);
+
+        const newTradingBal = roiTokenWei > 0n
+          ? (parseFloat(u.tradingProfitBalance || "0") + parseFloat(ethers.formatUnits(roiTokenWei, TOKEN_DECIMALS))).toFixed(6)
+          : u.tradingProfitBalance;
+        const newTeamBal = levelTokenWei > 0n
+          ? (parseFloat(u.teamBenefitBalance || "0") + parseFloat(ethers.formatUnits(levelTokenWei, TOKEN_DECIMALS))).toFixed(6)
+          : u.teamBenefitBalance;
+
+        // totalEarnings tracks USD value of distributed tokens (informational)
+        const usdShare = (Number(addWei) / Number(tokensBoughtWei)) * profitUsdt;
+
         await tx.update(usersTable)
           .set({
             roiTokenBalance: ethers.formatUnits(next, TOKEN_DECIMALS),
-            tradingProfitBalance: isRoiRecipient
-              ? (parseFloat(u.tradingProfitBalance || "0") + roiUsd).toFixed(6)
-              : u.tradingProfitBalance,
-            teamBenefitBalance: isLevelRecipient
-              ? (parseFloat(u.teamBenefitBalance || "0") + levelUsd).toFixed(6)
-              : u.teamBenefitBalance,
-            totalEarnings: (parseFloat(u.totalEarnings || "0") + roiUsd + levelUsd).toFixed(6),
+            tradingProfitBalance: newTradingBal,
+            teamBenefitBalance: newTeamBal,
+            totalEarnings: (parseFloat(u.totalEarnings || "0") + usdShare).toFixed(6),
           })
           .where(eq(usersTable.id, userId));
       }

@@ -1,1 +1,2 @@
 - [On-chain token Buy/Sell frontend](onchain-token-frontend.md) — Invest page token section uses raw window.ethereum + manual ABI; isolated from off-chain flows; contract address pasted later.
+- [Earning Wallets Flow](earning-wallets-flow.md) — Trading Profit & Team Benefit store HC token amounts (not USD); convert = sell-only, no re-buy; admin buy happens at distribution time.

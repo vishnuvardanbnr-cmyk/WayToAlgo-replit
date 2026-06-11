@@ -205,25 +205,27 @@ router.post("/wallet/convert", requireAuth, async (req, res) => {
     return;
   }
   const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
-  const returnRate = parseFloat(settings.walletConvertReturnRate ?? "0.81");
 
-  // Reserve the amount from the source wallet atomically
-  let reservedAmount = 0;
+  // `amount` is a TOKEN amount (e.g. 250.5 HC) — tokens already sit in the platform withdraw wallet
+  // from the distribution step. We deduct from user's token balance and sell directly.
+  const tokensToSellWei = ethers.parseUnits(convertAmount.toString(), TOKEN_DECIMALS);
+
+  // Atomically reserve (deduct) the token amount from the user's source wallet
+  let reservedTokens = 0n;
   try {
     await db.transaction(async (tx) => {
       const [fresh] = await tx.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
       if (!fresh) throw Object.assign(new Error("User not found"), { status: 404 });
 
-      const field = source === "trading" ? "tradingProfitBalance" : "teamBenefitBalance";
       const currentBal = parseFloat((source === "trading" ? fresh.tradingProfitBalance : fresh.teamBenefitBalance) ?? "0");
-
       if (convertAmount > currentBal) {
+        const label = source === "trading" ? "Trading Profit" : "Team Benefit";
         throw Object.assign(
-          new Error(`Insufficient ${source === "trading" ? "Trading Profit" : "Team Benefit"} balance. Available: $${currentBal.toFixed(2)}`),
+          new Error(`Insufficient ${label} balance. Available: ${currentBal.toFixed(4)} HC`),
           { status: 400 }
         );
       }
-      reservedAmount = convertAmount;
+      reservedTokens = tokensToSellWei;
       const newBal = (currentBal - convertAmount).toFixed(6);
       await tx.update(usersTable)
         .set(source === "trading" ? { tradingProfitBalance: newBal } : { teamBenefitBalance: newBal })
@@ -234,54 +236,35 @@ router.post("/wallet/convert", requireAuth, async (req, res) => {
     return;
   }
 
-  // Step 1: Buy tokens with the full convertAmount
-  const buyResult = await buyTokens(reservedAmount, contractAddress, withdrawKey, gasKey, rpcUrl);
-  if (!buyResult.success || !buyResult.tokensBought) {
-    // Refund the reserved amount
+  // Sell the tokens from the platform's withdraw wallet (they are already there from distribution)
+  const sellResult = await sellTokens(reservedTokens, contractAddress, withdrawKey, gasKey, rpcUrl);
+  if (!sellResult.success || sellResult.usdtReceived === undefined) {
+    // Refund tokens to user's source balance on failure
+    logger.error({ err: sellResult.error }, "Wallet convert: sell failed — refunding tokens to user");
     const [fresh] = await db.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
     const currentBal = parseFloat((source === "trading" ? fresh?.tradingProfitBalance : fresh?.teamBenefitBalance) ?? "0");
     await db.update(usersTable)
       .set(source === "trading"
-        ? { tradingProfitBalance: (currentBal + reservedAmount).toFixed(6) }
-        : { teamBenefitBalance: (currentBal + reservedAmount).toFixed(6) }
+        ? { tradingProfitBalance: (currentBal + convertAmount).toFixed(6) }
+        : { teamBenefitBalance: (currentBal + convertAmount).toFixed(6) }
       )
       .where(eq(usersTable.id, user.id));
-    res.status(502).json({ message: buyResult.error || "Token buy failed. Your balance was not deducted." });
-    return;
-  }
-
-  // Step 2: Sell 90% of the tokens immediately
-  const tokensBought = buyResult.tokensBought;
-  const tokensToSell = (tokensBought * 9n) / 10n;
-
-  const sellResult = await sellTokens(tokensToSell, contractAddress, withdrawKey, gasKey, rpcUrl);
-  if (!sellResult.success || sellResult.usdtReceived === undefined) {
-    // Sell failed — credit the remaining 10% tokens to user's roiTokenBalance as fallback
-    logger.error({ buyTx: buyResult.txHash }, "Wallet convert: buy succeeded but sell failed — crediting tokens to user");
-    const [fresh] = await db.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
-    const currentTokenWei = ethers.parseUnits(fresh?.roiTokenBalance || "0", TOKEN_DECIMALS);
-    await db.update(usersTable)
-      .set({ roiTokenBalance: ethers.formatUnits(currentTokenWei + tokensBought, TOKEN_DECIMALS) })
-      .where(eq(usersTable.id, user.id));
-    res.status(502).json({ message: sellResult.error || "Token sell failed. Tokens credited to your token balance." });
+    res.status(502).json({ message: sellResult.error || "Token sell failed. Your balance has been restored." });
     return;
   }
 
   const usdtReceived = sellResult.usdtReceived;
 
-  // Step 3: Credit USDT to main wallet
+  // Credit USDT proceeds to user's main wallet
   await db.transaction(async (tx) => {
     const [fresh] = await tx.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
     const mainBal = parseFloat(fresh?.walletBalance ?? "0");
     await tx.update(usersTable)
-      .set({
-        walletBalance: (mainBal + usdtReceived).toFixed(6),
-        totalEarnings: (parseFloat(fresh?.totalEarnings ?? "0")).toFixed(6),
-      })
+      .set({ walletBalance: (mainBal + usdtReceived).toFixed(6) })
       .where(eq(usersTable.id, user.id));
     await tx.insert(tokenSalesTable).values({
       userId: user.id,
-      tokenAmount: ethers.formatUnits(tokensToSell, TOKEN_DECIMALS),
+      tokenAmount: ethers.formatUnits(reservedTokens, TOKEN_DECIMALS),
       usdtReceived: usdtReceived.toString(),
       sellTxHash: sellResult.txHash ?? null,
       status: "completed",

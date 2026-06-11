@@ -735,13 +735,13 @@ type EntryType = "deposit" | "withdraw";
 function ConvertModal({
   source,
   sourceBalance,
-  returnRate,
+  tokenPrice,
   onClose,
   onSuccess,
 }: {
   source: "trading" | "team";
-  sourceBalance: number;
-  returnRate: number;
+  sourceBalance: number;   // in HC tokens
+  tokenPrice: number;      // HC price in USDT (for estimate only)
   onClose: () => void;
   onSuccess: (data: { walletBalance: number; tradingProfitBalance: number; teamBenefitBalance: number }) => void;
 }) {
@@ -751,12 +751,13 @@ function ConvertModal({
   const [result, setResult] = useState<{ usdtReceived?: number; error?: string } | null>(null);
 
   const label = source === "trading" ? "Trading Profit" : "Team Benefit";
-  const estimated = parseFloat(amount || "0") * returnRate;
+  const tokenAmt = parseFloat(amount || "0");
+  const estimatedUsdt = tokenAmt * tokenPrice;
 
   const handleConvert = async () => {
     const amt = parseFloat(amount);
-    if (!amt || amt <= 0) { setResult({ error: "Enter a valid amount" }); return; }
-    if (amt > sourceBalance) { setResult({ error: `Insufficient balance. Available: $${sourceBalance.toFixed(2)}` }); return; }
+    if (!amt || amt <= 0) { setResult({ error: "Enter a valid token amount" }); return; }
+    if (amt > sourceBalance) { setResult({ error: `Insufficient balance. Available: ${sourceBalance.toFixed(4)} HC` }); return; }
     setConverting(true); setResult(null);
     try {
       const res = await fetch("/api/wallet/convert", {
@@ -797,9 +798,9 @@ function ConvertModal({
             </div>
             <div>
               <div className="font-bold" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.8rem" }}>
-                Convert to Main Wallet
+                Sell Tokens → Main Wallet
               </div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>{label} → Main Wallet</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>{label} HC → USDT</div>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center"
@@ -812,7 +813,7 @@ function ConvertModal({
           {done ? (
             <div className="text-center py-4">
               <CheckCircle2 size={48} className="mx-auto mb-3" style={{ color: "#34d399" }} />
-              <div className="font-bold text-sm mb-1" style={{ color: "#34d399" }}>Conversion Successful!</div>
+              <div className="font-bold text-sm mb-1" style={{ color: "#34d399" }}>Sale Successful!</div>
               <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.5)" }}>
                 Credited to your main wallet:
               </div>
@@ -829,22 +830,29 @@ function ConvertModal({
               <div className="rounded-xl px-4 py-2.5 text-center"
                 style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)" }}>
                 <div className="text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Available in {label}</div>
-                <div className="font-bold text-sm" style={{ color: TEAL }}>${sourceBalance.toFixed(2)}</div>
+                <div className="font-bold text-sm" style={{ color: TEAL }}>{sourceBalance.toFixed(4)} HC</div>
+                {tokenPrice > 0 && (
+                  <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.3)" }}>
+                    ≈ ${(sourceBalance * tokenPrice).toFixed(2)} USDT at current price
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.55)" }}>Amount to Convert (USDT)</label>
+                <label className="block text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.55)" }}>
+                  Tokens to Sell (HC)
+                </label>
                 <div className="relative">
                   <input
-                    type="number" min="1" step="0.01"
+                    type="number" min="0.000001" step="0.0001"
                     value={amount}
                     onChange={e => { setAmount(e.target.value); setResult(null); }}
-                    placeholder="Enter amount..."
+                    placeholder="Enter token amount..."
                     className="w-full px-4 py-3 pr-20 rounded-xl text-sm outline-none"
                     style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(91,140,255,0.22)", color: "rgba(194,210,255,0.9)" }}
                   />
                   <button
-                    onClick={() => setAmount(sourceBalance.toFixed(2))}
+                    onClick={() => setAmount(sourceBalance.toFixed(6))}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold px-2 py-0.5 rounded-lg"
                     style={{ background: "rgba(91,140,255,0.15)", color: TEAL }}>
                     MAX
@@ -852,22 +860,24 @@ function ConvertModal({
                 </div>
               </div>
 
-              {/* Estimated return */}
-              {parseFloat(amount) > 0 && (
+              {tokenAmt > 0 && (
                 <div className="rounded-xl px-4 py-3 space-y-2"
                   style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.2)" }}>
                   <div className="flex justify-between text-xs">
-                    <span style={{ color: "rgba(194,210,255,0.45)" }}>You convert</span>
-                    <span style={{ color: "rgba(200,240,255,0.85)", fontWeight: 600 }}>${parseFloat(amount || "0").toFixed(2)}</span>
+                    <span style={{ color: "rgba(194,210,255,0.45)" }}>Selling</span>
+                    <span style={{ color: "rgba(200,240,255,0.85)", fontWeight: 600 }}>{tokenAmt.toFixed(4)} HC</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span style={{ color: "rgba(194,210,255,0.45)" }}>Buy 100% tokens → Sell 90%</span>
-                    <span style={{ color: "rgba(194,210,255,0.45)" }}>~{(returnRate * 100).toFixed(0)}% return</span>
+                    <span style={{ color: "rgba(194,210,255,0.45)" }}>Token price (est.)</span>
+                    <span style={{ color: "rgba(194,210,255,0.55)" }}>${tokenPrice.toFixed(4)}</span>
                   </div>
                   <div className="h-px" style={{ background: "rgba(52,211,153,0.15)" }} />
                   <div className="flex justify-between text-xs font-bold">
-                    <span style={{ color: "#34d399" }}>Estimated to receive</span>
-                    <span style={{ color: "#34d399" }}>≈${estimated.toFixed(2)} USDT</span>
+                    <span style={{ color: "#34d399" }}>Est. USDT to receive</span>
+                    <span style={{ color: "#34d399" }}>≈${estimatedUsdt.toFixed(2)}</span>
+                  </div>
+                  <div className="text-xs" style={{ color: "rgba(194,210,255,0.25)" }}>
+                    Actual amount depends on on-chain price at time of sale.
                   </div>
                 </div>
               )}
@@ -881,7 +891,7 @@ function ConvertModal({
 
               <button
                 onClick={handleConvert}
-                disabled={converting || !amount}
+                disabled={converting || !amount || tokenAmt <= 0}
                 className="w-full py-3.5 rounded-2xl font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{
                   background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814",
@@ -889,7 +899,7 @@ function ConvertModal({
                   boxShadow: "0 0 24px rgba(91,140,255,0.25)",
                 }}
               >
-                {converting ? <><RefreshCw size={14} className="animate-spin" /> Converting…</> : <><CircleDollarSign size={14} /> Convert to Main Wallet</>}
+                {converting ? <><RefreshCw size={14} className="animate-spin" /> Selling…</> : <><CircleDollarSign size={14} /> Sell & Credit to Main Wallet</>}
               </button>
             </>
           )}
@@ -909,16 +919,17 @@ export default function WalletPage({ user }: { user: any }) {
   const [localUsdtBal, setLocalUsdtBal] = useState<number | null>(null);
   const [localTradingBal, setLocalTradingBal] = useState<number | null>(null);
   const [localTeamBal, setLocalTeamBal] = useState<number | null>(null);
-  const [returnRate, setReturnRate] = useState(0.81);
+  const [tokenPrice, setTokenPrice] = useState(0);
 
   const usdtBalance = localUsdtBal ?? (user?.walletBalance ?? 0);
-  const tradingBal = localTradingBal ?? (user?.tradingProfitBalance ?? 0);
-  const teamBal = localTeamBal ?? (user?.teamBenefitBalance ?? 0);
+  // Trading Profit and Team Benefit are stored in HC token amounts
+  const tradingBal = localTradingBal ?? (parseFloat(user?.tradingProfitBalance ?? "0") || 0);
+  const teamBal = localTeamBal ?? (parseFloat(user?.teamBenefitBalance ?? "0") || 0);
 
-  // Fetch return rate from public settings
+  // Fetch token price from public settings
   useEffect(() => {
     fetch("/api/settings/public").then(r => r.json()).then(d => {
-      if (d.walletConvertReturnRate) setReturnRate(d.walletConvertReturnRate);
+      if (d.hyperCoinPrice) setTokenPrice(parseFloat(d.hyperCoinPrice));
     }).catch(() => {});
   }, []);
 
@@ -985,10 +996,13 @@ export default function WalletPage({ user }: { user: any }) {
           }}
         >
           <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.38)" }}>Trading Profit</div>
-          <div className="font-black mb-1" style={{ fontFamily: "'Sora', sans-serif", color: "#34d399", fontSize: "1.25rem", lineHeight: 1.1 }}>
-            ${tradingBal.toFixed(2)}
+          <div className="font-black" style={{ fontFamily: "'Sora', sans-serif", color: "#34d399", fontSize: "1.1rem", lineHeight: 1.1 }}>
+            {tradingBal.toFixed(4)}
           </div>
-          <div className="text-xs mb-3" style={{ color: "rgba(194,210,255,0.28)" }}>ROI earnings</div>
+          <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(52,211,153,0.6)" }}>HC tokens</div>
+          {tokenPrice > 0 && (
+            <div className="text-xs mb-2" style={{ color: "rgba(194,210,255,0.3)" }}>≈${(tradingBal * tokenPrice).toFixed(2)}</div>
+          )}
           <button
             onClick={() => setShowConvertModal({ source: "trading" })}
             disabled={tradingBal <= 0}
@@ -999,7 +1013,7 @@ export default function WalletPage({ user }: { user: any }) {
               color: "#34d399",
             }}
           >
-            Convert →
+            Sell →
           </button>
         </div>
 
@@ -1012,10 +1026,13 @@ export default function WalletPage({ user }: { user: any }) {
           }}
         >
           <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.38)" }}>Team Benefit</div>
-          <div className="font-black mb-1" style={{ fontFamily: "'Sora', sans-serif", color: "#c084fc", fontSize: "1.25rem", lineHeight: 1.1 }}>
-            ${teamBal.toFixed(2)}
+          <div className="font-black" style={{ fontFamily: "'Sora', sans-serif", color: "#c084fc", fontSize: "1.1rem", lineHeight: 1.1 }}>
+            {teamBal.toFixed(4)}
           </div>
-          <div className="text-xs mb-3" style={{ color: "rgba(194,210,255,0.28)" }}>Level commissions</div>
+          <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(168,85,247,0.6)" }}>HC tokens</div>
+          {tokenPrice > 0 && (
+            <div className="text-xs mb-2" style={{ color: "rgba(194,210,255,0.3)" }}>≈${(teamBal * tokenPrice).toFixed(2)}</div>
+          )}
           <button
             onClick={() => setShowConvertModal({ source: "team" })}
             disabled={teamBal <= 0}
@@ -1026,17 +1043,17 @@ export default function WalletPage({ user }: { user: any }) {
               color: "#c084fc",
             }}
           >
-            Convert →
+            Sell →
           </button>
         </div>
       </div>
 
-      {/* Convert info note */}
+      {/* Info note */}
       <div className="flex gap-2.5 px-3 py-2.5 rounded-xl"
         style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
         <AlertCircle size={13} className="shrink-0 mt-0.5" style={{ color: "rgba(91,140,255,0.6)" }} />
         <p className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.45)" }}>
-          To move earnings to your main wallet, click <strong style={{ color: "rgba(194,210,255,0.7)" }}>Convert</strong>. The system buys tokens on-chain, sells 90%, and credits the proceeds as USDT to your main wallet.
+          Tokens in these wallets are held by the platform. Click <strong style={{ color: "rgba(194,210,255,0.7)" }}>Sell</strong> to sell them on-chain and receive USDT in your Main Wallet.
         </p>
       </div>
 
@@ -1217,7 +1234,7 @@ export default function WalletPage({ user }: { user: any }) {
         <ConvertModal
           source={showConvertModal.source}
           sourceBalance={showConvertModal.source === "trading" ? tradingBal : teamBal}
-          returnRate={returnRate}
+          tokenPrice={tokenPrice}
           onClose={() => setShowConvertModal(null)}
           onSuccess={(data) => {
             setLocalUsdtBal(data.walletBalance);
