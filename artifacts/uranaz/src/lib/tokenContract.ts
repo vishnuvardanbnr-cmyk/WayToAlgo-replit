@@ -218,9 +218,9 @@ export async function readAllowance(owner: string): Promise<bigint> {
 }
 export async function readSymbol(): Promise<string> {
   try {
-    return decodeString(await ethCall(TOKEN_CONTRACT_ADDRESS, SEL.symbol)) || "TOKEN";
+    return decodeString(await ethCall(TOKEN_CONTRACT_ADDRESS, SEL.symbol)) || "WTA";
   } catch {
-    return "TOKEN";
+    return "WTA";
   }
 }
 export async function readTotalLiquidity(): Promise<bigint> {

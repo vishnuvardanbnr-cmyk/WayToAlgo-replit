@@ -25,7 +25,7 @@ export default function DashboardTokenCard() {
   const configured = isTokenConfigured();
 
   const [account, setAccount] = useState<string | null>(null);
-  const [symbol, setSymbol] = useState("TOKEN");
+  const [symbol, setSymbol] = useState("WTA");
 
   const [buyPrice, setBuyPrice] = useState<bigint | null>(null);
   const [sellPrice, setSellPrice] = useState<bigint | null>(null);

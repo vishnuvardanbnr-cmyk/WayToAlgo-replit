@@ -43,7 +43,7 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   const configured = isTokenConfigured();
 
   const [account, setAccount] = useState<string | null>(null);
-  const [symbol, setSymbol] = useState("TOKEN");
+  const [symbol, setSymbol] = useState("WTA");
   const [mode, setMode] = useState<Mode>("buy");
   const [amount, setAmount] = useState("");
 
