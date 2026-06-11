@@ -8,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { TrendingUp, X, Calendar, DollarSign, Percent, Timer, Hash, TrendingDown, AlertTriangle, Snowflake, Coins } from "lucide-react";
+import { TrendingUp, X, Calendar, DollarSign, Timer, Hash, AlertTriangle, Snowflake, Coins } from "lucide-react";
 import TokenPurchase from "@/components/TokenPurchase";
 
 function getCoolingInfo(createdAt: string, coolingHours: number) {
@@ -26,28 +26,19 @@ const TEAL = "#5B8CFF";
 /* ── Investment Detail Modal ── */
 function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; coolingHours: number; onClose: () => void }) {
   const progress = Math.max(2, ((inv.durationDays - inv.remainingDays) / inv.durationDays) * 100);
-  const planLabels: Record<string, string> = {
-    tier1: "Starter — 0.6%/day · 300 days",
-    tier2: "Growth  — 0.7%/day · 260 days",
-    tier3: "Premium — 0.8%/day · 225 days",
-  };
-  const totalExpected = inv.amount * inv.dailyRate * inv.durationDays;
   const daysElapsed = inv.durationDays - inv.remainingDays;
 
   const cooling = getCoolingInfo(inv.createdAt, coolingHours);
 
   const rows = [
     { icon: Hash,        label: "Investment ID",    value: `#${String(inv.id).padStart(6, "0")}` },
-    { icon: Calendar,    label: "Plan",             value: planLabels[inv.planTier] ?? inv.planTier },
     { icon: Calendar,    label: "Start Date",       value: new Date(inv.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) },
     { icon: Calendar,    label: "End Date",         value: new Date(inv.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) },
     { icon: Timer,       label: "Duration",         value: `${inv.durationDays} days total` },
     { icon: Timer,       label: "Days Elapsed",     value: `${daysElapsed} days` },
     { icon: Timer,       label: "Days Remaining",   value: `${inv.remainingDays} days` },
     { icon: DollarSign,  label: "Total Invested",   value: `$${inv.amount.toFixed(2)}` },
-    { icon: Percent,     label: "Daily Rate",       value: `${(inv.dailyRate * 100).toFixed(1)}%` },
-    { icon: TrendingUp,  label: "Earned So Far",    value: `$${inv.earnedSoFar.toFixed(2)}` },
-    { icon: TrendingDown, label: "Expected Total",  value: `$${totalExpected.toFixed(2)}` },
+    { icon: TrendingUp,  label: "Earned So Far (USD est.)", value: `$${inv.earnedSoFar.toFixed(2)}` },
   ];
 
   return (
@@ -106,7 +97,7 @@ function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; cooli
           <div className="font-black" style={{ fontFamily: "'Sora', sans-serif", fontSize: "2rem", color: TEAL, textShadow: `0 0 24px ${TEAL}50` }}>
             ${inv.amount.toFixed(2)}
           </div>
-          <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.4)" }}>+{(inv.dailyRate * 100).toFixed(1)}% per day</div>
+          <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.4)" }}>Earning HC Tokens Daily</div>
         </div>
 
         {/* Cooling period banner */}
@@ -271,7 +262,7 @@ const GLASS = {
 } as const;
 
 const DEFAULT_MAX_TOTAL = 2000;
-const DEFAULT_PLAN = { dailyRate: 0.008, days: 300, min: 100, max: DEFAULT_MAX_TOTAL };
+const DEFAULT_PLAN = { days: 300, min: 100, max: DEFAULT_MAX_TOTAL };
 
 const schema = z.object({
   amount: z.coerce.number().min(100),
@@ -319,8 +310,6 @@ export default function Invest({ user }: { user: any }) {
   });
 
   const watchedAmount = form.watch("amount");
-  const dailyEarning = (watchedAmount || 0) * plan.dailyRate;
-  const totalReturn = dailyEarning * plan.days;
 
   const handleAmountChange = (val: number) => {
     form.setValue("amount", val);
@@ -410,8 +399,9 @@ export default function Invest({ user }: { user: any }) {
           <div>
             <div className="text-xs uppercase tracking-widest mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Investment Plan</div>
             <div className="font-black text-lg" style={{ fontFamily: "'Sora', sans-serif", color: TEAL }}>
-              {(plan.dailyRate * 100).toFixed(2)}% Daily ROI
+              Variable Token Returns
             </div>
+            <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Earn HC tokens daily · rate depends on trading profit</div>
           </div>
           <div
             className="px-3 py-1.5 rounded-xl text-xs font-bold"
@@ -421,11 +411,10 @@ export default function Invest({ user }: { user: any }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-5">
+        <div className="grid grid-cols-2 gap-2 mb-5">
           {[
             { label: "Min Amount", value: `$${plan.min.toLocaleString()}` },
             { label: "Max Amount", value: `$${plan.max.toLocaleString()}` },
-            { label: "Total Return", value: `${(plan.dailyRate * plan.days * 100).toFixed(0)}%` },
           ].map(item => (
             <div key={item.label} className="rounded-xl p-3 text-center"
               style={{ background: "rgba(0,20,40,0.5)", border: "1px solid rgba(91,140,255,0.12)" }}>
@@ -470,17 +459,16 @@ export default function Invest({ user }: { user: any }) {
               </FormItem>
             )} />
 
-            {/* Live calculator */}
+            {/* Token earnings info */}
             {(watchedAmount || 0) >= plan.min && (
-              <div className="rounded-xl px-4 py-3 space-y-2"
-                style={{ background: "rgba(52,211,153,0.05)", border: "1px solid rgba(52,211,153,0.18)" }}>
+              <div className="rounded-xl px-4 py-3 space-y-1.5"
+                style={{ background: "rgba(91,140,255,0.05)", border: "1px solid rgba(91,140,255,0.18)" }}>
                 <div className="flex justify-between text-xs">
-                  <span style={{ color: "rgba(194,210,255,0.45)" }}>Daily Earning</span>
-                  <span style={{ color: "#34d399", fontWeight: 600 }}>${dailyEarning.toFixed(2)}/day</span>
+                  <span style={{ color: "rgba(194,210,255,0.45)" }}>Investment duration</span>
+                  <span style={{ color: TEAL, fontWeight: 600 }}>{plan.days} days</span>
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span style={{ color: "rgba(194,210,255,0.45)" }}>Over {plan.days} days</span>
-                  <span style={{ color: "#34d399", fontWeight: 600 }}>${totalReturn.toFixed(2)} total</span>
+                <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>
+                  Daily HC tokens are credited proportional to your share of total platform investment, based on each day's real trading profit.
                 </div>
               </div>
             )}
@@ -551,7 +539,7 @@ export default function Invest({ user }: { user: any }) {
                             color: TEAL,
                           }}
                         >
-                          +{(inv.dailyRate * 100).toFixed(1)}%/day
+                          HC Tokens Daily
                         </span>
                       </div>
                     </div>

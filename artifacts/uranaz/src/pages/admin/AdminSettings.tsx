@@ -61,12 +61,8 @@ type SettingsForm = {
 
 type IncomeForm = {
   spotReferralRate: number;
-  tier1DailyRate: number;
-  tier2DailyRate: number;
-  tier3DailyRate: number;
-  tier1Days: number;
-  tier2Days: number;
-  tier3Days: number;
+  planDays: number;
+  planMinAmount: number;
   levelCommL1: number;
   levelCommL2: number;
   levelCommL3: number;
@@ -483,8 +479,8 @@ export default function AdminSettings() {
   const incomeForm = useForm<IncomeForm>({
     defaultValues: {
       spotReferralRate: 5,
-      tier1DailyRate: 0.6, tier2DailyRate: 0.7, tier3DailyRate: 0.8,
-      tier1Days: 300, tier2Days: 260, tier3Days: 225,
+      planDays: 300,
+      planMinAmount: 100,
       levelCommL1: 20, levelCommL2: 10, levelCommL3: 10,
       levelCommL4: 4, levelCommL5: 4, levelCommL6: 4, levelCommL7: 4, levelCommL8: 4,
       levelUnlockL2: 1000, levelUnlockL3: 3000,
@@ -1220,41 +1216,28 @@ export default function AdminSettings() {
                 </div>
               </div>
 
-              {/* Tier Daily Rates */}
+              {/* Investment Plan */}
               <div>
-                <SubHeader>
-                  <span className="inline-flex items-center gap-1.5"><Coins size={12} />Daily Return Rates per Tier</span>
+                <SubHeader hint="Returns are distributed as HC tokens proportional to investment size — no fixed daily % rate.">
+                  <span className="inline-flex items-center gap-1.5"><Coins size={12} />Investment Plan</span>
                 </SubHeader>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 mb-4">
-                  {([
-                    { label: "Tier 1 Rate (%)", name: "tier1DailyRate" as const, hint: "$100–$400" },
-                    { label: "Tier 2 Rate (%)", name: "tier2DailyRate" as const, hint: "$500–$900" },
-                    { label: "Tier 3 Rate (%)", name: "tier3DailyRate" as const, hint: "$1000–$1500" },
-                  ]).map(f => (
-                    <div key={f.name}>
-                      <FieldLabel>{f.label}</FieldLabel>
-                      <input type="number" step="0.01" min="0" max="100"
-                        {...incomeForm.register(f.name, { valueAsNumber: true })}
-                        className={INPUT_CLS} style={INPUT_STYLE}
-                      />
-                      <FieldHint>{f.hint}</FieldHint>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {([
-                    { label: "Tier 1 Days", name: "tier1Days" as const },
-                    { label: "Tier 2 Days", name: "tier2Days" as const },
-                    { label: "Tier 3 Days", name: "tier3Days" as const },
-                  ]).map(f => (
-                    <div key={f.name}>
-                      <FieldLabel>{f.label}</FieldLabel>
-                      <input type="number" min="1"
-                        {...incomeForm.register(f.name, { valueAsNumber: true })}
-                        className={INPUT_CLS} style={INPUT_STYLE}
-                      />
-                    </div>
-                  ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                  <div>
+                    <FieldLabel>Plan Duration (days)</FieldLabel>
+                    <input type="number" min="1"
+                      {...incomeForm.register("planDays", { valueAsNumber: true })}
+                      className={INPUT_CLS} style={INPUT_STYLE}
+                    />
+                    <FieldHint>How long each investment runs before completion.</FieldHint>
+                  </div>
+                  <div>
+                    <FieldLabel>Minimum Investment (USDT)</FieldLabel>
+                    <input type="number" step="1" min="1"
+                      {...incomeForm.register("planMinAmount", { valueAsNumber: true })}
+                      className={INPUT_CLS} style={INPUT_STYLE}
+                    />
+                    <FieldHint>Minimum amount a user can invest in one plan.</FieldHint>
+                  </div>
                 </div>
               </div>
 

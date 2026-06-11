@@ -713,12 +713,8 @@ router.get("/admin/income-settings", requireAdmin, async (req, res) => {
   }
   res.json({
     spotReferralRate: parseFloat(s.spotReferralRate) * 100,
-    tier1DailyRate:   parseFloat(s.tier1DailyRate) * 100,
-    tier2DailyRate:   parseFloat(s.tier2DailyRate) * 100,
-    tier3DailyRate:   parseFloat(s.tier3DailyRate) * 100,
-    tier1Days: s.tier1Days,
-    tier2Days: s.tier2Days,
-    tier3Days: s.tier3Days,
+    planDays: s.planDays ?? 300,
+    planMinAmount: parseFloat(s.planMinAmount ?? "100"),
     levelCommL1: parseFloat(s.levelCommL1) * 100,
     levelCommL2: parseFloat(s.levelCommL2) * 100,
     levelCommL3: parseFloat(s.levelCommL3) * 100,
@@ -747,12 +743,8 @@ router.get("/admin/income-settings", requireAdmin, async (req, res) => {
 
 const IncomeSettingsBody = z.object({
   spotReferralRate: z.number().min(0).max(100),
-  tier1DailyRate:  z.number().min(0).max(100),
-  tier2DailyRate:  z.number().min(0).max(100),
-  tier3DailyRate:  z.number().min(0).max(100),
-  tier1Days: z.number().int().min(1),
-  tier2Days: z.number().int().min(1),
-  tier3Days: z.number().int().min(1),
+  planDays: z.number().int().min(1).optional(),
+  planMinAmount: z.number().min(0).optional(),
   levelCommL1: z.number().min(0).max(100),
   levelCommL2: z.number().min(0).max(100),
   levelCommL3: z.number().min(0).max(100),
@@ -786,14 +778,10 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     return;
   }
   const d = parsed.data;
-  const updates = {
+  const updates: Record<string, unknown> = {
     spotReferralRate: (d.spotReferralRate / 100).toString(),
-    tier1DailyRate:  (d.tier1DailyRate  / 100).toString(),
-    tier2DailyRate:  (d.tier2DailyRate  / 100).toString(),
-    tier3DailyRate:  (d.tier3DailyRate  / 100).toString(),
-    tier1Days: d.tier1Days,
-    tier2Days: d.tier2Days,
-    tier3Days: d.tier3Days,
+    ...(d.planDays != null ? { planDays: d.planDays } : {}),
+    ...(d.planMinAmount != null ? { planMinAmount: d.planMinAmount.toString() } : {}),
     levelCommL1: (d.levelCommL1 / 100).toString(),
     levelCommL2: (d.levelCommL2 / 100).toString(),
     levelCommL3: (d.levelCommL3 / 100).toString(),
@@ -827,12 +815,8 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
   }
   res.json({
     spotReferralRate: parseFloat(s.spotReferralRate) * 100,
-    tier1DailyRate:   parseFloat(s.tier1DailyRate) * 100,
-    tier2DailyRate:   parseFloat(s.tier2DailyRate) * 100,
-    tier3DailyRate:   parseFloat(s.tier3DailyRate) * 100,
-    tier1Days: s.tier1Days,
-    tier2Days: s.tier2Days,
-    tier3Days: s.tier3Days,
+    planDays: s.planDays ?? 300,
+    planMinAmount: parseFloat(s.planMinAmount ?? "100"),
     levelCommL1: parseFloat(s.levelCommL1) * 100,
     levelCommL2: parseFloat(s.levelCommL2) * 100,
     levelCommL3: parseFloat(s.levelCommL3) * 100,
