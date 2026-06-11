@@ -75,6 +75,8 @@ function userToResponse(user: typeof usersTable.$inferSelect) {
     walletBalance: parseFloat(user.walletBalance ?? "0"),
     hyperCoinBalance: parseFloat(user.hyperCoinBalance ?? "0"),
     roiTokenBalance: user.roiTokenBalance ?? "0",
+    tradingProfitBalance: user.tradingProfitBalance ?? "0",
+    teamBenefitBalance: user.teamBenefitBalance ?? "0",
     createdAt: user.createdAt.toISOString(),
   };
 }
