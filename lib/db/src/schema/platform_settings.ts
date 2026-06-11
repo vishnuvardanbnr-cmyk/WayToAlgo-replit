@@ -43,14 +43,20 @@ export const platformSettingsTable = pgTable("platform_settings", {
   hyperCoinPrice: numeric("hyper_coin_price", { precision: 10, scale: 4 }).notNull().default("1.0000"),
   // Launch offer
   launchOfferEndDate: timestamp("launch_offer_end_date"),
-  // Investment tier daily rates (decimal, e.g. 0.006 = 0.6%)
+  // Investment tier daily rates (decimal, e.g. 0.006 = 0.6%) — kept for legacy data
   tier1DailyRate: numeric("tier1_daily_rate", { precision: 8, scale: 5 }).notNull().default("0.00600"),
   tier2DailyRate: numeric("tier2_daily_rate", { precision: 8, scale: 5 }).notNull().default("0.00700"),
   tier3DailyRate: numeric("tier3_daily_rate", { precision: 8, scale: 5 }).notNull().default("0.00800"),
-  // Investment tier durations (days)
+  // Investment tier durations (days) — kept for legacy data
   tier1Days: integer("tier1_days").notNull().default(300),
   tier2Days: integer("tier2_days").notNull().default(260),
   tier3Days: integer("tier3_days").notNull().default(225),
+  // Single unified plan (replaces the 3-tier system)
+  planDailyRate: numeric("plan_daily_rate", { precision: 8, scale: 5 }).notNull().default("0.00800"),
+  planDays: integer("plan_days").notNull().default(300),
+  planMinAmount: numeric("plan_min_amount", { precision: 10, scale: 2 }).notNull().default("100"),
+  // Wallet conversion fee — user gets this % of their sell proceeds (e.g. 0.81 = 81%)
+  walletConvertReturnRate: numeric("wallet_convert_return_rate", { precision: 5, scale: 4 }).notNull().default("0.8100"),
   // Level commission rates (decimal, e.g. 0.20 = 20%)
   levelCommL1: numeric("level_comm_l1", { precision: 6, scale: 4 }).notNull().default("0.2000"),
   levelCommL2: numeric("level_comm_l2", { precision: 6, scale: 4 }).notNull().default("0.1000"),

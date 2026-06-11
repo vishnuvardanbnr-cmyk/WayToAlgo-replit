@@ -1,7 +1,11 @@
 import { Router } from "express";
-import { db, usersTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, p2pTransfersTable } from "@workspace/db";
+import { db, usersTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, p2pTransfersTable, tokenSalesTable } from "@workspace/db";
 import { eq, or, isNull, lte, gte, and, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
+import { resolveKey } from "../lib/keyEncryption.js";
+import { getTokenPrices, buyTokens, sellTokens, isValidAddress, TOKEN_DECIMALS } from "../lib/tokenChain";
+import { ethers } from "ethers";
+import { logger } from "../lib/logger";
 
 const router = Router();
 
@@ -13,19 +17,29 @@ async function getSettings() {
 // GET /api/settings/public — no auth required
 router.get("/settings/public", async (_req, res) => {
   const settings = await getSettings();
+  const maxTotal = parseFloat(settings?.maxTotalInvestment ?? "2000");
+  const minAmount = parseFloat(settings?.planMinAmount ?? "100");
   res.json({
     hyperCoinMinPercent: parseFloat(settings?.hyperCoinMinPercent ?? "50"),
     hyperCoinPrice: parseFloat(settings?.hyperCoinPrice ?? "1.0000"),
     launchOfferActive: settings?.launchOfferActive ?? true,
     launchOfferEndDate: settings?.launchOfferEndDate ? settings.launchOfferEndDate.toISOString() : null,
-    maxTotalInvestment: parseFloat(settings?.maxTotalInvestment ?? "2000"),
+    maxTotalInvestment: maxTotal,
+    plan: {
+      dailyRate: parseFloat(settings?.planDailyRate ?? "0.008"),
+      days: settings?.planDays ?? 300,
+      min: minAmount,
+      max: maxTotal,
+    },
+    // Keep legacy plans field for any old code still using it
     plans: {
       tier1: { dailyRate: parseFloat(settings?.tier1DailyRate ?? "0.006"), days: settings?.tier1Days ?? 300, min: 100, max: 400 },
       tier2: { dailyRate: parseFloat(settings?.tier2DailyRate ?? "0.007"), days: settings?.tier2Days ?? 260, min: 500, max: 900 },
-      tier3: { dailyRate: parseFloat(settings?.tier3DailyRate ?? "0.008"), days: settings?.tier3Days ?? 225, min: 1000, max: parseFloat(settings?.maxTotalInvestment ?? "2000") },
+      tier3: { dailyRate: parseFloat(settings?.tier3DailyRate ?? "0.008"), days: settings?.tier3Days ?? 225, min: 1000, max: maxTotal },
     },
     hcDepositUsername: settings?.hcDepositUsername ?? "",
     coolingHours: settings?.withdrawalCoolingHours ?? 24,
+    walletConvertReturnRate: parseFloat(settings?.walletConvertReturnRate ?? "0.81"),
   });
 });
 
@@ -155,6 +169,136 @@ router.get("/offers/active", async (_req, res) => {
     endDate: o.endDate ? o.endDate.toISOString() : null,
     criteria: o.criteria,
   })));
+});
+
+// POST /api/wallet/convert — convert trading profit or team benefit balance to main wallet
+// Flow: buy tokens on-chain → platform gets 100% tokens → sell 90% → user gets sell proceeds
+router.post("/wallet/convert", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+  const { source, amount } = req.body; // source: "trading" | "team"
+
+  if (!source || !["trading", "team"].includes(source)) {
+    res.status(400).json({ message: "Invalid source. Use 'trading' or 'team'" });
+    return;
+  }
+  const convertAmount = parseFloat(amount);
+  if (!convertAmount || convertAmount <= 0) {
+    res.status(400).json({ message: "Amount must be greater than 0" });
+    return;
+  }
+
+  const settings = await getSettings();
+  if (!settings) {
+    res.status(500).json({ message: "Platform settings not configured" });
+    return;
+  }
+
+  const contractAddress = (settings.tokenContractAddress || "").trim();
+  if (!isValidAddress(contractAddress)) {
+    res.status(400).json({ message: "Token contract not configured — conversion unavailable" });
+    return;
+  }
+  const withdrawKey = resolveKey(settings.withdrawWalletPrivateKey);
+  const gasKey = resolveKey(settings.gasWalletPrivateKey);
+  if (!withdrawKey || !gasKey) {
+    res.status(400).json({ message: "Platform wallet not configured for conversion" });
+    return;
+  }
+  const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
+  const returnRate = parseFloat(settings.walletConvertReturnRate ?? "0.81");
+
+  // Reserve the amount from the source wallet atomically
+  let reservedAmount = 0;
+  try {
+    await db.transaction(async (tx) => {
+      const [fresh] = await tx.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
+      if (!fresh) throw Object.assign(new Error("User not found"), { status: 404 });
+
+      const field = source === "trading" ? "tradingProfitBalance" : "teamBenefitBalance";
+      const currentBal = parseFloat((source === "trading" ? fresh.tradingProfitBalance : fresh.teamBenefitBalance) ?? "0");
+
+      if (convertAmount > currentBal) {
+        throw Object.assign(
+          new Error(`Insufficient ${source === "trading" ? "Trading Profit" : "Team Benefit"} balance. Available: $${currentBal.toFixed(2)}`),
+          { status: 400 }
+        );
+      }
+      reservedAmount = convertAmount;
+      const newBal = (currentBal - convertAmount).toFixed(6);
+      await tx.update(usersTable)
+        .set(source === "trading" ? { tradingProfitBalance: newBal } : { teamBenefitBalance: newBal })
+        .where(eq(usersTable.id, user.id));
+    });
+  } catch (err: any) {
+    res.status(err?.status ?? 500).json({ message: err?.message ?? "Could not reserve balance" });
+    return;
+  }
+
+  // Step 1: Buy tokens with the full convertAmount
+  const buyResult = await buyTokens(reservedAmount, contractAddress, withdrawKey, gasKey, rpcUrl);
+  if (!buyResult.success || !buyResult.tokensBought) {
+    // Refund the reserved amount
+    const [fresh] = await db.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
+    const currentBal = parseFloat((source === "trading" ? fresh?.tradingProfitBalance : fresh?.teamBenefitBalance) ?? "0");
+    await db.update(usersTable)
+      .set(source === "trading"
+        ? { tradingProfitBalance: (currentBal + reservedAmount).toFixed(6) }
+        : { teamBenefitBalance: (currentBal + reservedAmount).toFixed(6) }
+      )
+      .where(eq(usersTable.id, user.id));
+    res.status(502).json({ message: buyResult.error || "Token buy failed. Your balance was not deducted." });
+    return;
+  }
+
+  // Step 2: Sell 90% of the tokens immediately
+  const tokensBought = buyResult.tokensBought;
+  const tokensToSell = (tokensBought * 9n) / 10n;
+
+  const sellResult = await sellTokens(tokensToSell, contractAddress, withdrawKey, gasKey, rpcUrl);
+  if (!sellResult.success || sellResult.usdtReceived === undefined) {
+    // Sell failed — credit the remaining 10% tokens to user's roiTokenBalance as fallback
+    logger.error({ buyTx: buyResult.txHash }, "Wallet convert: buy succeeded but sell failed — crediting tokens to user");
+    const [fresh] = await db.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
+    const currentTokenWei = ethers.parseUnits(fresh?.roiTokenBalance || "0", TOKEN_DECIMALS);
+    await db.update(usersTable)
+      .set({ roiTokenBalance: ethers.formatUnits(currentTokenWei + tokensBought, TOKEN_DECIMALS) })
+      .where(eq(usersTable.id, user.id));
+    res.status(502).json({ message: sellResult.error || "Token sell failed. Tokens credited to your token balance." });
+    return;
+  }
+
+  const usdtReceived = sellResult.usdtReceived;
+
+  // Step 3: Credit USDT to main wallet
+  await db.transaction(async (tx) => {
+    const [fresh] = await tx.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
+    const mainBal = parseFloat(fresh?.walletBalance ?? "0");
+    await tx.update(usersTable)
+      .set({
+        walletBalance: (mainBal + usdtReceived).toFixed(6),
+        totalEarnings: (parseFloat(fresh?.totalEarnings ?? "0")).toFixed(6),
+      })
+      .where(eq(usersTable.id, user.id));
+    await tx.insert(tokenSalesTable).values({
+      userId: user.id,
+      tokenAmount: ethers.formatUnits(tokensToSell, TOKEN_DECIMALS),
+      usdtReceived: usdtReceived.toString(),
+      sellTxHash: sellResult.txHash ?? null,
+      status: "completed",
+    });
+  });
+
+  const [after] = await db.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
+  res.json({
+    success: true,
+    converted: reservedAmount,
+    usdtReceived,
+    buyTxHash: buyResult.txHash,
+    sellTxHash: sellResult.txHash,
+    walletBalance: parseFloat(after?.walletBalance ?? "0"),
+    tradingProfitBalance: parseFloat(after?.tradingProfitBalance ?? "0"),
+    teamBenefitBalance: parseFloat(after?.teamBenefitBalance ?? "0"),
+  });
 });
 
 // POST /api/wallet/internal-transfer

@@ -34,6 +34,9 @@ export const usersTable = pgTable("users", {
   // Virtual ROI-token balance (18-dp token units) credited by on-chain buy distributions.
   // Not withdrawable until sold back to the contract on the Wallet page.
   roiTokenBalance: numeric("roi_token_balance", { precision: 40, scale: 18 }).notNull().default("0"),
+  // Separate earning wallets — must be converted to main wallet via token buy/sell
+  tradingProfitBalance: numeric("trading_profit_balance", { precision: 20, scale: 6 }).notNull().default("0"),
+  teamBenefitBalance: numeric("team_benefit_balance", { precision: 20, scale: 6 }).notNull().default("0"),
   depositAddress: text("deposit_address"),
   depositPrivateKey: text("deposit_private_key"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

@@ -729,15 +729,198 @@ function EmptyState() {
 const WALLET_PAGE_SIZE = 10;
 type EntryType = "deposit" | "withdraw";
 
+/* ────────────────────────────────────────────────
+   CONVERT MODAL
+   ──────────────────────────────────────────────── */
+function ConvertModal({
+  source,
+  sourceBalance,
+  returnRate,
+  onClose,
+  onSuccess,
+}: {
+  source: "trading" | "team";
+  sourceBalance: number;
+  returnRate: number;
+  onClose: () => void;
+  onSuccess: (data: { walletBalance: number; tradingProfitBalance: number; teamBenefitBalance: number }) => void;
+}) {
+  const [amount, setAmount] = useState("");
+  const [converting, setConverting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [result, setResult] = useState<{ usdtReceived?: number; error?: string } | null>(null);
+
+  const label = source === "trading" ? "Trading Profit" : "Team Benefit";
+  const estimated = parseFloat(amount || "0") * returnRate;
+
+  const handleConvert = async () => {
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0) { setResult({ error: "Enter a valid amount" }); return; }
+    if (amt > sourceBalance) { setResult({ error: `Insufficient balance. Available: $${sourceBalance.toFixed(2)}` }); return; }
+    setConverting(true); setResult(null);
+    try {
+      const res = await fetch("/api/wallet/convert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}` },
+        body: JSON.stringify({ source, amount: amt }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setResult({ error: data.message || "Conversion failed" }); return; }
+      setResult({ usdtReceived: data.usdtReceived });
+      setDone(true);
+      onSuccess({ walletBalance: data.walletBalance, tradingProfitBalance: data.tradingProfitBalance, teamBenefitBalance: data.teamBenefitBalance });
+    } catch { setResult({ error: "Connection error" }); }
+    finally { setConverting(false); }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3"
+      style={{ background: "rgba(6,8,20,0.92)", backdropFilter: "blur(12px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-3xl overflow-hidden"
+        style={{
+          background: "linear-gradient(170deg, rgba(4,16,32,0.99) 0%, rgba(2,10,22,0.99) 100%)",
+          border: "1px solid rgba(91,140,255,0.18)",
+          boxShadow: "0 8px 60px rgba(6,8,20,0.9)",
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #5B8CFF, transparent)" }} />
+        <div className="flex items-center justify-between px-5 pt-5 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))", border: "1px solid rgba(91,140,255,0.28)" }}>
+              <CircleDollarSign size={17} style={{ color: TEAL }} />
+            </div>
+            <div>
+              <div className="font-bold" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.8rem" }}>
+                Convert to Main Wallet
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>{label} → Main Wallet</div>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center"
+            style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.09)" }}>
+            <X size={14} style={{ color: "rgba(194,210,255,0.45)" }} />
+          </button>
+        </div>
+
+        <div className="px-5 pb-6 space-y-4">
+          {done ? (
+            <div className="text-center py-4">
+              <CheckCircle2 size={48} className="mx-auto mb-3" style={{ color: "#34d399" }} />
+              <div className="font-bold text-sm mb-1" style={{ color: "#34d399" }}>Conversion Successful!</div>
+              <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.5)" }}>
+                Credited to your main wallet:
+              </div>
+              <div className="font-black text-xl mb-3" style={{ color: TEAL, fontFamily: "'Sora', sans-serif" }}>
+                ${result?.usdtReceived?.toFixed(2)} USDT
+              </div>
+              <button onClick={onClose} className="w-full py-3 rounded-2xl font-bold text-xs"
+                style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814" }}>
+                Done
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-xl px-4 py-2.5 text-center"
+                style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)" }}>
+                <div className="text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Available in {label}</div>
+                <div className="font-bold text-sm" style={{ color: TEAL }}>${sourceBalance.toFixed(2)}</div>
+              </div>
+
+              <div>
+                <label className="block text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.55)" }}>Amount to Convert (USDT)</label>
+                <div className="relative">
+                  <input
+                    type="number" min="1" step="0.01"
+                    value={amount}
+                    onChange={e => { setAmount(e.target.value); setResult(null); }}
+                    placeholder="Enter amount..."
+                    className="w-full px-4 py-3 pr-20 rounded-xl text-sm outline-none"
+                    style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(91,140,255,0.22)", color: "rgba(194,210,255,0.9)" }}
+                  />
+                  <button
+                    onClick={() => setAmount(sourceBalance.toFixed(2))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold px-2 py-0.5 rounded-lg"
+                    style={{ background: "rgba(91,140,255,0.15)", color: TEAL }}>
+                    MAX
+                  </button>
+                </div>
+              </div>
+
+              {/* Estimated return */}
+              {parseFloat(amount) > 0 && (
+                <div className="rounded-xl px-4 py-3 space-y-2"
+                  style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                  <div className="flex justify-between text-xs">
+                    <span style={{ color: "rgba(194,210,255,0.45)" }}>You convert</span>
+                    <span style={{ color: "rgba(200,240,255,0.85)", fontWeight: 600 }}>${parseFloat(amount || "0").toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span style={{ color: "rgba(194,210,255,0.45)" }}>Buy 100% tokens → Sell 90%</span>
+                    <span style={{ color: "rgba(194,210,255,0.45)" }}>~{(returnRate * 100).toFixed(0)}% return</span>
+                  </div>
+                  <div className="h-px" style={{ background: "rgba(52,211,153,0.15)" }} />
+                  <div className="flex justify-between text-xs font-bold">
+                    <span style={{ color: "#34d399" }}>Estimated to receive</span>
+                    <span style={{ color: "#34d399" }}>≈${estimated.toFixed(2)} USDT</span>
+                  </div>
+                </div>
+              )}
+
+              {result?.error && (
+                <div className="px-3 py-2.5 rounded-xl text-xs"
+                  style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)", color: "#f87171" }}>
+                  {result.error}
+                </div>
+              )}
+
+              <button
+                onClick={handleConvert}
+                disabled={converting || !amount}
+                className="w-full py-3.5 rounded-2xl font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{
+                  background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814",
+                  fontFamily: "'Sora', sans-serif", fontSize: "0.75rem", letterSpacing: "0.05em",
+                  boxShadow: "0 0 24px rgba(91,140,255,0.25)",
+                }}
+              >
+                {converting ? <><RefreshCw size={14} className="animate-spin" /> Converting…</> : <><CircleDollarSign size={14} /> Convert to Main Wallet</>}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WalletPage({ user }: { user: any }) {
   const [, setLocation] = useLocation();
   const [selected, setSelected] = useState<{ item: any; type: EntryType } | null>(null);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showP2PModal, setShowP2PModal] = useState(false);
+  const [showConvertModal, setShowConvertModal] = useState<{ source: "trading" | "team" } | null>(null);
   const [page, setPage] = useState(1);
   const [localUsdtBal, setLocalUsdtBal] = useState<number | null>(null);
+  const [localTradingBal, setLocalTradingBal] = useState<number | null>(null);
+  const [localTeamBal, setLocalTeamBal] = useState<number | null>(null);
+  const [returnRate, setReturnRate] = useState(0.81);
 
   const usdtBalance = localUsdtBal ?? (user?.walletBalance ?? 0);
+  const tradingBal = localTradingBal ?? (user?.tradingProfitBalance ?? 0);
+  const teamBal = localTeamBal ?? (user?.teamBenefitBalance ?? 0);
+
+  // Fetch return rate from public settings
+  useEffect(() => {
+    fetch("/api/settings/public").then(r => r.json()).then(d => {
+      if (d.walletConvertReturnRate) setReturnRate(d.walletConvertReturnRate);
+    }).catch(() => {});
+  }, []);
 
   const { data: summary }    = useGetIncomeSummary();
   const { data: investments } = useListInvestments();
@@ -770,49 +953,91 @@ export default function WalletPage({ user }: { user: any }) {
         Wallet
       </h1>
 
-      {/* ── Balance Cards ── */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Deposit Balance */}
+      {/* ── Main Wallet Card ── */}
+      <div
+        className="rounded-2xl p-5"
+        style={{
+          background: "linear-gradient(135deg, rgba(91,140,255,0.13), rgba(61,92,224,0.05))",
+          border: "1px solid rgba(91,140,255,0.28)",
+          boxShadow: "0 0 24px rgba(91,140,255,0.08)",
+        }}
+      >
+        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.4)" }}>
+          Main Wallet
+        </div>
         <div
-          className="rounded-2xl p-4 text-center"
+          className="font-black"
+          style={{ fontFamily: "'Sora', sans-serif", color: TEAL, fontSize: "2rem", textShadow: `0 0 20px ${TEAL}55`, lineHeight: 1.1 }}
+        >
+          ${usdtBalance.toFixed(2)}
+        </div>
+        <div className="text-xs mt-1.5" style={{ color: "rgba(194,210,255,0.28)" }}>USDT · Deposit, invest, withdraw</div>
+      </div>
+
+      {/* ── Earning Wallets ── */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Trading Profit Wallet */}
+        <div
+          className="rounded-2xl p-4"
           style={{
-            background: "linear-gradient(135deg, rgba(91,140,255,0.13), rgba(61,92,224,0.05))",
-            border: "1px solid rgba(91,140,255,0.28)",
-            boxShadow: "0 0 24px rgba(91,140,255,0.08)",
+            background: "linear-gradient(135deg, rgba(52,211,153,0.10), rgba(16,185,129,0.04))",
+            border: "1px solid rgba(52,211,153,0.22)",
           }}
         >
-          <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.4)" }}>
-            Deposit Balance
+          <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.38)" }}>Trading Profit</div>
+          <div className="font-black mb-1" style={{ fontFamily: "'Sora', sans-serif", color: "#34d399", fontSize: "1.25rem", lineHeight: 1.1 }}>
+            ${tradingBal.toFixed(2)}
           </div>
-          <div
-            className="font-black"
-            style={{ fontFamily: "'Sora', sans-serif", color: TEAL, fontSize: "1.5rem", textShadow: `0 0 20px ${TEAL}55`, lineHeight: 1.1 }}
+          <div className="text-xs mb-3" style={{ color: "rgba(194,210,255,0.28)" }}>ROI earnings</div>
+          <button
+            onClick={() => setShowConvertModal({ source: "trading" })}
+            disabled={tradingBal <= 0}
+            className="w-full py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-40"
+            style={{
+              background: tradingBal > 0 ? "linear-gradient(135deg, rgba(52,211,153,0.2), rgba(52,211,153,0.08))" : "rgba(52,211,153,0.05)",
+              border: "1px solid rgba(52,211,153,0.35)",
+              color: "#34d399",
+            }}
           >
-            ${usdtBalance.toFixed(2)}
-          </div>
-          <div className="text-xs mt-2" style={{ color: "rgba(194,210,255,0.28)" }}>USDT · For investment</div>
+            Convert →
+          </button>
         </div>
 
-        {/* Earnings Balance */}
+        {/* Team Benefit Wallet */}
         <div
-          className="rounded-2xl p-4 text-center"
+          className="rounded-2xl p-4"
           style={{
-            background: "linear-gradient(135deg, rgba(52,211,153,0.12), rgba(16,185,129,0.05))",
-            border: "1px solid rgba(52,211,153,0.28)",
-            boxShadow: "0 0 24px rgba(52,211,153,0.08)",
+            background: "linear-gradient(135deg, rgba(168,85,247,0.10), rgba(139,92,246,0.04))",
+            border: "1px solid rgba(168,85,247,0.22)",
           }}
         >
-          <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.4)" }}>
-            Earnings Balance
+          <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.38)" }}>Team Benefit</div>
+          <div className="font-black mb-1" style={{ fontFamily: "'Sora', sans-serif", color: "#c084fc", fontSize: "1.25rem", lineHeight: 1.1 }}>
+            ${teamBal.toFixed(2)}
           </div>
-          <div
-            className="font-black"
-            style={{ fontFamily: "'Sora', sans-serif", color: "#34d399", fontSize: "1.5rem", textShadow: "0 0 20px rgba(52,211,153,0.55)", lineHeight: 1.1 }}
+          <div className="text-xs mb-3" style={{ color: "rgba(194,210,255,0.28)" }}>Level commissions</div>
+          <button
+            onClick={() => setShowConvertModal({ source: "team" })}
+            disabled={teamBal <= 0}
+            className="w-full py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-40"
+            style={{
+              background: teamBal > 0 ? "linear-gradient(135deg, rgba(168,85,247,0.2), rgba(168,85,247,0.08))" : "rgba(168,85,247,0.05)",
+              border: "1px solid rgba(168,85,247,0.35)",
+              color: "#c084fc",
+            }}
           >
-            ${(summary?.availableBalance ?? 0).toFixed(2)}
-          </div>
-          <div className="text-xs mt-2" style={{ color: "rgba(194,210,255,0.28)" }}>USDT · Ready to withdraw</div>
+            Convert →
+          </button>
         </div>
+      </div>
+
+      {/* Convert info note */}
+      <div className="flex gap-2.5 px-3 py-2.5 rounded-xl"
+        style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
+        <AlertCircle size={13} className="shrink-0 mt-0.5" style={{ color: "rgba(91,140,255,0.6)" }} />
+        <p className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.45)" }}>
+          To move earnings to your main wallet, click <strong style={{ color: "rgba(194,210,255,0.7)" }}>Convert</strong>. The system buys tokens on-chain, sells 90%, and credits the proceeds as USDT to your main wallet.
+        </p>
       </div>
 
 
@@ -983,6 +1208,21 @@ export default function WalletPage({ user }: { user: any }) {
           onClose={() => setShowP2PModal(false)}
           onSuccess={(newUsdt) => {
             setLocalUsdtBal(newUsdt);
+          }}
+        />
+      )}
+
+      {/* Convert Modal */}
+      {showConvertModal && (
+        <ConvertModal
+          source={showConvertModal.source}
+          sourceBalance={showConvertModal.source === "trading" ? tradingBal : teamBal}
+          returnRate={returnRate}
+          onClose={() => setShowConvertModal(null)}
+          onSuccess={(data) => {
+            setLocalUsdtBal(data.walletBalance);
+            setLocalTradingBal(data.tradingProfitBalance);
+            setLocalTeamBal(data.teamBenefitBalance);
           }}
         />
       )}

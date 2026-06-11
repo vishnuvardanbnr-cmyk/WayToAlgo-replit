@@ -7,18 +7,15 @@ import { sendDepositConfirmationEmail } from "../lib/email";
 
 const router = Router();
 
-async function getPlanTier(amount: number) {
+async function getPlan(amount: number) {
   const [s] = await db.select().from(platformSettingsTable).limit(1);
-  const r1 = s ? parseFloat(s.tier1DailyRate) : 0.006;
-  const r2 = s ? parseFloat(s.tier2DailyRate) : 0.007;
-  const r3 = s ? parseFloat(s.tier3DailyRate) : 0.008;
-  const d1 = s ? s.tier1Days : 300;
-  const d2 = s ? s.tier2Days : 260;
-  const d3 = s ? s.tier3Days : 225;
+  const rate = s ? parseFloat(s.planDailyRate) : 0.008;
+  const days = s ? s.planDays : 300;
+  const minAmount = s ? parseFloat(s.planMinAmount) : 100;
   const maxTotal = s ? parseFloat(s.maxTotalInvestment) : 2000;
-  if (amount >= 100 && amount <= 400)       return { tier: "tier1", dailyRate: r1, durationDays: d1 };
-  if (amount >= 500 && amount <= 900)       return { tier: "tier2", dailyRate: r2, durationDays: d2 };
-  if (amount >= 1000 && amount <= maxTotal) return { tier: "tier3", dailyRate: r3, durationDays: d3 };
+  if (amount >= minAmount && amount <= maxTotal) {
+    return { tier: "plan", dailyRate: rate, durationDays: days };
+  }
   return null;
 }
 
@@ -75,11 +72,12 @@ router.post("/investments", requireAuth, async (req, res) => {
     return;
   }
 
-  const plan = await getPlanTier(amount);
+  const plan = await getPlan(amount);
   if (!plan) {
     const [s2] = await db.select().from(platformSettingsTable).limit(1);
+    const minAmt = s2 ? parseFloat(s2.planMinAmount) : 100;
     const maxT = s2 ? parseFloat(s2.maxTotalInvestment) : 2000;
-    res.status(400).json({ message: `Investment amount must be $100–$400, $500–$900, or $1,000–$${maxT.toLocaleString()} USDT` });
+    res.status(400).json({ message: `Investment amount must be $${minAmt}–$${maxT.toLocaleString()} USDT` });
     return;
   }
 

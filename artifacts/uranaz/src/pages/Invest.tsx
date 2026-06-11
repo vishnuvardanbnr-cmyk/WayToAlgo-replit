@@ -271,25 +271,7 @@ const GLASS = {
 } as const;
 
 const DEFAULT_MAX_TOTAL = 2000;
-
-const DEFAULT_PLANS = [
-  { tier: "tier1", range: "$100 – $400",                    rate: 0.005,  days: 360, label: "0.5% Daily",  min: 100,  max: 400            },
-  { tier: "tier2", range: "$500 – $900",                    rate: 0.0055, days: 328, label: "0.55% Daily", min: 500,  max: 900, popular: true },
-  { tier: "tier3", range: `$1,000 – $${DEFAULT_MAX_TOTAL}`, rate: 0.006,  days: 300, label: "0.6% Daily",  min: 1000, max: DEFAULT_MAX_TOTAL },
-];
-
-function buildPlans(apiPlans: any, maxTotal: number) {
-  const t3max = maxTotal ?? DEFAULT_MAX_TOTAL;
-  if (!apiPlans) return [
-    ...DEFAULT_PLANS.slice(0, 2),
-    { ...DEFAULT_PLANS[2], range: `$1,000 – $${t3max.toLocaleString()}`, max: t3max },
-  ];
-  return [
-    { tier: "tier1", range: "$100 – $400",                                     rate: apiPlans.tier1.dailyRate, days: apiPlans.tier1.days, label: `${(apiPlans.tier1.dailyRate * 100).toFixed(2)}% Daily`, min: 100,  max: 400    },
-    { tier: "tier2", range: "$500 – $900",                                     rate: apiPlans.tier2.dailyRate, days: apiPlans.tier2.days, label: `${(apiPlans.tier2.dailyRate * 100).toFixed(2)}% Daily`, min: 500,  max: 900, popular: true },
-    { tier: "tier3", range: `$1,000 – $${t3max.toLocaleString()}`,             rate: apiPlans.tier3.dailyRate, days: apiPlans.tier3.days, label: `${(apiPlans.tier3.dailyRate * 100).toFixed(2)}% Daily`, min: 1000, max: t3max },
-  ];
-}
+const DEFAULT_PLAN = { dailyRate: 0.008, days: 300, min: 100, max: DEFAULT_MAX_TOTAL };
 
 const schema = z.object({
   amount: z.coerce.number().min(100),
@@ -300,10 +282,9 @@ const schema = z.object({
 
 export default function Invest({ user }: { user: any }) {
   const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
-  const [selectedTier, setSelectedTier] = useState<string>("tier1");
   const [limitModal, setLimitModal] = useState<{ currentTotal: number; remaining: number; maxTotal: number } | null>(null);
   const [maxTotalInvestment, setMaxTotalInvestment] = useState<number>(DEFAULT_MAX_TOTAL);
-  const [plans, setPlans] = useState(DEFAULT_PLANS);
+  const [plan, setPlan] = useState(DEFAULT_PLAN);
   const [coolingHours, setCoolingHours] = useState<number>(24);
   const [section, setSection] = useState<"invest" | "token">(
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "token"
@@ -315,15 +296,15 @@ export default function Invest({ user }: { user: any }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Fetch live admin-configured settings (rates, days, cooling hours, max total)
+  // Fetch live admin-configured settings (single plan, cooling hours, max total)
   useEffect(() => {
     fetch("/api/settings/public")
       .then(r => r.json())
       .then(d => {
         const maxT = typeof d.maxTotalInvestment === "number" ? d.maxTotalInvestment : DEFAULT_MAX_TOTAL;
         setMaxTotalInvestment(maxT);
-        if (d.plans) {
-          setPlans(buildPlans(d.plans, maxT));
+        if (d.plan) {
+          setPlan({ ...d.plan, max: maxT });
         }
         if (typeof d.coolingHours === "number") {
           setCoolingHours(d.coolingHours);
@@ -332,15 +313,13 @@ export default function Invest({ user }: { user: any }) {
       .catch(() => {});
   }, []);
 
-  const plan = plans.find(p => p.tier === selectedTier) ?? plans[0];
-
   const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { amount: 100, hyperCoinAmount: 0, usdtAmount: 100 },
+    defaultValues: { amount: plan.min, hyperCoinAmount: 0, usdtAmount: plan.min },
   });
 
   const watchedAmount = form.watch("amount");
-  const dailyEarning = watchedAmount * plan.rate;
+  const dailyEarning = (watchedAmount || 0) * plan.dailyRate;
   const totalReturn = dailyEarning * plan.days;
 
   const handleAmountChange = (val: number) => {
@@ -356,19 +335,18 @@ export default function Invest({ user }: { user: any }) {
       await createInvestment.mutateAsync({ data });
       await queryClient.invalidateQueries({ queryKey: getListInvestmentsQueryKey() });
       toast({ title: "Investment created!", description: `$${data.amount} invested successfully` });
-      form.reset({ amount: 100, hyperCoinAmount: 0, usdtAmount: 100 });
-      setSelectedTier("tier1");
+      form.reset({ amount: plan.min, hyperCoinAmount: 0, usdtAmount: plan.min });
     } catch (err: any) {
-      const data = err?.data;
-      if (data?.code === "MAX_INVESTMENT_EXCEEDED") {
+      const errData = err?.data;
+      if (errData?.code === "MAX_INVESTMENT_EXCEEDED") {
         setLimitModal({
-          currentTotal: data.currentTotal ?? 0,
-          remaining: data.remaining ?? 0,
-          maxTotal: data.maxTotal ?? maxTotalInvestment,
+          currentTotal: errData.currentTotal ?? 0,
+          remaining: errData.remaining ?? 0,
+          maxTotal: errData.maxTotal ?? maxTotalInvestment,
         });
         return;
       }
-      toast({ title: "Investment failed", description: data?.message || err?.message || "Please try again", variant: "destructive" });
+      toast({ title: "Investment failed", description: errData?.message || err?.message || "Please try again", variant: "destructive" });
     }
   };
 
@@ -419,35 +397,71 @@ export default function Invest({ user }: { user: any }) {
 
       {section === "invest" && (
       <>
-      {/* Invest Form */}
-      <div className="rounded-2xl p-5" style={{ ...GLASS, backdropFilter: "blur(14px)" }}>
-        <h2 className="font-semibold text-sm mb-4" style={{ color: "rgba(194,210,255,0.8)" }}>New Investment</h2>
-
-        {/* Available balances */}
-        <div className="grid grid-cols-1 gap-2 mb-4">
-          <div className="rounded-lg px-3 py-2" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)" }}>
-            <div className="text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>USDT Balance</div>
-            <div className="font-bold text-sm" style={{ color: TEAL }}>${usdtBalance.toFixed(2)}</div>
+      {/* ── Single Plan Card ── */}
+      <div
+        className="rounded-2xl p-5"
+        style={{
+          background: "linear-gradient(135deg, rgba(91,140,255,0.10), rgba(61,92,224,0.04))",
+          border: "1px solid rgba(91,140,255,0.3)",
+          boxShadow: "0 0 32px rgba(91,140,255,0.08)",
+        }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="text-xs uppercase tracking-widest mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Investment Plan</div>
+            <div className="font-black text-lg" style={{ fontFamily: "'Sora', sans-serif", color: TEAL }}>
+              {(plan.dailyRate * 100).toFixed(2)}% Daily ROI
+            </div>
+          </div>
+          <div
+            className="px-3 py-1.5 rounded-xl text-xs font-bold"
+            style={{ background: "rgba(91,140,255,0.15)", border: "1px solid rgba(91,140,255,0.3)", color: TEAL }}
+          >
+            {plan.days} Days
           </div>
         </div>
+
+        <div className="grid grid-cols-3 gap-2 mb-5">
+          {[
+            { label: "Min Amount", value: `$${plan.min.toLocaleString()}` },
+            { label: "Max Amount", value: `$${plan.max.toLocaleString()}` },
+            { label: "Total Return", value: `${(plan.dailyRate * plan.days * 100).toFixed(0)}%` },
+          ].map(item => (
+            <div key={item.label} className="rounded-xl p-3 text-center"
+              style={{ background: "rgba(0,20,40,0.5)", border: "1px solid rgba(91,140,255,0.12)" }}>
+              <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.35)" }}>{item.label}</div>
+              <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>{item.value}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-between items-center mb-4 px-3 py-2.5 rounded-xl"
+          style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.10)" }}>
+          <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Your USDT Balance</div>
+          <div className="font-bold text-sm" style={{ color: TEAL }}>${usdtBalance.toFixed(2)}</div>
+        </div>
+      </div>
+
+      {/* Invest Form */}
+      <div className="rounded-2xl p-5" style={{ ...GLASS }}>
+        <h2 className="font-semibold text-sm mb-4" style={{ color: "rgba(194,210,255,0.8)" }}>New Investment</h2>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="amount" render={({ field }) => (
               <FormItem>
-                <FormLabel style={{ color: "rgba(194,210,255,0.65)", fontSize: "0.8rem" }}>Total Amount (USDT)</FormLabel>
+                <FormLabel style={{ color: "rgba(194,210,255,0.65)", fontSize: "0.8rem" }}>
+                  Amount (USDT) — min ${plan.min.toLocaleString()}, max ${plan.max.toLocaleString()}
+                </FormLabel>
                 <FormControl>
                   <Input
                     data-testid="input-amount"
-                    type="number" step="100" min={plan.min} max={maxTotalInvestment}
+                    type="number" step="100" min={plan.min} max={plan.max}
                     {...field}
                     value={field.value === 0 || field.value === undefined ? "" : field.value}
                     onChange={e => {
-                      if (e.target.value === "") {
-                        field.onChange("");
-                      } else {
-                        handleAmountChange(Number(e.target.value));
-                      }
+                      if (e.target.value === "") { field.onChange(""); }
+                      else { handleAmountChange(Number(e.target.value)); }
                     }}
                     style={{ background: "rgba(0,20,40,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" }}
                   />
@@ -455,6 +469,22 @@ export default function Invest({ user }: { user: any }) {
                 <FormMessage />
               </FormItem>
             )} />
+
+            {/* Live calculator */}
+            {(watchedAmount || 0) >= plan.min && (
+              <div className="rounded-xl px-4 py-3 space-y-2"
+                style={{ background: "rgba(52,211,153,0.05)", border: "1px solid rgba(52,211,153,0.18)" }}>
+                <div className="flex justify-between text-xs">
+                  <span style={{ color: "rgba(194,210,255,0.45)" }}>Daily Earning</span>
+                  <span style={{ color: "#34d399", fontWeight: 600 }}>${dailyEarning.toFixed(2)}/day</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span style={{ color: "rgba(194,210,255,0.45)" }}>Over {plan.days} days</span>
+                  <span style={{ color: "#34d399", fontWeight: 600 }}>${totalReturn.toFixed(2)} total</span>
+                </div>
+              </div>
+            )}
+
             <button
               data-testid="button-submit-invest"
               type="submit"
