@@ -110,6 +110,13 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
   const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
 
   const cfg = levelConfig(settings);
+  // Total % of bought tokens reserved for level commissions (e.g. 0.20 = 20%).
+  // Investors receive (1 - levelCommissionPoolPct) of the tokens as Trading Profit.
+  // Unclaimed level comm tokens (no upline, unqualified, rates < 100%) → reserveTokenBalance.
+  const levelCommissionPoolPct = Math.min(
+    1,
+    Math.max(0, parseFloat(settings.levelCommissionPoolPct ?? "0.2") || 0.2),
+  );
   const now = new Date();
 
   // ── 1. Build eligibility BEFORE buying so we never buy with nobody to pay ──
@@ -173,7 +180,15 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
 
   const tokensBoughtWei = buy.tokensBought;
 
-  // ── 3. Compute distribution (carve model, BigInt wei) ──
+  // ── 3. Compute distribution (fixed-split model, BigInt wei) ──
+  //
+  // For each eligible investment:
+  //   grossWei       = tokensBought × (principal / totalPrincipal)
+  //   investorWei    = grossWei × (1 - levelCommissionPoolPct)  → investor Trading Profit
+  //   levelPoolWei   = grossWei × levelCommissionPoolPct         → walk upline chain
+  //     For each upline level: commission = levelPoolWei × levelRate[l]
+  //     Any unclaimed portion (no upline / inactive / not unlocked) → reserve
+  //
   const userTokenAdd = new Map<number, bigint>(); // userId -> wei to credit
   const rewardRows: {
     userId: number; type: string; tokenAmount: bigint; usdValue: number;
@@ -183,7 +198,12 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
 
   let roiTotalWei = 0n;
   let levelTotalWei = 0n;
+  let reserveAddWei = 0n;           // unclaimed level tokens → reserve
   const recipients = new Set<number>();
+
+  // Pre-compute BigInt ratios for the fixed split (basis-points precision)
+  const investorBps = BigInt(Math.round((1 - levelCommissionPoolPct) * 10000));
+  const levelPoolBps = BigInt(Math.round(levelCommissionPoolPct * 10000));
 
   for (const inv of eligible) {
     const investor = userById.get(inv.userId)!;
@@ -191,7 +211,7 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
     const grossWei = (tokensBoughtWei * micro) / totalMicro;
     const usdShare = profitUsdt * (Number(micro) / Number(totalMicro));
 
-    // Advance duration (mirror dailyPayout).
+    // Advance duration
     const newRemaining = Math.max(0, inv.remainingDays - 1);
     const isCompleted = newRemaining === 0;
     const daysElapsed = inv.durationDays - newRemaining;
@@ -204,39 +224,50 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
 
     if (grossWei <= 0n) continue;
 
-    // Carve level commissions from this investment's share.
-    let carvedWei = 0n;
+    // Fixed investor share (e.g. 80% of grossWei) → Trading Profit
+    const investorWei = (grossWei * investorBps) / 10000n;
+    if (investorWei > 0n) {
+      userTokenAdd.set(investor.id, (userTokenAdd.get(investor.id) ?? 0n) + investorWei);
+      roiTotalWei += investorWei;
+      recipients.add(investor.id);
+      rewardRows.push({
+        userId: investor.id,
+        type: "roi",
+        tokenAmount: investorWei,
+        usdValue: usdShare * (1 - levelCommissionPoolPct),
+        level: null,
+        fromUserId: null,
+        fromUserName: null,
+      });
+    }
+
+    // Level commission pool (e.g. 20% of grossWei) → distribute to uplines
+    const levelPoolWei = (grossWei * levelPoolBps) / 10000n;
+    let distributedWei = 0n;
+
     let currentUserId: number | null = investor.sponsorId;
     let level = 1;
     while (currentUserId && level <= 8) {
       const upline = userById.get(currentUserId);
       if (!upline) break;
-      if (!upline.isActive) {
-        currentUserId = upline.sponsorId;
-        level++;
-        continue;
-      }
+      if (!upline.isActive) { currentUserId = upline.sponsorId; level++; continue; }
       const maxDays = cfg.levelDays[level] ?? 0;
-      if (maxDays > 0 && daysElapsed > maxDays) {
-        currentUserId = upline.sponsorId;
-        level++;
-        continue;
-      }
+      if (maxDays > 0 && daysElapsed > maxDays) { currentUserId = upline.sponsorId; level++; continue; }
       const unlock = cfg.levelUnlocks[level] ?? 0;
       const uplineVolume = teamVolumeMap.get(upline.id) ?? 0;
       if (uplineVolume >= unlock) {
         const rateBps = BigInt(Math.round((cfg.levelRates[level] ?? 0) * 10000));
-        const commissionWei = (grossWei * rateBps) / 10000n;
+        const commissionWei = (levelPoolWei * rateBps) / 10000n;
         if (commissionWei > 0n) {
-          carvedWei += commissionWei;
           userTokenAdd.set(upline.id, (userTokenAdd.get(upline.id) ?? 0n) + commissionWei);
           levelTotalWei += commissionWei;
+          distributedWei += commissionWei;
           recipients.add(upline.id);
           rewardRows.push({
             userId: upline.id,
             type: "level",
             tokenAmount: commissionWei,
-            usdValue: usdShare * (cfg.levelRates[level] ?? 0),
+            usdValue: usdShare * levelCommissionPoolPct * (cfg.levelRates[level] ?? 0),
             level,
             fromUserId: investor.id,
             fromUserName: investor.name || investor.email,
@@ -247,21 +278,9 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
       level++;
     }
 
-    const netWei = grossWei - carvedWei;
-    if (netWei > 0n) {
-      userTokenAdd.set(investor.id, (userTokenAdd.get(investor.id) ?? 0n) + netWei);
-      roiTotalWei += netWei;
-      recipients.add(investor.id);
-      rewardRows.push({
-        userId: investor.id,
-        type: "roi",
-        tokenAmount: netWei,
-        usdValue: usdShare,
-        level: null,
-        fromUserId: null,
-        fromUserName: null,
-      });
-    }
+    // Unclaimed level pool → reserve
+    const unclaimed = levelPoolWei - distributedWei;
+    if (unclaimed > 0n) reserveAddWei += unclaimed;
   }
 
   // ── 4. Apply everything in one transaction ──
@@ -317,6 +336,17 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
             fromUserName: r.fromUserName,
           })),
         );
+      }
+      // Credit unclaimed level tokens to the platform reserve
+      if (reserveAddWei > 0n) {
+        const [ps] = await tx.select().from(platformSettingsTable).limit(1);
+        if (ps) {
+          const currentReserve = parseFloat(ps.reserveTokenBalance ?? "0");
+          const addReserve = parseFloat(ethers.formatUnits(reserveAddWei, TOKEN_DECIMALS));
+          await tx.update(platformSettingsTable)
+            .set({ reserveTokenBalance: (currentReserve + addReserve).toFixed(8) })
+            .where(eq(platformSettingsTable.id, ps.id));
+        }
       }
       await tx.update(tokenBuyBatchesTable)
         .set({

@@ -63,6 +63,7 @@ type IncomeForm = {
   spotReferralRate: number;
   planDays: number;
   planMinAmount: number;
+  levelCommissionPoolPct: number;
   levelCommL1: number;
   levelCommL2: number;
   levelCommL3: number;
@@ -476,11 +477,13 @@ export default function AdminSettings() {
   // Income settings
   const [incomeLoading, setIncomeLoading] = useState(false);
   const [incomeSaving, setIncomeSaving] = useState(false);
+  const [reserveTokenBalance, setReserveTokenBalance] = useState(0);
   const incomeForm = useForm<IncomeForm>({
     defaultValues: {
       spotReferralRate: 5,
       planDays: 300,
       planMinAmount: 100,
+      levelCommissionPoolPct: 20,
       levelCommL1: 20, levelCommL2: 10, levelCommL3: 10,
       levelCommL4: 4, levelCommL5: 4, levelCommL6: 4, levelCommL7: 4, levelCommL8: 4,
       levelUnlockL2: 1000, levelUnlockL3: 3000,
@@ -494,7 +497,7 @@ export default function AdminSettings() {
     setIncomeLoading(true);
     fetch("/api/admin/income-settings", { headers: { Authorization: `Bearer ${getToken()}` } })
       .then(r => r.json())
-      .then(d => incomeForm.reset(d))
+      .then(d => { incomeForm.reset(d); setReserveTokenBalance(d.reserveTokenBalance ?? 0); })
       .catch(() => {})
       .finally(() => setIncomeLoading(false));
   }, []);
@@ -510,6 +513,7 @@ export default function AdminSettings() {
       if (!res.ok) throw new Error("Failed to save");
       const updated = await res.json();
       incomeForm.reset(updated);
+      setReserveTokenBalance(updated.reserveTokenBalance ?? 0);
       toast({ title: "Income settings saved!" });
     } catch (err: any) {
       toast({ title: "Failed", description: err?.message, variant: "destructive" });
@@ -1241,10 +1245,34 @@ export default function AdminSettings() {
                 </div>
               </div>
 
+              {/* Token Distribution Split */}
+              <div>
+                <SubHeader hint="Of the WTA tokens bought each day, this % is pooled for level commissions. Investors receive the rest as Trading Profit. Unclaimed level commission tokens go to the platform reserve.">
+                  <span className="inline-flex items-center gap-1.5"><Coins size={12} />Token Distribution Split</span>
+                </SubHeader>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                  <div>
+                    <FieldLabel>Level Commission Pool (%)</FieldLabel>
+                    <input type="number" step="1" min="0" max="100"
+                      {...incomeForm.register("levelCommissionPoolPct", { valueAsNumber: true })}
+                      className={INPUT_CLS} style={INPUT_STYLE}
+                    />
+                    <FieldHint>e.g. 20 → investors get 80%, levels share 20%</FieldHint>
+                  </div>
+                  <div className="col-span-2 rounded-xl p-4" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.12)" }}>
+                    <div className="text-xs font-semibold mb-2" style={{ color: "rgba(194,210,255,0.5)" }}>Reserve Wallet (unclaimed level tokens)</div>
+                    <div className="text-2xl font-black" style={{ color: "#c084fc" }}>
+                      {reserveTokenBalance.toLocaleString(undefined, { maximumFractionDigits: 4 })} WTA
+                    </div>
+                    <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>Tokens go here when an investor has no eligible upline for a given level</div>
+                  </div>
+                </div>
+              </div>
+
               {/* Level Commission Rates */}
               <div>
-                <SubHeader hint="% of the investor's daily return credited to each upline level">
-                  <span className="inline-flex items-center gap-1.5"><Layers size={12} />Level Commission Rates (%)</span>
+                <SubHeader hint="% of each investor's level pool credited to that upline — rates within the pool above. L1 total rates need not sum to 100%; leftover goes to reserve.">
+                  <span className="inline-flex items-center gap-1.5"><Layers size={12} />Level Commission Rates (% of pool)</span>
                 </SubHeader>
                 <div className="grid grid-cols-4 lg:grid-cols-8 gap-3 mt-3">
                   {([1,2,3,4,5,6,7,8] as const).map(lvl => (

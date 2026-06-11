@@ -95,6 +95,12 @@ export const platformSettingsTable = pgTable("platform_settings", {
   certCompanyName: text("cert_company_name").notNull().default("WaytoAlgo INVESTMENT LTD"),
   certCompanyNumber: text("cert_company_number").notNull().default("14309852"),
   certIncorporatedDate: text("cert_incorporated_date").notNull().default("22nd August 2022"),
+  // Fixed pool split for token distribution: this % of bought tokens goes to level commissions;
+  // the remaining (1 - pct) goes to investors as Trading Profit.
+  // Any unclaimed level comm tokens accumulate in reserveTokenBalance.
+  levelCommissionPoolPct: numeric("level_commission_pool_pct", { precision: 5, scale: 4 }).notNull().default("0.2000"),
+  // Virtual reserve balance (WTA tokens) — accumulates unclaimed level commission tokens
+  reserveTokenBalance: numeric("reserve_token_balance", { precision: 24, scale: 8 }).notNull().default("0"),
   // Level commission active days (0 = unlimited)
   levelDaysL1: integer("level_days_l1").notNull().default(0),
   levelDaysL2: integer("level_days_l2").notNull().default(0),
