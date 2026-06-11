@@ -31,6 +31,14 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+const TOKEN_TYPES = new Set(["daily_return", "level_commission"]);
+
+function fmtAmount(type: string, amount: number) {
+  return TOKEN_TYPES.has(type)
+    ? `${amount.toFixed(4)} WTA`
+    : `$${amount.toFixed(2)}`;
+}
+
 export default function Income() {
   const [type, setType] = useState("");
   const { data: summary, isLoading: sumLoading } = useGetIncomeSummary();
@@ -94,10 +102,10 @@ export default function Income() {
       {/* Income type breakdown */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: "Daily Returns",    value: summary?.dailyReturnTotal,     icon: TrendingUp, color: "#34d399" },
-          { label: "Spot Referral",    value: summary?.spotReferralTotal,    icon: Users,      color: "#60a5fa" },
-          { label: "Level Commission", value: summary?.levelCommissionTotal, icon: DollarSign, color: "#c084fc" },
-          { label: "Rank Bonus",       value: summary?.rankBonusTotal,       icon: Award,      color: TEAL     },
+          { label: "Daily Returns",    value: summary?.dailyReturnTotal,     type: "daily_return",     icon: TrendingUp, color: "#34d399" },
+          { label: "Spot Referral",    value: summary?.spotReferralTotal,    type: "spot_referral",    icon: Users,      color: "#60a5fa" },
+          { label: "Level Commission", value: summary?.levelCommissionTotal, type: "level_commission", icon: DollarSign, color: "#c084fc" },
+          { label: "Rank Bonus",       value: summary?.rankBonusTotal,       type: "rank_bonus",       icon: Award,      color: TEAL     },
         ].map(item => (
           <div key={item.label} className="rounded-xl p-3" style={GLASS}>
             <div className="flex items-center gap-1.5 mb-1.5">
@@ -105,7 +113,7 @@ export default function Income() {
               <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>{item.label}</div>
             </div>
             <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>
-              ${item.value?.toFixed(2) ?? "0.00"}
+              {fmtAmount(item.type, item.value ?? 0)}
             </div>
           </div>
         ))}
@@ -174,7 +182,7 @@ export default function Income() {
                     <div className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>{formatDate(record.createdAt)}</div>
                   </div>
                 </div>
-                <div className="font-bold text-sm" style={{ color }}>+${record.amount.toFixed(2)}</div>
+                <div className="font-bold text-sm" style={{ color }}>+{fmtAmount(record.type, record.amount)}</div>
               </div>
             );
           })}

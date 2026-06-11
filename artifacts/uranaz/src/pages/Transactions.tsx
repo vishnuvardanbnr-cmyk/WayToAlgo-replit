@@ -50,6 +50,14 @@ function shortId(id: string | number) {
   return String(id).slice(0, 8).toUpperCase();
 }
 
+const TOKEN_TYPES = new Set(["daily_return", "level_commission"]);
+
+function fmtAmount(type: string, amount: number) {
+  return TOKEN_TYPES.has(type)
+    ? `${amount.toFixed(4)} WTA`
+    : `$${amount.toFixed(2)}`;
+}
+
 /* ─────────────────────────────────────────
    DETAIL MODAL
 ───────────────────────────────────────── */
@@ -60,7 +68,7 @@ function TxDetailModal({ record, onClose }: { record: any; onClose: () => void }
     { icon: Hash,          label: "Transaction ID", value: `#${shortId(record.id)}`,         mono: true  },
     { icon: Tag,           label: "Type",           value: cfg.label,                        mono: false },
     { icon: Calendar,      label: "Date & Time",    value: formatDate(record.createdAt, true), mono: false },
-    { icon: DollarSign,    label: "Amount",         value: `+$${record.amount.toFixed(2)}`,  mono: false },
+    { icon: DollarSign,    label: "Amount",         value: `+${fmtAmount(record.type, record.amount)}`,  mono: false },
     ...(record.description
       ? [{ icon: Receipt, label: "Description", value: record.description, mono: false }]
       : []),
@@ -149,7 +157,7 @@ function TxDetailModal({ record, onClose }: { record: any; onClose: () => void }
               textShadow: `0 0 24px ${cfg.color}50`,
             }}
           >
-            +${record.amount.toFixed(2)}
+            +{fmtAmount(record.type, record.amount)}
           </div>
         </div>
 
@@ -346,7 +354,7 @@ export default function Transactions() {
                       textShadow: `0 0 12px ${cfg.color}40`,
                     }}
                   >
-                    +${record.amount.toFixed(2)}
+                    +{fmtAmount(record.type, record.amount)}
                   </div>
                 </div>
               </button>
