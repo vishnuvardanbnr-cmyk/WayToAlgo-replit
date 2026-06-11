@@ -34,6 +34,8 @@ app.use(
 // ── CORS ──────────────────────────────────────────────────────────────────────
 // Only allow requests from the production domain and local development
 const allowedOrigins = [
+  "https://way2algo.io",
+  "https://www.way2algo.io",
   "https://waytoalgo.com",
   "https://www.waytoalgo.com",
   /^http:\/\/localhost(:\d+)?$/,
