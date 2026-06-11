@@ -125,8 +125,8 @@ export default function Dashboard({ user }: { user: any }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Total Earnings", value: summary?.totalEarnings, testId: "text-total-earnings" },
-              { label: "Total Withdrawn", value: summary?.withdrawnTotal },
+              { label: "USDT Earned",    value: summary?.usdtEarningsTotal, testId: "text-total-earnings", prefix: "$", suffix: "" },
+              { label: "Total Withdrawn", value: summary?.withdrawnTotal,   testId: undefined,             prefix: "$", suffix: "" },
             ].map(item => (
               <div
                 key={item.label}
@@ -142,11 +142,20 @@ export default function Dashboard({ user }: { user: any }) {
                   data-testid={item.testId}
                   style={{ color: "rgba(194,210,255,0.85)" }}
                 >
-                  ${item.value?.toFixed(2) ?? "—"}
+                  {item.prefix}{item.value?.toFixed(2) ?? "—"}
                 </div>
               </div>
             ))}
           </div>
+          {/* WTA row */}
+          {(summary?.wtaEarningsTotal ?? 0) > 0 && (
+            <div className="mt-2 rounded-xl p-3" style={{ background: "rgba(0,10,20,0.4)", border: "1px solid rgba(168,85,247,0.15)" }}>
+              <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>WTA Tokens Earned</div>
+              <div className="font-bold text-sm mt-0.5" style={{ color: "#c084fc" }}>
+                {summary?.wtaEarningsTotal?.toFixed(4)} WTA
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -156,10 +165,8 @@ export default function Dashboard({ user }: { user: any }) {
         <StatCard
           label="Daily Return"
           icon={DollarSign}
-          value={activeInv.length > 0
-            ? `$${(activeInv.reduce((s, i) => s + i.amount * i.dailyRate, 0)).toFixed(2)}`
-            : "$0.00"}
-          sub="Today's estimate"
+          value="Variable WTA"
+          sub="Credited as tokens"
         />
         <StatCard label="Team Members"  value={teamStats?.totalMembers ?? "—"} icon={Users} />
         <StatCard label="Current Level" value={`L${user?.currentLevel ?? 0}`}  icon={Award} accent />
@@ -188,9 +195,10 @@ export default function Dashboard({ user }: { user: any }) {
             }}
           >
             {[
-              { label: "Daily Returns",     value: summary.dailyReturnTotal },
-              { label: "Spot Referral",     value: summary.spotReferralTotal },
-              { label: "Level Commission",  value: summary.levelCommissionTotal },
+              { label: "Daily Returns",    value: summary.dailyReturnTotal,    isWta: true  },
+              { label: "Spot Referral",    value: summary.spotReferralTotal,   isWta: false },
+              { label: "Level Commission", value: summary.levelCommissionTotal, isWta: true  },
+              { label: "Rank Bonus",       value: summary.rankBonusTotal,       isWta: false },
             ].map((item, idx) => (
               <div
                 key={item.label}
@@ -200,11 +208,13 @@ export default function Dashboard({ user }: { user: any }) {
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <CheckCircle size={13} style={{ color: TEAL }} />
+                  <CheckCircle size={13} style={{ color: item.isWta ? "#c084fc" : TEAL }} />
                   <span className="text-sm" style={{ color: "rgba(194,210,255,0.7)" }}>{item.label}</span>
                 </div>
-                <span className="font-semibold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>
-                  ${item.value.toFixed(2)}
+                <span className="font-semibold text-sm" style={{ color: item.isWta ? "#c084fc" : "rgba(194,210,255,0.85)" }}>
+                  {item.isWta
+                    ? `${item.value.toFixed(4)} WTA`
+                    : `$${item.value.toFixed(2)}`}
                 </span>
               </div>
             ))}

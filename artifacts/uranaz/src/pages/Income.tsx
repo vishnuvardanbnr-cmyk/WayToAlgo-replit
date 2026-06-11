@@ -77,7 +77,7 @@ export default function Income() {
         />
         <div className="relative">
           <div className="text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(194,210,255,0.45)" }}>
-            Total Earnings
+            USDT Earnings
           </div>
           <div
             className="text-4xl font-black"

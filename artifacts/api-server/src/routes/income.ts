@@ -64,7 +64,10 @@ router.get("/income/summary", requireAuth, async (req, res) => {
     else if (rec.type === "token_sale") tokenSaleTotal += amt;
   }
 
-  const totalEarnings = dailyReturnTotal + spotReferralTotal + levelCommissionTotal + rankBonusTotal + tokenSaleTotal;
+  // USDT-denominated income — these are the only types withdrawable in USDT
+  const usdtEarningsTotal = spotReferralTotal + rankBonusTotal + tokenSaleTotal;
+  // WTA-denominated income — stored as token amounts, NOT directly withdrawable
+  const wtaEarningsTotal  = dailyReturnTotal + levelCommissionTotal;
 
   const withdrawals = await db.select().from(withdrawalsTable).where(eq(withdrawalsTable.userId, user.id));
   const withdrawnTotal = withdrawals
@@ -74,15 +77,18 @@ router.get("/income/summary", requireAuth, async (req, res) => {
     .filter(w => w.status === "pending")
     .reduce((s, w) => s + parseFloat(w.amount), 0);
 
-  const availableBalance = totalEarnings - withdrawnTotal - pendingWithdrawal;
+  // Available balance is only from USDT earnings (WTA must be sold first)
+  const availableBalance = usdtEarningsTotal - withdrawnTotal - pendingWithdrawal;
 
   res.json({
-    totalEarnings,
+    totalEarnings: usdtEarningsTotal,   // USDT only — what can actually be withdrawn
+    wtaEarningsTotal,                    // WTA tokens total (daily + level comm)
     dailyReturnTotal,
     spotReferralTotal,
     levelCommissionTotal,
     rankBonusTotal,
     tokenSaleTotal,
+    usdtEarningsTotal,
     availableBalance: Math.max(0, availableBalance),
     withdrawnTotal,
     pendingWithdrawal,
