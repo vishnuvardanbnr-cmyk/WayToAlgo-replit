@@ -1,0 +1,1 @@
+- [On-chain token Buy/Sell frontend](onchain-token-frontend.md) — Invest page token section uses raw window.ethereum + manual ABI; isolated from off-chain flows; contract address pasted later.

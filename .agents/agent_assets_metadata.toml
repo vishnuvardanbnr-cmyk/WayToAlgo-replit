@@ -1,0 +1,19 @@
+uploads = []
+
+[[generated]]
+id = "YaF_Ea19-LW2r4IeRelOm"
+uri = "file://artifacts/uranaz/public/logo.png"
+type = "image"
+title = "uranaz trades logo"
+
+[[outputs]]
+id = "NfBt0dTjPMMQ9-zpntHHp"
+uri = "file://URANAZ_TRADES_Audit_Report_2026.pdf"
+type = "pdf"
+title = "URANAZ TRADES — Platform Audit Report 2026 (Updated)"
+
+[[outputs]]
+id = "Q2pQ0Ld6kAZkZaHcDcaY8"
+uri = "file://URANUS_TRADES_Audit_Report_2026.pdf"
+type = "pdf"
+title = "URANUS TRADES — Platform Audit Report 2026"

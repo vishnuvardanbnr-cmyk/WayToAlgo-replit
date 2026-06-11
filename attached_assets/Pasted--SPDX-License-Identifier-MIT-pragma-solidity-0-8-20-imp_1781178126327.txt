@@ -1,0 +1,256 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+/**
+ * @title MvaultToken
+ * @notice M-Vault bonding curve token (MVT)
+ * @dev Buy price is calculated BEFORE adding liquidity to prevent front-running
+ *      - Buy: send USDT → receive 90% of calculated MVT tokens
+ *      - Sell: burn MVT tokens → receive 90% of sell price in USDT
+ *      - Price = totalLiquidity / totalSupply (rises on buy, falls on sell)
+ *      - Only the designated MvaultContract can trigger minting
+ */
+contract MvaultToken is ERC20, Ownable, ReentrancyGuard {
+
+    IERC20 public immutable usdtToken;
+    address public mvaultContract;
+    address public stakingModule;
+
+    uint256 public totalLiquidity;
+    uint256 public totalMinted;
+    uint256 public totalBurned;
+
+    uint256 public constant INITIAL_PRICE  = 0.01 ether;
+    uint256 public constant MINT_PERCENTAGE = 90;
+    uint256 public constant SELL_PERCENTAGE = 90;
+
+    mapping(address => uint256) public totalReceivedByUser;
+    mapping(address => uint256) public totalBurnedByUser;
+
+    struct TokenTransfer {
+        uint256 usdtAmount;
+        uint256 mvtAmount;
+        uint256 timestamp;
+        uint8   transferType;
+    }
+
+    mapping(address => TokenTransfer[]) private userTransferHistory;
+
+    event PriceUpdated(uint256 newBuyPrice, uint256 newSellPrice);
+    event TokensMinted(address indexed to, uint256 usdtAmount, uint256 mvtAmount);
+    event TokensBurned(address indexed from, uint256 mvtAmount, uint256 usdtAmount);
+    event MvaultContractUpdated(address indexed oldContract, address indexed newContract);
+
+    error ZeroAddress();
+    error ZeroAmount();
+    error OnlyMvault();
+    error InsufficientBalance();
+    error InsufficientLiquidity();
+    error TransferFailed();
+
+    constructor(address _usdt) ERC20("Mvault Token", "MVT") Ownable(msg.sender) {
+        if (_usdt == address(0)) revert ZeroAddress();
+        usdtToken = IERC20(_usdt);
+    }
+
+    modifier onlyMvault() {
+        if (msg.sender != mvaultContract && msg.sender != stakingModule) revert OnlyMvault();
+        _;
+    }
+
+    function setMvaultContract(address _contract) external onlyOwner {
+        if (_contract == address(0)) revert ZeroAddress();
+        address old = mvaultContract;
+        mvaultContract = _contract;
+        emit MvaultContractUpdated(old, _contract);
+    }
+
+    function setStakingModule(address _staking) external onlyOwner {
+        if (_staking == address(0)) revert ZeroAddress();
+        stakingModule = _staking;
+    }
+
+    /**
+     * @notice Mint MVT tokens by depositing USDT.
+     *         Only callable by the authorised MvaultContract.
+     * @param _to          Recipient of the minted tokens
+     * @param _usdtAmount  USDT amount (must be pre-approved to this contract)
+     */
+    function addLiquidityAndMint(address _to, uint256 _usdtAmount)
+        external
+        onlyMvault
+        nonReentrant
+    {
+        if (_to == address(0)) revert ZeroAddress();
+        if (_usdtAmount == 0) revert ZeroAmount();
+
+        uint256 buyPrice = getBuyPrice();
+
+        bool success = usdtToken.transferFrom(msg.sender, address(this), _usdtAmount);
+        if (!success) revert TransferFailed();
+
+        totalLiquidity += _usdtAmount;
+
+        uint256 tokensToMint = (_usdtAmount * 1e18) / buyPrice;
+        uint256 mintAmount   = (tokensToMint * MINT_PERCENTAGE) / 100;
+
+        totalMinted += mintAmount;
+        totalReceivedByUser[_to] += mintAmount;
+
+        userTransferHistory[_to].push(TokenTransfer({
+            usdtAmount:   _usdtAmount,
+            mvtAmount:    mintAmount,
+            timestamp:    block.timestamp,
+            transferType: 0
+        }));
+
+        _mint(_to, mintAmount);
+
+        emit TokensMinted(_to, _usdtAmount, mintAmount);
+        emit PriceUpdated(getBuyPrice(), getSellPrice());
+    }
+
+    /**
+     * @notice Sell (burn) MVT tokens and receive USDT.
+     *         Callable by any token holder.
+     * @param _amount  Number of MVT tokens to sell
+     */
+    function sell(uint256 _amount) external nonReentrant {
+        if (_amount == 0) revert ZeroAmount();
+        if (balanceOf(msg.sender) < _amount) revert InsufficientBalance();
+
+        uint256 usdtOut = (_amount * getSellPrice()) / 1e18;
+        if (totalLiquidity < usdtOut) revert InsufficientLiquidity();
+
+        totalBurned += _amount;
+        totalBurnedByUser[msg.sender] += _amount;
+        totalLiquidity -= usdtOut;
+
+        userTransferHistory[msg.sender].push(TokenTransfer({
+            usdtAmount:   usdtOut,
+            mvtAmount:    _amount,
+            timestamp:    block.timestamp,
+            transferType: 2
+        }));
+
+        _burn(msg.sender, _amount);
+
+        bool success = usdtToken.transfer(msg.sender, usdtOut);
+        if (!success) revert TransferFailed();
+
+        emit TokensBurned(msg.sender, _amount, usdtOut);
+        emit PriceUpdated(getBuyPrice(), getSellPrice());
+    }
+
+    function getBuyPrice() public view returns (uint256) {
+        if (totalSupply() == 0) return INITIAL_PRICE;
+        return (totalLiquidity * 1e18) / totalSupply();
+    }
+
+    function getSellPrice() public view returns (uint256) {
+        return (getBuyPrice() * SELL_PERCENTAGE) / 100;
+    }
+
+    function decimals() public pure override returns (uint8) {
+        return 18;
+    }
+
+    function getTotalLiquidity() external view returns (uint256) {
+        return totalLiquidity;
+    }
+
+    function getTotalAvailableTokens() external view returns (uint256) {
+        return totalSupply();
+    }
+
+    function getTotalBurnedTokens() external view returns (uint256) {
+        return totalBurned;
+    }
+
+    function getTotalMintedTokens() external view returns (uint256) {
+        return totalMinted;
+    }
+
+    function getTotalReceivedByUser(address user) external view returns (uint256) {
+        return totalReceivedByUser[user];
+    }
+
+    function getTotalBurnedByUser(address user) external view returns (uint256) {
+        return totalBurnedByUser[user];
+    }
+
+    function getUserTransferCount(address user) external view returns (uint256) {
+        return userTransferHistory[user].length;
+    }
+
+    function getUserTransferHistory(
+        address user,
+        uint256 start,
+        uint256 limit
+    ) external view returns (
+        uint256[] memory usdtAmounts,
+        uint256[] memory mvtAmounts,
+        uint256[] memory timestamps,
+        uint8[]   memory types
+    ) {
+        TokenTransfer[] storage history = userTransferHistory[user];
+        uint256 end = start + limit;
+        if (end > history.length) end = history.length;
+        if (start >= history.length) {
+            return (new uint256[](0), new uint256[](0), new uint256[](0), new uint8[](0));
+        }
+        uint256 size = end - start;
+        usdtAmounts = new uint256[](size);
+        mvtAmounts  = new uint256[](size);
+        timestamps  = new uint256[](size);
+        types       = new uint8[](size);
+        for (uint256 i = 0; i < size; i++) {
+            TokenTransfer storage t = history[start + i];
+            usdtAmounts[i] = t.usdtAmount;
+            mvtAmounts[i]  = t.mvtAmount;
+            timestamps[i]  = t.timestamp;
+            types[i]       = t.transferType;
+        }
+    }
+
+    function getRecentTransfers(
+        address user,
+        uint256 count
+    ) external view returns (
+        uint256[] memory usdtAmounts,
+        uint256[] memory mvtAmounts,
+        uint256[] memory timestamps,
+        uint8[]   memory types
+    ) {
+        TokenTransfer[] storage history = userTransferHistory[user];
+        uint256 len = history.length;
+        if (len == 0) {
+            return (new uint256[](0), new uint256[](0), new uint256[](0), new uint8[](0));
+        }
+        uint256 size  = count > len ? len : count;
+        uint256 start = len - size;
+        usdtAmounts = new uint256[](size);
+        mvtAmounts  = new uint256[](size);
+        timestamps  = new uint256[](size);
+        types       = new uint8[](size);
+        for (uint256 i = 0; i < size; i++) {
+            TokenTransfer storage t = history[start + i];
+            usdtAmounts[i] = t.usdtAmount;
+            mvtAmounts[i]  = t.mvtAmount;
+            timestamps[i]  = t.timestamp;
+            types[i]       = t.transferType;
+        }
+    }
+
+    function withdrawUSDT(address to, uint256 amount) external onlyOwner {
+        if (to == address(0)) revert ZeroAddress();
+        if (amount == 0) revert ZeroAmount();
+        bool success = usdtToken.transfer(to, amount);
+        if (!success) revert TransferFailed();
+    }
+}

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 181 154" width="181" height="154">
+  <!-- Original logo image -->
+  <image href="/logo-base.png" x="0" y="0" width="181" height="154"/>
+
+  <!-- Cover the original text area at bottom -->
+  <rect x="20" y="108" width="141" height="42" fill="#0b1e30"/>
+
+  <!-- WaytoAlgo text matching original style -->
+  <text
+    x="90.5" y="132"
+    text-anchor="middle"
+    font-family="'Arial Black', 'Arial', sans-serif"
+    font-weight="900"
+    font-size="14"
+    letter-spacing="2"
+    fill="#d6f4ff"
+  >WaytoAlgo</text>
+
+  <!-- TRADES text -->
+  <text
+    x="90.5" y="146"
+    text-anchor="middle"
+    font-family="'Arial', sans-serif"
+    font-weight="400"
+    font-size="8.5"
+    letter-spacing="5"
+    fill="#6ab8cc"
+  >TRADES</text>
+</svg>

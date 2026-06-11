@@ -1,0 +1,1073 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: WaytoAlgo API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: investments
+    description: Investment plans
+  - name: income
+    description: Income and earnings
+  - name: team
+    description: Referral team
+  - name: withdrawals
+    description: Withdrawal requests
+  - name: admin
+    description: Admin operations
+  - name: ranks
+    description: Rank system
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /auth/profile-setup:
+    post:
+      operationId: setupProfile
+      tags: [auth]
+      summary: Complete profile setup after registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileSetupBody"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /investments:
+    get:
+      operationId: listInvestments
+      tags: [investments]
+      summary: List user investments
+      responses:
+        "200":
+          description: List of investments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Investment"
+    post:
+      operationId: createInvestment
+      tags: [investments]
+      summary: Create a new investment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvestmentBody"
+      responses:
+        "201":
+          description: Investment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Investment"
+
+  /investments/{id}:
+    get:
+      operationId: getInvestment
+      tags: [investments]
+      summary: Get investment details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Investment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Investment"
+
+  /income:
+    get:
+      operationId: listIncome
+      tags: [income]
+      summary: List all income records for current user
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [daily_return, spot_referral, level_commission, rank_bonus]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Income records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomePaginated"
+
+  /income/summary:
+    get:
+      operationId: getIncomeSummary
+      tags: [income]
+      summary: Get income summary totals
+      responses:
+        "200":
+          description: Income summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeSummary"
+
+  /team:
+    get:
+      operationId: getTeam
+      tags: [team]
+      summary: Get referral team tree
+      responses:
+        "200":
+          description: Team data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamData"
+
+  /team/stats:
+    get:
+      operationId: getTeamStats
+      tags: [team]
+      summary: Get team statistics
+      responses:
+        "200":
+          description: Team stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamStats"
+
+  /team/referral-link:
+    get:
+      operationId: getReferralLink
+      tags: [team]
+      summary: Get user referral link and code
+      responses:
+        "200":
+          description: Referral link info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralLink"
+
+  /withdrawals:
+    get:
+      operationId: listWithdrawals
+      tags: [withdrawals]
+      summary: List withdrawal requests
+      responses:
+        "200":
+          description: Withdrawals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Withdrawal"
+    post:
+      operationId: createWithdrawal
+      tags: [withdrawals]
+      summary: Request a withdrawal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWithdrawalBody"
+      responses:
+        "201":
+          description: Withdrawal requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+
+  /ranks:
+    get:
+      operationId: listRanks
+      tags: [ranks]
+      summary: List all ranks and criteria
+      responses:
+        "200":
+          description: Ranks list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rank"
+
+  /ranks/my-progress:
+    get:
+      operationId: getMyRankProgress
+      tags: [ranks]
+      summary: Get current user rank progress
+      responses:
+        "200":
+          description: Rank progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RankProgress"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get platform-wide stats for admin
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: listAdminUsers
+      tags: [admin]
+      summary: List all users (admin)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsersPaginated"
+
+  /admin/users/{id}:
+    get:
+      operationId: getAdminUser
+      tags: [admin]
+      summary: Get user details (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDetail"
+    put:
+      operationId: updateAdminUser
+      tags: [admin]
+      summary: Update user (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateUserBody"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /admin/investments:
+    get:
+      operationId: listAdminInvestments
+      tags: [admin]
+      summary: List all investments (admin)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, cancelled]
+      responses:
+        "200":
+          description: Investments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestmentsPaginated"
+
+  /admin/investments/{id}:
+    put:
+      operationId: updateAdminInvestment
+      tags: [admin]
+      summary: Update investment status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateInvestmentBody"
+      responses:
+        "200":
+          description: Updated investment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Investment"
+
+  /admin/withdrawals:
+    get:
+      operationId: listAdminWithdrawals
+      tags: [admin]
+      summary: List all withdrawals (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+      responses:
+        "200":
+          description: Withdrawals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Withdrawal"
+
+  /admin/withdrawals/{id}/approve:
+    post:
+      operationId: approveWithdrawal
+      tags: [admin]
+      summary: Approve a withdrawal (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+
+  /admin/withdrawals/{id}/reject:
+    post:
+      operationId: rejectWithdrawal
+      tags: [admin]
+      summary: Reject a withdrawal (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+
+  /admin/settings:
+    get:
+      operationId: getAdminSettings
+      tags: [admin]
+      summary: Get platform settings
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformSettings"
+    put:
+      operationId: updateAdminSettings
+      tags: [admin]
+      summary: Update platform settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformSettings"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformSettings"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+        country:
+          type: string
+        referralCode:
+          type: string
+      required: [name, email, phone, password, country]
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    ProfileSetupBody:
+      type: object
+      properties:
+        walletAddress:
+          type: string
+        country:
+          type: string
+        idNumber:
+          type: string
+        profileImage:
+          type: string
+      required: [walletAddress, country]
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required: [user, token]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        referralCode:
+          type: string
+        sponsorId:
+          type: integer
+          nullable: true
+        walletAddress:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        profileImage:
+          type: string
+          nullable: true
+        currentLevel:
+          type: integer
+        currentRankId:
+          type: integer
+          nullable: true
+        isAdmin:
+          type: boolean
+        isActive:
+          type: boolean
+        withdrawalBlocked:
+          type: boolean
+        p2pBlocked:
+          type: boolean
+        investmentBlocked:
+          type: boolean
+        blockReason:
+          type: string
+          nullable: true
+        walletBalance:
+          type: number
+        hyperCoinBalance:
+          type: number
+        profileComplete:
+          type: boolean
+        totalEarnings:
+          type: number
+        totalInvested:
+          type: number
+        createdAt:
+          type: string
+      required: [id, name, email, phone, referralCode, currentLevel, isAdmin, isActive, withdrawalBlocked, p2pBlocked, investmentBlocked, walletBalance, hyperCoinBalance, profileComplete, totalEarnings, totalInvested, createdAt]
+
+    UserDetail:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        investments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Investment"
+        totalTeamSize:
+          type: integer
+        directReferrals:
+          type: integer
+      required: [user, investments, totalTeamSize, directReferrals]
+
+    Investment:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        planTier:
+          type: string
+          enum: [tier1, tier2, tier3]
+        dailyRate:
+          type: number
+        durationDays:
+          type: integer
+        earnedSoFar:
+          type: number
+        remainingDays:
+          type: integer
+        startDate:
+          type: string
+        endDate:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+        hyperCoinAmount:
+          type: number
+        usdtAmount:
+          type: number
+        createdAt:
+          type: string
+      required: [id, userId, amount, planTier, dailyRate, durationDays, earnedSoFar, remainingDays, startDate, endDate, status, hyperCoinAmount, usdtAmount, createdAt]
+
+    CreateInvestmentBody:
+      type: object
+      properties:
+        amount:
+          type: number
+        hyperCoinAmount:
+          type: number
+        usdtAmount:
+          type: number
+      required: [amount, hyperCoinAmount, usdtAmount]
+
+    Income:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [daily_return, spot_referral, level_commission, rank_bonus]
+        amount:
+          type: number
+        description:
+          type: string
+        fromUserId:
+          type: integer
+          nullable: true
+        fromUserName:
+          type: string
+          nullable: true
+        level:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, userId, type, amount, description, createdAt]
+
+    IncomePaginated:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/Income"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required: [records, total, page, limit]
+
+    IncomeSummary:
+      type: object
+      properties:
+        totalEarnings:
+          type: number
+        dailyReturnTotal:
+          type: number
+        spotReferralTotal:
+          type: number
+        levelCommissionTotal:
+          type: number
+        rankBonusTotal:
+          type: number
+        availableBalance:
+          type: number
+        withdrawnTotal:
+          type: number
+        pendingWithdrawal:
+          type: number
+      required: [totalEarnings, dailyReturnTotal, spotReferralTotal, levelCommissionTotal, rankBonusTotal, availableBalance, withdrawnTotal, pendingWithdrawal]
+
+    TeamMember:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        level:
+          type: integer
+        totalInvested:
+          type: number
+        joinedAt:
+          type: string
+        isActive:
+          type: boolean
+        directReferrals:
+          type: integer
+      required: [id, name, email, level, totalInvested, joinedAt, isActive, directReferrals]
+
+    TeamData:
+      type: object
+      properties:
+        levels:
+          type: array
+          items:
+            type: object
+            properties:
+              level:
+                type: integer
+              members:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMember"
+              totalBusiness:
+                type: number
+            required: [level, members, totalBusiness]
+      required: [levels]
+
+    TeamStats:
+      type: object
+      properties:
+        totalMembers:
+          type: integer
+        directReferrals:
+          type: integer
+        totalTeamBusiness:
+          type: number
+        activeMembers:
+          type: integer
+        currentLevel:
+          type: integer
+        nextLevelRequirement:
+          type: number
+        nextLevelProgress:
+          type: number
+        levelsUnlocked:
+          type: integer
+        lugsStats:
+            type: array
+            items:
+              type: object
+              properties:
+                lugIndex:
+                  type: integer
+                business:
+                  type: number
+              required: [lugIndex, business]
+      required: [totalMembers, directReferrals, totalTeamBusiness, activeMembers, currentLevel, levelsUnlocked, lugsStats]
+
+    ReferralLink:
+      type: object
+      properties:
+        referralCode:
+          type: string
+        referralLink:
+          type: string
+        totalReferrals:
+          type: integer
+        spotCommissionEarned:
+          type: number
+      required: [referralCode, referralLink, totalReferrals, spotCommissionEarned]
+
+    Withdrawal:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: string
+        amount:
+          type: number
+        walletAddress:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        note:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        processedAt:
+          type: string
+          nullable: true
+      required: [id, userId, userName, amount, walletAddress, status, createdAt]
+
+    CreateWithdrawalBody:
+      type: object
+      properties:
+        amount:
+          type: number
+        walletAddress:
+          type: string
+      required: [amount, walletAddress]
+
+    Rank:
+      type: object
+      properties:
+        id:
+          type: integer
+        rankNumber:
+          type: integer
+        name:
+          type: string
+        criteria:
+          type: string
+        reward:
+          type: string
+        requiresRankId:
+          type: integer
+          nullable: true
+        requiresCount:
+          type: integer
+          nullable: true
+        requiresLevels:
+          type: integer
+          nullable: true
+      required: [id, rankNumber, name, criteria, reward]
+
+    RankProgress:
+      type: object
+      properties:
+        currentRank:
+          $ref: "#/components/schemas/Rank"
+        nextRank:
+          $ref: "#/components/schemas/Rank"
+        currentEarnings:
+          type: number
+        levelsCompleted:
+          type: integer
+        qualifyingReferrersCount:
+          type: integer
+        lugsProgress:
+          type: array
+          items:
+            type: object
+            properties:
+              lugIndex:
+                type: integer
+              business:
+                type: number
+              required:
+                type: number
+            required: [lugIndex, business, required]
+      required: [levelsCompleted, qualifyingReferrersCount, lugsProgress]
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        activeUsers:
+          type: integer
+        totalInvested:
+          type: number
+        totalWithdrawn:
+          type: number
+        pendingWithdrawals:
+          type: number
+        totalCommissionsPaid:
+          type: number
+        newUsersToday:
+          type: integer
+        newInvestmentsToday:
+          type: number
+        activeInvestments:
+          type: integer
+        completedInvestments:
+          type: integer
+      required: [totalUsers, activeUsers, totalInvested, totalWithdrawn, pendingWithdrawals, totalCommissionsPaid, newUsersToday, newInvestmentsToday, activeInvestments, completedInvestments]
+
+    UsersPaginated:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required: [users, total, page, limit]
+
+    InvestmentsPaginated:
+      type: object
+      properties:
+        investments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Investment"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required: [investments, total, page, limit]
+
+    AdminUpdateUserBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        country:
+          type: string
+          nullable: true
+        walletAddress:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        isAdmin:
+          type: boolean
+        withdrawalBlocked:
+          type: boolean
+        p2pBlocked:
+          type: boolean
+        investmentBlocked:
+          type: boolean
+        blockReason:
+          type: string
+          nullable: true
+        currentLevel:
+          type: integer
+        walletBalance:
+          type: number
+        hyperCoinBalance:
+          type: number
+
+    AdminUpdateInvestmentBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+
+    PlatformSettings:
+      type: object
+      properties:
+        maintenanceMode:
+          type: boolean
+        minDeposit:
+          type: number
+        maxDeposit:
+          type: number
+        hyperCoinMinPercent:
+          type: number
+        spotReferralRate:
+          type: number
+        launchOfferActive:
+          type: boolean
+        withdrawalEnabled:
+          type: boolean
+      required: [maintenanceMode, minDeposit, maxDeposit, hyperCoinMinPercent, spotReferralRate, launchOfferActive, withdrawalEnabled]

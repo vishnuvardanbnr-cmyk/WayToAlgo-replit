@@ -1,0 +1,78 @@
+~/workspace$ git push origin main
+Enumerating objects: 74, done.
+Counting objects: 100% (74/74), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (55/55), done.
+Writing objects: 100% (55/55), 253.32 KiB | 23.03 MiB/s, done.
+Total 55 (delta 42), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (42/42), completed with 17 local objects.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:      (?) This repository does not have Secret Scanning enabled, but is eligible. Enable Secret Scanning to view and manage detected secrets.
+remote:      Visit the repository settings page, https://github.com/vishnuvardanbnr-cmyk/UranusProject/settings/security_analysis
+remote:     
+remote:     
+remote:       —— Google Cloud Service Account Credentials ——————————
+remote:        locations:
+remote:          - commit: bcf9f3863008fbabfe5003f27fe20cf1475e98dc
+remote:            path: attached_assets/uranus-495606-1c1ff8f6e883_1778134771090.json:1
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/vishnuvardanbnr-cmyk/UranusProject/security/secret-scanning/unblock-secret/3DNy2KWq5q8n98xMSbOWXHBcglo
+remote:     
+remote: 
+remote: 
+To https://github.com/vishnuvardanbnr-cmyk/UranusProject
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/vishnuvardanbnr-cmyk/UranusProject'
+~/workspace$ git pull --rebase origin main && git push origin main
+From https://github.com/vishnuvardanbnr-cmyk/UranusProject
+ * branch            main       -> FETCH_HEAD
+Current branch main is up to date.
+Enumerating objects: 74, done.
+Counting objects: 100% (74/74), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (55/55), done.
+Writing objects: 100% (55/55), 253.32 KiB | 23.03 MiB/s, done.
+Total 55 (delta 42), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (42/42), completed with 17 local objects.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:      (?) This repository does not have Secret Scanning enabled, but is eligible. Enable Secret Scanning to view and manage detected secrets.
+remote:      Visit the repository settings page, https://github.com/vishnuvardanbnr-cmyk/UranusProject/settings/security_analysis
+remote:     
+remote:     
+remote:       —— Google Cloud Service Account Credentials ——————————
+remote:        locations:
+remote:          - commit: bcf9f3863008fbabfe5003f27fe20cf1475e98dc
+remote:            path: attached_assets/uranus-495606-1c1ff8f6e883_1778134771090.json:1
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/vishnuvardanbnr-cmyk/UranusProject/security/secret-scanning/unblock-secret/3DNy2KWq5q8n98xMSbOWXHBcglo
+remote:     
+remote: 
+remote: 
+To https://github.com/vishnuvardanbnr-cmyk/UranusProject
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/vishnuvardanbnr-cmyk/UranusProject'
+~/workspace$ 
