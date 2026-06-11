@@ -6,6 +6,18 @@ uri = "file://artifacts/uranaz/public/logo.png"
 type = "image"
 title = "uranaz trades logo"
 
+[[generated]]
+id = "pto0eIkXDnRN0WTE1T6kr"
+uri = "file://artifacts/uranaz/public/waytoalgo-logo.png"
+type = "image"
+title = "waytoalgo brand logo"
+
+[[generated]]
+id = "LA2GV4RdIO3wS7B2mknNZ"
+uri = "file://artifacts/uranaz/public/og-image.png"
+type = "image"
+title = "waytoalgo WhatsApp OG banner"
+
 [[outputs]]
 id = "NfBt0dTjPMMQ9-zpntHHp"
 uri = "file://URANAZ_TRADES_Audit_Report_2026.pdf"

@@ -1,73 +1,42 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Dark space background with rounded corners -->
   <rect width="180" height="180" rx="36" fill="#060814"/>
-
-  <!-- Subtle background glow -->
   <circle cx="90" cy="82" r="60" fill="url(#bgGlow)" opacity="0.4"/>
-
-  <!-- Hexagonal border frame -->
   <path d="M90 14 L152 50 L152 122 L90 158 L28 122 L28 50 Z"
-        fill="none" stroke="url(#hexGrad)" stroke-width="2.5" opacity="0.55"/>
-
-  <!-- Planet Uranus - teal sphere -->
-  <circle cx="90" cy="84" r="30" fill="url(#planetGrad)"/>
-  <!-- Planet inner highlight -->
-  <circle cx="81" cy="74" r="10" fill="white" opacity="0.08"/>
-
-  <!-- Tilted ring system - Uranus rings are nearly vertical -->
-  <!-- Ring 1 (outer) -->
-  <ellipse cx="90" cy="84" rx="52" ry="14"
-           fill="none" stroke="url(#ringGrad1)" stroke-width="3.5" opacity="0.9"
-           transform="rotate(-20 90 84)"/>
-  <!-- Ring 2 (mid) -->
-  <ellipse cx="90" cy="84" rx="42" ry="10"
-           fill="none" stroke="url(#ringGrad2)" stroke-width="2" opacity="0.6"
-           transform="rotate(-20 90 84)"/>
-
-  <!-- Ring passes behind planet - clip the front half -->
-  <clipPath id="planetClip">
-    <circle cx="90" cy="84" r="30"/>
-  </clipPath>
-
-  <!-- Trading chart waveform on planet -->
-  <polyline points="68,86 75,78 82,88 89,75 96,82 103,73 110,83"
-            fill="none" stroke="rgba(194,210,255,0.65)" stroke-width="2.2"
-            stroke-linecap="round" stroke-linejoin="round"
-            clip-path="url(#planetClip)"/>
-
-  <!-- Glow dots at ring tips -->
-  <circle cx="49" cy="91" r="2.5" fill="#5B8CFF" opacity="0.9" transform="rotate(-20 90 84)"/>
-  <circle cx="131" cy="77" r="2.5" fill="#5B8CFF" opacity="0.9" transform="rotate(-20 90 84)"/>
-
-  <!-- Corner star accents -->
+        fill="none" stroke="url(#hexGrad)" stroke-width="2.5" opacity="0.7"/>
+  <path d="M90 32 L138 60 L138 116 L90 144 L42 116 L42 60 Z"
+        fill="none" stroke="url(#hexGrad2)" stroke-width="1.2" opacity="0.35"/>
+  <polyline points="38,105 52,85 63,95 75,72 87,83 99,65 111,78 123,60 142,75"
+            fill="none" stroke="url(#chartGrad)" stroke-width="3"
+            stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="75" cy="72" r="3" fill="#5B8CFF" opacity="0.9"/>
+  <circle cx="99" cy="65" r="3" fill="#5B8CFF" opacity="0.9"/>
+  <circle cx="123" cy="60" r="4" fill="#34d399" opacity="1"/>
+  <line x1="75" y1="72" x2="75" y2="118" stroke="#5B8CFF" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>
+  <line x1="123" y1="60" x2="123" y2="118" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>
   <circle cx="32"  cy="32"  r="1.5" fill="#5B8CFF" opacity="0.7"/>
   <circle cx="148" cy="36"  r="1"   fill="#C2D2FF" opacity="0.5"/>
   <circle cx="144" cy="148" r="1.5" fill="#5B8CFF" opacity="0.6"/>
   <circle cx="38"  cy="145" r="1"   fill="#C2D2FF" opacity="0.5"/>
-
+  <circle cx="155" cy="90"  r="1"   fill="#5B8CFF" opacity="0.4"/>
+  <circle cx="25"  cy="90"  r="1.2" fill="#C2D2FF" opacity="0.4"/>
   <defs>
     <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#5B8CFF" stop-opacity="0.25"/>
+      <stop offset="0%" stop-color="#5B8CFF" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="#060814" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="planetGrad" x1="60" y1="54" x2="120" y2="114" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#5ee9ff"/>
-      <stop offset="40%"  stop-color="#5B8CFF"/>
-      <stop offset="100%" stop-color="#0d5e80"/>
-    </linearGradient>
-    <linearGradient id="ringGrad1" x1="38" y1="70" x2="142" y2="98" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#C2D2FF" stop-opacity="0.9"/>
-      <stop offset="50%"  stop-color="#5B8CFF"/>
-      <stop offset="100%" stop-color="#C2D2FF" stop-opacity="0.9"/>
-    </linearGradient>
-    <linearGradient id="ringGrad2" x1="48" y1="74" x2="132" y2="94" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#5B8CFF" stop-opacity="0.7"/>
-      <stop offset="100%" stop-color="#5B8CFF" stop-opacity="0.4"/>
-    </linearGradient>
     <linearGradient id="hexGrad" x1="28" y1="14" x2="152" y2="158" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#C2D2FF" stop-opacity="0.7"/>
-      <stop offset="50%"  stop-color="#5B8CFF" stop-opacity="0.5"/>
-      <stop offset="100%" stop-color="#C2D2FF" stop-opacity="0.3"/>
+      <stop offset="0%"   stop-color="#C2D2FF" stop-opacity="0.8"/>
+      <stop offset="50%"  stop-color="#5B8CFF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#C2D2FF" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="hexGrad2" x1="42" y1="32" x2="138" y2="144" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#5B8CFF" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#3D5CE0" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="chartGrad" x1="38" y1="60" x2="142" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#5B8CFF"/>
+      <stop offset="60%"  stop-color="#7BA7FF"/>
+      <stop offset="100%" stop-color="#34d399"/>
     </linearGradient>
   </defs>
 </svg>

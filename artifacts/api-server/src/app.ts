@@ -40,8 +40,6 @@ const allowedOrigins = [
   "https://www.waytoalgo.com",
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
-  /\.replit\.dev$/,
-  /\.repl\.co$/,
 ];
 app.use(cors({
   origin: (origin, cb) => {
