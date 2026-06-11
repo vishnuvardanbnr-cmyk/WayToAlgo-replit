@@ -13,9 +13,13 @@ const TEAL = "#5B8CFF";
 const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.12)" } as const;
 const INPUT_STYLE = { background: "rgba(0,20,40,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" };
 
+const BEP20_REGEX = /^0x[a-fA-F0-9]{40}$/;
+
 const schema = z.object({
   amount: z.coerce.number().positive("Amount must be positive"),
-  walletAddress: z.string().min(10, "Valid wallet address required"),
+  walletAddress: z.string()
+    .min(1, "Wallet address is required")
+    .regex(BEP20_REGEX, "Must be a valid BEP20 address (0x + 40 hex characters)"),
 });
 
 const statusConfig: Record<string, { icon: any; color: string; bg: string; label: string }> = {
@@ -242,19 +246,20 @@ export default function Withdrawals({ user }: { user: any }) {
                   );
                 })()}
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={{ color: "rgba(194,210,255,0.65)" }}>USDT Wallet Address (BEP-20)</label>
-                  <div
-                    data-testid="input-withdraw-wallet"
-                    className="w-full rounded-xl px-3 py-2.5 text-sm font-mono truncate select-all"
-                    style={{ background: "rgba(3,12,26,0.5)", border: "1px solid rgba(91,140,255,0.10)", color: "rgba(194,210,255,0.6)", cursor: "default" }}
-                  >
-                    {user?.walletAddress || <span style={{ color: "rgba(194,210,255,0.3)" }}>No wallet address set — update in Profile</span>}
-                  </div>
-                  <p className="text-[11px]" style={{ color: "rgba(194,210,255,0.3)" }}>
-                    To change your address, go to Profile settings.
-                  </p>
-                </div>
+                <FormField control={form.control} name="walletAddress" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel style={{ color: "rgba(194,210,255,0.65)", fontSize: "0.75rem" }}>USDT Wallet Address (BEP-20)</FormLabel>
+                    <FormControl>
+                      <Input
+                        data-testid="input-withdraw-wallet"
+                        placeholder="0x0000000000000000000000000000000000000000"
+                        {...field}
+                        style={INPUT_STYLE}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
                 <button
                   data-testid="button-submit-withdrawal"
                   type="submit"
