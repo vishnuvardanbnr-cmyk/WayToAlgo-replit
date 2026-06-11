@@ -708,20 +708,24 @@ components:
           type: number
         usdtAmount:
           type: number
+        investmentType:
+          type: string
+          enum: [safe, risky]
+        tokenPurchaseAmount:
+          type: number
         createdAt:
           type: string
-      required: [id, userId, amount, planTier, dailyRate, durationDays, earnedSoFar, remainingDays, startDate, endDate, status, hyperCoinAmount, usdtAmount, createdAt]
+      required: [id, userId, amount, planTier, dailyRate, durationDays, earnedSoFar, remainingDays, startDate, endDate, status, hyperCoinAmount, usdtAmount, investmentType, tokenPurchaseAmount, createdAt]
 
     CreateInvestmentBody:
       type: object
       properties:
         amount:
           type: number
-        hyperCoinAmount:
-          type: number
-        usdtAmount:
-          type: number
-      required: [amount, hyperCoinAmount, usdtAmount]
+        investmentType:
+          type: string
+          enum: [safe, risky]
+      required: [amount, investmentType]
 
     Income:
       type: object

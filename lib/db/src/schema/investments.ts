@@ -16,6 +16,8 @@ export const investmentsTable = pgTable("investments", {
   status: text("status").notNull().default("active"), // active, completed, cancelled
   hyperCoinAmount: numeric("hyper_coin_amount", { precision: 20, scale: 6 }).notNull(),
   usdtAmount: numeric("usdt_amount", { precision: 20, scale: 6 }).notNull(),
+  investmentType: text("investment_type").notNull().default("risky"), // "safe" or "risky"
+  tokenPurchaseAmount: numeric("token_purchase_amount", { precision: 20, scale: 6 }).notNull().default("0"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

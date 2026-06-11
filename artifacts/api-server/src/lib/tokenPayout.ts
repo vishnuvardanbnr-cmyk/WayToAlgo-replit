@@ -145,10 +145,15 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
   }
 
   // Denominator in integer micro-USD to keep BigInt proportions exact.
+  // For Safe investments only the ROI portion (amount − tokenPurchaseAmount) earns
+  // daily returns. For Risky investments the full amount earns returns.
   let totalMicro = 0n;
   const principalMicro = new Map<number, bigint>(); // investmentId -> micro
   for (const inv of eligible) {
-    const micro = BigInt(Math.round(parseFloat(inv.amount) * 1e6));
+    const totalAmt = parseFloat(inv.amount);
+    const tokenPurchased = parseFloat((inv as any).tokenPurchaseAmount ?? "0");
+    const roiAmt = Math.max(0, totalAmt - tokenPurchased);
+    const micro = BigInt(Math.round(roiAmt * 1e6));
     principalMicro.set(inv.id, micro);
     totalMicro += micro;
   }

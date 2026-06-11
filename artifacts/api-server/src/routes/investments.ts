@@ -34,6 +34,8 @@ function investmentToResponse(inv: typeof investmentsTable.$inferSelect) {
     status: inv.status,
     hyperCoinAmount: parseFloat(inv.hyperCoinAmount),
     usdtAmount: parseFloat(inv.usdtAmount),
+    investmentType: (inv.investmentType ?? "risky") as "safe" | "risky",
+    tokenPurchaseAmount: parseFloat(inv.tokenPurchaseAmount ?? "0"),
     createdAt: inv.createdAt.toISOString(),
   };
 }
@@ -55,7 +57,7 @@ router.post("/investments", requireAuth, async (req, res) => {
     return;
   }
   const user = (req as any).user;
-  const { amount, hyperCoinAmount, usdtAmount } = parsed.data;
+  const { amount, investmentType } = parsed.data as { amount: number; investmentType: "safe" | "risky" };
 
   if (user.investmentBlocked) {
     const reason = user.investmentBlockReason || user.blockReason;
@@ -81,15 +83,14 @@ router.post("/investments", requireAuth, async (req, res) => {
     return;
   }
 
-  // Fetch configurable HYPERCOIN minimum from admin settings
   const [settings] = await db.select().from(platformSettingsTable).limit(1);
-  const hyperCoinMinPercent = parseFloat(settings?.hyperCoinMinPercent ?? "50");
 
-  const hyperCoinPercent = (hyperCoinAmount / amount) * 100;
-  if (hyperCoinPercent < hyperCoinMinPercent) {
-    res.status(400).json({ message: `Minimum ${hyperCoinMinPercent}% of deposit must be in HYPERCOIN` });
-    return;
-  }
+  // Compute the split server-side based on investmentType:
+  // Safe  → 50% goes to immediate WTA token purchase, 50% earns daily ROI
+  // Risky → 100% earns daily ROI (no token purchase)
+  const tokenPurchaseAmount = investmentType === "safe" ? amount * 0.5 : 0;
+  const usdtAmount = amount; // always paid entirely from USDT wallet
+  const hyperCoinAmount = 0; // user never pays with WTA tokens
 
   // Fetch fresh user to check balances
   const [freshUser] = await db.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
@@ -118,16 +119,16 @@ router.post("/investments", requireAuth, async (req, res) => {
   }
 
   const currentUsdt = parseFloat(freshUser.walletBalance ?? "0");
-  const currentHyper = parseFloat(freshUser.hyperCoinBalance ?? "0");
-
   if (usdtAmount > currentUsdt) {
     res.status(400).json({ message: `Insufficient USDT balance. Available: $${currentUsdt.toFixed(2)}` });
     return;
   }
-  if (hyperCoinAmount > currentHyper) {
-    res.status(400).json({ message: `Insufficient HYPERCOIN balance. Available: $${currentHyper.toFixed(2)}` });
-    return;
-  }
+
+  // For Safe invest: credit WTA tokens at current admin-configured price
+  const tokenPrice = parseFloat(settings?.hyperCoinPrice ?? "1");
+  const tokensToCredit = tokenPurchaseAmount > 0 && tokenPrice > 0
+    ? tokenPurchaseAmount / tokenPrice
+    : 0;
 
   const startDate = new Date();
   const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
@@ -140,9 +141,7 @@ router.post("/investments", requireAuth, async (req, res) => {
       const [lockedUser] = await tx.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
       if (!lockedUser) throw Object.assign(new Error("User not found"), { status: 404 });
       const latestUsdt = parseFloat(lockedUser.walletBalance ?? "0");
-      const latestHyper = parseFloat(lockedUser.hyperCoinBalance ?? "0");
       if (usdtAmount > latestUsdt) throw Object.assign(new Error(`Insufficient USDT balance. Available: $${latestUsdt.toFixed(2)}`), { status: 400 });
-      if (hyperCoinAmount > latestHyper) throw Object.assign(new Error(`Insufficient HYPERCOIN balance. Available: $${latestHyper.toFixed(2)}`), { status: 400 });
 
       const inv = await tx.insert(investmentsTable).values({
         userId: user.id,
@@ -155,17 +154,21 @@ router.post("/investments", requireAuth, async (req, res) => {
         endDate,
         hyperCoinAmount: hyperCoinAmount.toString(),
         usdtAmount: usdtAmount.toString(),
+        investmentType,
+        tokenPurchaseAmount: tokenPurchaseAmount.toString(),
         status: "active",
         earnedSoFar: "0",
       }).returning();
 
       // Auto-activate user on their first investment
       const isFirstInvestment = parseFloat(lockedUser.totalInvested) === 0;
+      const currentHyper = parseFloat(lockedUser.hyperCoinBalance ?? "0");
       await tx.update(usersTable)
         .set({
           totalInvested: (parseFloat(lockedUser.totalInvested) + amount).toString(),
           walletBalance: (latestUsdt - usdtAmount).toString(),
-          hyperCoinBalance: (latestHyper - hyperCoinAmount).toString(),
+          // Safe invest: credit WTA tokens immediately at current price
+          ...(tokensToCredit > 0 ? { hyperCoinBalance: (currentHyper + tokensToCredit).toFixed(6) } : {}),
           ...(isFirstInvestment ? { isActive: true } : {}),
         })
         .where(eq(usersTable.id, user.id));
