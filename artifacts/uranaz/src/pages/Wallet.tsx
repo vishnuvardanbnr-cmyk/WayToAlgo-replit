@@ -30,6 +30,9 @@ import {
   ShieldAlert,
   Upload,
   CircleDollarSign,
+  Coins,
+  PiggyBank,
+  TrendingDown,
 } from "lucide-react";
 
 function getToken() {
@@ -920,6 +923,10 @@ export default function WalletPage({ user }: { user: any }) {
   const [localTradingBal, setLocalTradingBal] = useState<number | null>(null);
   const [localTeamBal, setLocalTeamBal] = useState<number | null>(null);
   const [tokenPrice, setTokenPrice] = useState(0);
+  const [wtaHoldings, setWtaHoldings] = useState<{
+    purchaseCount: number; totalUsdtSpent: string;
+    totalWtaReceived: string; currentValue: string; sellPrice: string;
+  } | null>(null);
 
   const usdtBalance = localUsdtBal ?? (user?.walletBalance ?? 0);
   // Trading Profit and Team Benefit are stored in WTA amounts
@@ -930,6 +937,15 @@ export default function WalletPage({ user }: { user: any }) {
   useEffect(() => {
     fetch("/api/settings/public").then(r => r.json()).then(d => {
       if (d.hyperCoinPrice) setTokenPrice(parseFloat(d.hyperCoinPrice));
+    }).catch(() => {});
+  }, []);
+
+  // Fetch WTA on-chain purchase holdings from DB
+  useEffect(() => {
+    fetch("/api/token/holdings", {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    }).then(r => r.ok ? r.json() : null).then(d => {
+      if (d) setWtaHoldings(d);
     }).catch(() => {});
   }, []);
 
@@ -1056,6 +1072,95 @@ export default function WalletPage({ user }: { user: any }) {
           Tokens in these wallets are held by the platform. Click <strong style={{ color: "rgba(194,210,255,0.7)" }}>Sell</strong> to sell them on-chain and receive USDT in your Main Wallet.
         </p>
       </div>
+
+      {/* ── WTA Token Balance (on-chain purchases) ── */}
+      {(wtaHoldings && wtaHoldings.purchaseCount > 0) ? (
+        <div
+          className="rounded-2xl p-5"
+          style={{
+            background: "linear-gradient(135deg, rgba(91,140,255,0.10), rgba(61,92,224,0.04))",
+            border: "1px solid rgba(91,140,255,0.22)",
+          }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))", border: "1px solid rgba(91,140,255,0.28)" }}
+              >
+                <Coins size={16} style={{ color: TEAL }} />
+              </div>
+              <div>
+                <div className="font-bold text-sm" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif" }}>
+                  WTA Token Balance
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.38)" }}>
+                  On-chain · {wtaHoldings.purchaseCount} purchase{wtaHoldings.purchaseCount !== 1 ? "s" : ""}
+                </div>
+              </div>
+            </div>
+            <a
+              href="/invest?tab=token"
+              className="text-xs px-3 py-1.5 rounded-xl font-semibold"
+              style={{ background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.28)", color: TEAL }}
+            >
+              Buy More
+            </a>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            {/* WTA Holding */}
+            <div className="rounded-xl px-3 py-3" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}>
+              <div className="flex items-center gap-1 text-xs mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+                <Coins size={10} /> Holding
+              </div>
+              <div className="font-black text-base" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", lineHeight: 1.1 }}>
+                {parseFloat(wtaHoldings.totalWtaReceived).toFixed(4)}
+              </div>
+              <div className="text-xs mt-0.5 font-semibold" style={{ color: "rgba(91,140,255,0.7)" }}>WTA</div>
+            </div>
+
+            {/* Current Value */}
+            <div className="rounded-xl px-3 py-3" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}>
+              <div className="flex items-center gap-1 text-xs mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+                <TrendingDown size={10} /> Current Value
+              </div>
+              <div className="font-black text-base" style={{ color: TEAL, fontFamily: "'Sora', sans-serif", lineHeight: 1.1 }}>
+                ${parseFloat(wtaHoldings.currentValue).toFixed(2)}
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.3)" }}>
+                @{parseFloat(wtaHoldings.sellPrice).toFixed(4)} sell
+              </div>
+            </div>
+
+            {/* Total Purchased */}
+            <div className="rounded-xl px-3 py-3" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}>
+              <div className="flex items-center gap-1 text-xs mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+                <PiggyBank size={10} /> Purchased
+              </div>
+              <div className="font-black text-base" style={{ color: "rgba(200,240,255,0.85)", fontFamily: "'Sora', sans-serif", lineHeight: 1.1 }}>
+                ${parseFloat(wtaHoldings.totalUsdtSpent).toFixed(2)}
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.3)" }}>USDT spent</div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div
+          className="rounded-2xl p-4 flex items-center gap-3"
+          style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}
+        >
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)" }}>
+            <Coins size={15} style={{ color: "rgba(91,140,255,0.6)" }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.7)" }}>WTA Token Balance</div>
+            <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>
+              No on-chain purchases yet · <a href="/invest?tab=token" style={{ color: TEAL }}>Buy WTA tokens</a>
+            </div>
+          </div>
+        </div>
+      )}
 
 
       {/* ── Earnings Stats ── */}

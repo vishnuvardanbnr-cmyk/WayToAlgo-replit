@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { ethers } from "ethers";
-import { db, usersTable, platformSettingsTable, incomeTable, tokenSalesTable, tokenRewardsTable } from "@workspace/db";
+import { db, usersTable, platformSettingsTable, incomeTable, tokenSalesTable, tokenRewardsTable, userTokenPurchasesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { resolveKey } from "../lib/keyEncryption.js";
@@ -253,6 +253,95 @@ router.post("/token/sell", requireAuth, async (req, res) => {
     txHash: result.txHash,
     tokensSold: tokenAmountStr,
     newBalance: after?.roiTokenBalance || "0",
+  });
+});
+
+/**
+ * POST /api/token/record-purchase
+ *
+ * Records a confirmed on-chain WTA buy to the platform DB so holdings can be
+ * displayed without requiring a wallet connection. tx_hash is unique — safe to
+ * call multiple times (duplicate is silently ignored).
+ */
+router.post("/token/record-purchase", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+  const { txHash, usdtSpent, wtaReceived, walletAddress, buyPrice } = req.body ?? {};
+
+  if (!txHash || !usdtSpent || !wtaReceived || !walletAddress) {
+    res.status(400).json({ message: "Missing required fields" });
+    return;
+  }
+  if (!/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
+    res.status(400).json({ message: "Invalid tx hash" });
+    return;
+  }
+
+  try {
+    await db.insert(userTokenPurchasesTable).values({
+      userId: user.id,
+      walletAddress: String(walletAddress).toLowerCase(),
+      txHash: String(txHash).toLowerCase(),
+      usdtSpent: String(parseFloat(usdtSpent) || 0),
+      wtaReceived: String(parseFloat(wtaReceived) || 0),
+      buyPrice: String(parseFloat(buyPrice ?? "0") || 0),
+    }).onConflictDoNothing();
+    res.json({ success: true });
+  } catch (err: any) {
+    logger.warn({ err }, "token/record-purchase failed");
+    res.status(500).json({ message: "Failed to record purchase" });
+  }
+});
+
+/**
+ * GET /api/token/holdings
+ *
+ * Returns aggregated WTA token holdings for the logged-in user, derived from
+ * DB purchase records (no wallet connection required). Also includes the live
+ * sell price for current-value calculation.
+ */
+router.get("/token/holdings", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+
+  const purchases = await db
+    .select()
+    .from(userTokenPurchasesTable)
+    .where(eq(userTokenPurchasesTable.userId, user.id))
+    .orderBy(desc(userTokenPurchasesTable.createdAt))
+    .limit(50);
+
+  const totalUsdtSpent = purchases.reduce((s, p) => s + parseFloat(p.usdtSpent), 0);
+  const totalWtaReceived = purchases.reduce((s, p) => s + parseFloat(p.wtaReceived), 0);
+
+  const [settings] = await db.select().from(platformSettingsTable).limit(1);
+  const contractAddress = (settings?.tokenContractAddress || "").trim();
+  let sellPrice = "0";
+  let currentValue = "0";
+
+  if (settings && isValidAddress(contractAddress)) {
+    try {
+      const prices = await getTokenPrices(
+        contractAddress,
+        settings.bscRpcUrl || "https://bsc-dataseed.binance.org/"
+      );
+      sellPrice = prices.sellPrice;
+      currentValue = (totalWtaReceived * parseFloat(sellPrice)).toFixed(6);
+    } catch { /* non-fatal */ }
+  }
+
+  res.json({
+    purchaseCount: purchases.length,
+    totalUsdtSpent: totalUsdtSpent.toFixed(6),
+    totalWtaReceived: totalWtaReceived.toFixed(6),
+    sellPrice,
+    currentValue,
+    recentPurchases: purchases.slice(0, 10).map((p) => ({
+      id: p.id,
+      txHash: p.txHash,
+      usdtSpent: parseFloat(p.usdtSpent),
+      wtaReceived: parseFloat(p.wtaReceived),
+      buyPrice: parseFloat(p.buyPrice),
+      createdAt: p.createdAt.toISOString(),
+    })),
   });
 });
 

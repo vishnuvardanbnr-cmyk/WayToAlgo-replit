@@ -1,2 +1,4 @@
 - [On-chain token Buy/Sell frontend](onchain-token-frontend.md) — Invest page token section uses raw window.ethereum + manual ABI; isolated from off-chain flows; contract address pasted later.
 - [Earning Wallets Flow](earning-wallets-flow.md) — Trading Profit & Team Benefit store HC token amounts (not USD); convert = sell-only, no re-buy; admin buy happens at distribution time.
+- [WTA purchase DB tracking](wta-purchase-tracking.md) — user_token_purchases table + POST/GET /api/token/* routes track on-chain buys server-side; holdings shown on Dashboard + Wallet without wallet connection.
+- [VPS deploy paths](vps-deploy-paths.md) — backend bundle → /var/www/waytoalgo/backend/index.mjs; frontend → /var/www/waytoalgo/frontend/; PM2 runs via start.sh sourcing .env.

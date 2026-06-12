@@ -9,7 +9,7 @@ import {
   getConnectedAccount, onAccountsChanged,
   readBuyPrice, readSellPrice, readSymbol,
   readTotalLiquidity, readTotalSupply, readHolderCount,
-  readTokenBalance, readUserPurchase,
+  readTokenBalance,
 } from "@/lib/tokenContract";
 
 const TEAL = "#5B8CFF";
@@ -20,6 +20,18 @@ const GLASS = {
 } as const;
 
 const DECIMALS_BASE = 10n ** 18n;
+
+interface Holdings {
+  purchaseCount: number;
+  totalUsdtSpent: string;
+  totalWtaReceived: string;
+  sellPrice: string;
+  currentValue: string;
+}
+
+function getToken() {
+  return localStorage.getItem("waytoalgo_token") || "";
+}
 
 export default function DashboardTokenCard() {
   const configured = isTokenConfigured();
@@ -34,11 +46,20 @@ export default function DashboardTokenCard() {
   const [holders, setHolders] = useState<number | null>(null);
 
   const [tokenBal, setTokenBal] = useState<bigint>(0n);
-  const [usdtSpent, setUsdtSpent] = useState<bigint | null>(null);
+  const [holdings, setHoldings] = useState<Holdings | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Token-wide stats — each read independently guarded so an RPC failure
-  // (e.g. eth_getLogs limits) only blanks that one stat.
+  // Fetch DB-stored purchase totals (no wallet required)
+  const loadHoldings = useCallback(async () => {
+    try {
+      const res = await fetch("/api/token/holdings", {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (res.ok) setHoldings(await res.json());
+    } catch { /* non-fatal */ }
+  }, []);
+
+  // Token-wide stats — each read independently guarded
   const loadStats = useCallback(() => {
     if (!isTokenConfigured()) return;
     readBuyPrice().then(setBuyPrice).catch(() => setBuyPrice(null));
@@ -49,43 +70,33 @@ export default function DashboardTokenCard() {
     readHolderCount().then(setHolders).catch(() => setHolders(null));
   }, []);
 
-  // This user's holdings + cost basis (USDT spent buying), derived from the
-  // contract's TokensBought events. Isolated/non-fatal.
-  const loadHoldings = useCallback((addr: string | null) => {
-    if (!isTokenConfigured() || !addr) {
-      setTokenBal(0n); setUsdtSpent(null);
-      return;
-    }
+  const loadOnChainBalance = useCallback((addr: string | null) => {
+    if (!isTokenConfigured() || !addr) { setTokenBal(0n); return; }
     readTokenBalance(addr).then(setTokenBal).catch(() => setTokenBal(0n));
-    readUserPurchase(addr)
-      .then((r) => setUsdtSpent(r ? r.usdtSpent : null))
-      .catch(() => setUsdtSpent(null));
   }, []);
 
   const refresh = useCallback((addr?: string | null) => {
     setLoading(true);
-    try {
-      loadStats();
-      loadHoldings(addr ?? account);
-    } finally {
-      setLoading(false);
-    }
-  }, [account, loadStats, loadHoldings]);
+    loadStats();
+    loadOnChainBalance(addr ?? account);
+    loadHoldings().finally(() => setLoading(false));
+  }, [account, loadStats, loadOnChainBalance, loadHoldings]);
 
   useEffect(() => {
+    loadHoldings();
     if (configured) loadStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configured]);
 
-  // Auto-detect an already-connected wallet (no popup) + react to changes.
+  // Auto-detect already-connected wallet (no popup) + react to changes
   useEffect(() => {
     let active = true;
     getConnectedAccount().then((addr) => {
-      if (active && addr) { setAccount(addr); loadHoldings(addr); }
+      if (active && addr) { setAccount(addr); loadOnChainBalance(addr); }
     });
     const unsubscribe = onAccountsChanged((addr) => {
       setAccount(addr);
-      loadHoldings(addr);
+      loadOnChainBalance(addr);
     });
     return () => { active = false; unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,10 +108,33 @@ export default function DashboardTokenCard() {
   const supplyDisplay = supply !== null ? formatUnits18(supply, 2) : "—";
   const holdersDisplay = holders !== null ? holders.toLocaleString() : "—";
 
-  // Current value = holding marked at the live sell price.
-  const currentValue =
-    sellPrice !== null ? (tokenBal * sellPrice) / DECIMALS_BASE : null;
-  const hasHoldings = configured && account && tokenBal > 0n;
+  // Holdings display — prefer live wallet balance; fall back to DB totals
+  const walletConnected = configured && account;
+  const hasWalletBal = walletConnected && tokenBal > 0n;
+  const hasDbPurchases = (holdings?.purchaseCount ?? 0) > 0;
+  const showHoldings = configured && (hasWalletBal || hasDbPurchases);
+
+  // Current value: wallet balance × live sell price if connected, else DB value
+  const currentValue = (() => {
+    if (hasWalletBal && sellPrice !== null) {
+      const val = (tokenBal * sellPrice) / DECIMALS_BASE;
+      return formatUnits18(val, 2) + " USDT";
+    }
+    if (holdings && parseFloat(holdings.currentValue) > 0) {
+      return parseFloat(holdings.currentValue).toFixed(2) + " USDT";
+    }
+    return "—";
+  })();
+
+  const holdingDisplay = hasWalletBal
+    ? formatUnits18(tokenBal, 4)
+    : holdings
+    ? parseFloat(holdings.totalWtaReceived).toFixed(4)
+    : "—";
+
+  const purchasedDisplay = holdings
+    ? parseFloat(holdings.totalUsdtSpent).toFixed(2) + " USDT"
+    : "—";
 
   return (
     <div>
@@ -180,33 +214,30 @@ export default function DashboardTokenCard() {
         </div>
 
         {/* my holdings */}
-        {hasHoldings ? (
+        {showHoldings ? (
           <div className="mt-3 rounded-xl p-3" style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.08), rgba(61,92,224,0.03))", border: "1px solid rgba(91,140,255,0.18)" }}>
             <div className="flex items-center gap-1.5 text-xs mb-2.5" style={{ color: "rgba(194,210,255,0.55)" }}>
               <Wallet size={12} style={{ color: TEAL }} /> My Holdings
+              {!walletConnected && (
+                <span className="ml-auto text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>from purchase history</span>
+              )}
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Holding</div>
                 <div className="font-bold text-sm mt-0.5" style={{ color: "rgba(200,240,255,0.9)" }}>
-                  {formatUnits18(tokenBal, 4)}
+                  {holdingDisplay} <span className="text-xs font-normal" style={{ color: "rgba(194,210,255,0.4)" }}>{symbol}</span>
                 </div>
               </div>
               <div>
                 <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Current Value</div>
-                <div className="font-bold text-sm mt-0.5" style={{ color: TEAL }}>
-                  {currentValue !== null ? formatUnits18(currentValue, 2) : "—"}
-                  <span className="text-xs font-normal" style={{ color: "rgba(194,210,255,0.4)" }}> USDT</span>
-                </div>
+                <div className="font-bold text-sm mt-0.5" style={{ color: TEAL }}>{currentValue}</div>
               </div>
               <div>
                 <div className="flex items-center gap-1 text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
                   <PiggyBank size={10} /> Purchased
                 </div>
-                <div className="font-bold text-sm mt-0.5" style={{ color: "rgba(200,240,255,0.9)" }}>
-                  {usdtSpent !== null ? formatUnits18(usdtSpent, 2) : "—"}
-                  <span className="text-xs font-normal" style={{ color: "rgba(194,210,255,0.4)" }}> USDT</span>
-                </div>
+                <div className="font-bold text-sm mt-0.5" style={{ color: "rgba(200,240,255,0.9)" }}>{purchasedDisplay}</div>
               </div>
             </div>
           </div>
@@ -215,7 +246,7 @@ export default function DashboardTokenCard() {
             <Sparkles size={13} className="shrink-0 mt-0.5" style={{ color: TEAL }} />
             <p className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.6)" }}>
               {configured
-                ? <>Connect your wallet on the <Link href="/invest?tab=token" style={{ color: TEAL, fontWeight: 600 }}>Buy / Sell</Link> screen to see your holdings, current value and purchase total.</>
+                ? <>Buy <Link href="/invest?tab=token" style={{ color: TEAL, fontWeight: 600 }}>WTA tokens</Link> to see your holdings, current value and purchase total here.</>
                 : "Live prices, your holdings, current value and purchase total appear here once the token contract is added."}
             </p>
           </div>

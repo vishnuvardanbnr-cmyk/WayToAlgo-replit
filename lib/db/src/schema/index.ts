@@ -17,3 +17,4 @@ export * from "./p2p_transfers";
 export * from "./user_rewards";
 export * from "./admin_balance_adjustments";
 export * from "./token_payouts";
+export * from "./user_token_purchases";

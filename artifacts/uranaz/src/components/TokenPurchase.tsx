@@ -216,6 +216,21 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
         if (!receipt || receipt.status === "0x0") {
           setStage("failed"); setErrorMsg("Buy transaction reverted on-chain."); return;
         }
+        // Record purchase in platform DB (non-fatal — display-only)
+        fetch("/api/token/record-purchase", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}`,
+          },
+          body: JSON.stringify({
+            txHash: hash,
+            usdtSpent: amount,
+            wtaReceived: formatUnits18(net, 18),
+            walletAddress: from,
+            buyPrice: buyPrice !== null ? formatUnits18(buyPrice, 18) : "0",
+          }),
+        }).catch(() => {});
       } else {
         if (wei > tokenBal) {
           setStage("failed");
