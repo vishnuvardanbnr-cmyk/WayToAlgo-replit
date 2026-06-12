@@ -67,6 +67,10 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     // Per-level reward percentage in basis points (index 0 = level 1).
     uint256[LEVELS] public levelPercents;
 
+    // ── Holder tracking ──
+    uint256 public holderCount;
+    mapping(address => bool) private _isHolder;
+
     mapping(address => uint256) public totalReceivedByUser;
     mapping(address => uint256) public totalBurnedByUser;
     mapping(address => uint256) public totalReferralEarned;
@@ -287,6 +291,31 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     }
 
     // ---------------------------------------------------------------------
+    // Holder tracking hook
+    // ---------------------------------------------------------------------
+
+    /**
+     * @dev Called by OpenZeppelin on every mint, burn, and transfer.
+     *      Maintains `holderCount` by watching when balances cross zero.
+     *      address(0) (the mint/burn sentinel) is always excluded.
+     */
+    function _update(address from, address to, uint256 value) internal override {
+        super._update(from, to, value);
+
+        // New holder: `to` is a real address that had no balance before this transfer.
+        if (to != address(0) && !_isHolder[to] && balanceOf(to) > 0) {
+            _isHolder[to] = true;
+            holderCount++;
+        }
+
+        // Lost holder: `from` is a real address whose balance is now zero.
+        if (from != address(0) && _isHolder[from] && balanceOf(from) == 0) {
+            _isHolder[from] = false;
+            holderCount--;
+        }
+    }
+
+    // ---------------------------------------------------------------------
     // Views (parity with reference)
     // ---------------------------------------------------------------------
 
@@ -297,6 +326,12 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     function getTotalReceivedByUser(address user) external view returns (uint256) { return totalReceivedByUser[user]; }
     function getTotalBurnedByUser(address user) external view returns (uint256) { return totalBurnedByUser[user]; }
     function getUserTransferCount(address user) external view returns (uint256) { return userTransferHistory[user].length; }
+
+    /// @notice Returns the current number of addresses holding a non-zero WTA balance.
+    function getHolderCount() external view returns (uint256) { return holderCount; }
+
+    /// @notice Returns true if `account` currently holds a non-zero WTA balance.
+    function isHolder(address account) external view returns (bool) { return _isHolder[account]; }
 
     function getUserTransferHistory(address user, uint256 start, uint256 limit)
         external
