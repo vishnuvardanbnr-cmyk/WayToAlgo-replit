@@ -8,8 +8,8 @@
    While empty, the UI shows a "not configured yet" state.
    ──────────────────────────────────────────────────────────────── */
 
-// 👇 Set this to your deployed BondingCurveToken address on BSC mainnet.
-export const TOKEN_CONTRACT_ADDRESS = "";
+// WaytoAlgoToken deployed on BSC mainnet.
+export const TOKEN_CONTRACT_ADDRESS = "0x02b5295b9593d1E62cd18CAb865AB74359A964bd";
 
 // BSC mainnet BEP-20 USDT (18 decimals) — same token the platform already uses.
 export const USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955";
