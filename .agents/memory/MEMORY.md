@@ -2,3 +2,4 @@
 - [Earning Wallets Flow](earning-wallets-flow.md) — Trading Profit & Team Benefit store HC token amounts (not USD); convert = sell-only, no re-buy; admin buy happens at distribution time.
 - [WTA purchase DB tracking](wta-purchase-tracking.md) — user_token_purchases table + POST/GET /api/token/* routes track on-chain buys server-side; holdings shown on Dashboard + Wallet without wallet connection.
 - [VPS deploy paths](vps-deploy-paths.md) — backend bundle → /var/www/waytoalgo/backend/index.mjs; frontend → /var/www/waytoalgo/frontend/; PM2 runs via start.sh sourcing .env.
+- [Replit Helium routing](replit-helium-routing.md) — When REPLIT_HELIUM_ENABLED=true, external traffic routes via artifact router (port 8000), NOT port 5000; fix = proxy 5000→8000 + run artifact router.

@@ -2,7 +2,7 @@ import pino from "pino";
 import { mkdirSync } from "fs";
 
 const isProduction = process.env.NODE_ENV === "production";
-const LOG_DIR = process.env["LOG_DIR"] ?? "/var/log/uranaz";
+const LOG_DIR = process.env["LOG_DIR"] ?? "/tmp/uranaz-logs";
 
 const baseOptions: pino.LoggerOptions = {
   level: process.env["LOG_LEVEL"] ?? "info",
