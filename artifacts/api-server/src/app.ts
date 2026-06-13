@@ -32,15 +32,21 @@ app.use(
 );
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-// Only allow requests from the production domain and local development
-const allowedOrigins = [
+// Allow requests from production domains, Replit dev/preview domains, and local development
+const REPLIT_DEV_DOMAIN = process.env.REPLIT_DEV_DOMAIN;
+const allowedOrigins: (string | RegExp)[] = [
   "https://way2algo.io",
   "https://www.way2algo.io",
   "https://waytoalgo.com",
   "https://www.waytoalgo.com",
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+  /\.replit\.dev$/,
+  /\.repl\.co$/,
 ];
+if (REPLIT_DEV_DOMAIN) {
+  allowedOrigins.push(`https://${REPLIT_DEV_DOMAIN}`);
+}
 app.use(cors({
   origin: (origin, cb) => {
     // Allow server-to-server (no origin) and matching origins
