@@ -4,6 +4,9 @@ import pinoHttp from "pino-http";
 import rateLimit from "express-rate-limit";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
 
 const app: Express = express();
 
@@ -102,6 +105,19 @@ app.use("/api/auth/register", authLimiter);
 app.use("/api", generalLimiter);
 
 app.use("/api", router);
+
+// ── Frontend static file serving ──────────────────────────────────────────────
+// Serve the pre-built Vite frontend so everything runs on a single port.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const frontendDist = path.resolve(__dirname, "../../uranaz/dist/public");
+
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist, { maxAge: "1h", etag: true }));
+  // SPA fallback — any unmatched route returns index.html (Express 5 wildcard syntax)
+  app.get("/{*wildcard}", (_req: Request, res: Response) => {
+    res.sendFile(path.join(frontendDist, "index.html"));
+  });
+}
 
 // ── Global error handler ──────────────────────────────────────────────────────
 // Catches PayloadTooLargeError, SyntaxError (bad JSON), and any other
