@@ -19,12 +19,13 @@ const fmt = (n: number) =>
   n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
-  // Only meaningful once the user has a personal investment and the cap is enabled.
-  if (!cap || !cap.enabled || cap.cap == null || cap.personalInvested <= 0) return null;
+  // Hidden only when the cap is unavailable or disabled (e.g. admin / uncapped accounts).
+  if (!cap || !cap.enabled || cap.cap == null) return null;
 
+  const noInvestment = cap.personalInvested <= 0;
   const pct = cap.cap > 0 ? Math.min(100, Math.max(0, (cap.earned / cap.cap) * 100)) : 0;
-  const reached = cap.reached || pct >= 100;
-  const isBoosted = cap.directVolume > cap.personalInvested;
+  const reached = !noInvestment && (cap.reached || pct >= 100);
+  const isBoosted = cap.directVolume > cap.personalInvested && !noInvestment;
   const barColor = reached ? AMBER : GREEN;
 
   // Progress of direct-team volume toward the user's own investment (unlocks the boosted tier).
@@ -97,7 +98,15 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
 
         {/* remaining / reached footer */}
         <div className="mt-2.5 flex items-center gap-1.5 text-xs">
-          {reached ? (
+          {noInvestment ? (
+            <>
+              <TrendingUp size={12} style={{ color: TEAL }} />
+              <span style={{ color: "rgba(194,210,255,0.55)" }}>
+                Invest to activate your earning limit — you'll be able to earn up to{" "}
+                <span style={{ color: TEAL, fontWeight: 600 }}>{cap.multiplier}×</span> your investment.
+              </span>
+            </>
+          ) : reached ? (
             <>
               <CheckCircle2 size={12} style={{ color: AMBER }} />
               <span style={{ color: AMBER }}>Cap reached — re-invest to keep earning.</span>
@@ -112,8 +121,8 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
           )}
         </div>
 
-        {/* unlock-3x hint when not yet boosted */}
-        {!isBoosted && (
+        {/* unlock-3x hint when not yet boosted (only once invested) */}
+        {!isBoosted && !noInvestment && (
           <div className="mt-3 rounded-xl p-3" style={{ background: "rgba(52,211,153,0.05)", border: "1px solid rgba(52,211,153,0.15)" }}>
             <div className="flex items-center gap-1.5 text-xs mb-2" style={{ color: "rgba(194,210,255,0.6)" }}>
               <Lock size={12} style={{ color: GREEN }} />
