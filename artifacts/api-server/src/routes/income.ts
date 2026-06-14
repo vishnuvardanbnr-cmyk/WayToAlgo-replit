@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { db, incomeTable, withdrawalsTable, usersTable, platformSettingsTable, tokenRewardsTable } from "@workspace/db";
+import { db, incomeTable, withdrawalsTable, usersTable, platformSettingsTable, tokenRewardsTable, investmentsTable } from "@workspace/db";
 import { eq, and, desc, sum, inArray, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
-import { capSettingsFrom, capForUser } from "../lib/earningsCap";
+import { capSettingsFrom, capForUser, buildDirectVolumeMap, loadRoiLevelEarnedMap } from "../lib/earningsCap";
 
 const router = Router();
 
@@ -107,8 +107,107 @@ router.get("/income/summary", requireAuth, async (req, res) => {
     reached: capInfo.reached,
   };
 
+  // ── Daily potential (expected ROI + level commission per day) ──
+  // "If all conditions pass" — assumes the user qualifies for every level depth,
+  // so it shows the full earning potential of their own investment + downline.
+  const dailyRoiRate = parseFloat(settingsRow?.dailyRoiRate ?? "0") || 0;
+  const levelRates: Record<number, number> = {
+    1: parseFloat(settingsRow?.levelCommL1 ?? "0") || 0,
+    2: parseFloat(settingsRow?.levelCommL2 ?? "0") || 0,
+    3: parseFloat(settingsRow?.levelCommL3 ?? "0") || 0,
+    4: parseFloat(settingsRow?.levelCommL4 ?? "0") || 0,
+    5: parseFloat(settingsRow?.levelCommL5 ?? "0") || 0,
+    6: parseFloat(settingsRow?.levelCommL6 ?? "0") || 0,
+    7: parseFloat(settingsRow?.levelCommL7 ?? "0") || 0,
+    8: parseFloat(settingsRow?.levelCommL8 ?? "0") || 0,
+    9: parseFloat(settingsRow?.levelCommL9 ?? "0") || 0,
+    10: parseFloat(settingsRow?.levelCommL10 ?? "0") || 0,
+  };
+
+  const allUsersFull = await db
+    .select({
+      id: usersTable.id,
+      sponsorId: usersTable.sponsorId,
+      isActive: usersTable.isActive,
+      isAdmin: usersTable.isAdmin,
+      totalInvested: usersTable.totalInvested,
+    })
+    .from(usersTable);
+  const activeInvs = await db
+    .select()
+    .from(investmentsTable)
+    .where(eq(investmentsTable.status, "active"));
+
+  // Mirror the distribution engine's ROI base: an account earns ROI only when it is
+  // active AND has not already reached its earnings cap. (Cooling is a transient
+  // per-investment timing gate, so we include it in this "potential" projection.)
+  const dpEarnedMap = await loadRoiLevelEarnedMap();
+  const dpDirectVol = buildDirectVolumeMap(
+    allUsersFull.map((u) => ({ id: u.id, sponsorId: u.sponsorId, totalInvested: u.totalInvested })),
+  );
+  const dpCs = settingsRow ? capSettingsFrom(settingsRow) : { enabled: true, base: 2, boosted: 3 };
+  const capReached = new Set<number>();
+  if (dpCs.enabled) {
+    for (const u of allUsersFull) {
+      const info = capForUser(u, dpDirectVol.get(u.id) ?? 0, dpEarnedMap.get(u.id) ?? 0, dpCs);
+      if (info.cap !== Infinity && (dpEarnedMap.get(u.id) ?? 0) + 1e-9 >= info.cap) capReached.add(u.id);
+    }
+  }
+  const activeUser = new Map(allUsersFull.map((u) => [u.id, !!u.isActive]));
+  const earnable = (uid: number) => (activeUser.get(uid) ?? false) && !capReached.has(uid);
+
+  // ROI principal per earnable user from active investments (Safe-plan token portion excluded).
+  const roiPrincipalByUser = new Map<number, number>();
+  for (const inv of activeInvs) {
+    if (!earnable(inv.userId)) continue;
+    const amt = parseFloat(inv.amount) || 0;
+    const tok = parseFloat((inv as any).tokenPurchaseAmount ?? "0") || 0;
+    const roiP = Math.max(0, amt - tok);
+    roiPrincipalByUser.set(inv.userId, (roiPrincipalByUser.get(inv.userId) ?? 0) + roiP);
+  }
+
+  // If the current user themselves can't earn (inactive / cap reached), both their
+  // ROI and level commission would be clamped to zero by the engine.
+  const selfEarnable = earnable(user.id);
+  const dailyRoiUsd = selfEarnable ? (roiPrincipalByUser.get(user.id) ?? 0) * dailyRoiRate : 0;
+
+  // Downline by depth (level 1..10): each member's daily ROI × that level's rate.
+  // Assumes the user passes every level's qualification (best-case potential).
+  const childrenMap = new Map<number, number[]>();
+  for (const uu of allUsersFull) {
+    if (uu.sponsorId != null) {
+      const arr = childrenMap.get(uu.sponsorId) ?? [];
+      arr.push(uu.id);
+      childrenMap.set(uu.sponsorId, arr);
+    }
+  }
+  let dailyLevelUsd = 0;
+  if (selfEarnable) {
+    let frontier = [user.id];
+    for (let level = 1; level <= 10; level++) {
+      const next: number[] = [];
+      for (const pid of frontier) {
+        for (const cid of childrenMap.get(pid) ?? []) {
+          next.push(cid);
+          const childDailyRoi = (roiPrincipalByUser.get(cid) ?? 0) * dailyRoiRate;
+          dailyLevelUsd += childDailyRoi * (levelRates[level] ?? 0);
+        }
+      }
+      frontier = next;
+      if (frontier.length === 0) break;
+    }
+  }
+
+  const dailyPotential = {
+    dailyRoiRate,
+    roiUsd: dailyRoiUsd,
+    levelUsd: dailyLevelUsd,
+    totalUsd: dailyRoiUsd + dailyLevelUsd,
+  };
+
   res.json({
     earningsCap,
+    dailyPotential,
     totalEarnings: usdtEarningsTotal,   // USDT only — what can actually be withdrawn
     wtaEarningsTotal,                    // WTA tokens total (daily + level comm)
     dailyReturnTotal,
