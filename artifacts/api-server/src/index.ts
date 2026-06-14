@@ -5,7 +5,7 @@ import { logger } from "./lib/logger";
 import { setupWebSocket } from "./lib/wsManager";
 import { sendDatabaseBackupEmail } from "./lib/email";
 import { runRankEngine } from "./lib/rankEngine";
-import { db, platformSettingsTable } from "@workspace/db";
+import { db, platformSettingsTable, seedRanks } from "@workspace/db";
 
 // ── Crash guards ───────────────────────────────────────────────────────────────
 // Log unhandled promise rejections instead of crashing the process
@@ -76,6 +76,12 @@ cron.schedule("0 1 * * *", async () => {
 });
 
 logger.info("Daily rank engine cron scheduled — every day at 01:00");
+
+// Seed the default rank ladder on an empty platform so the Ranks page and
+// progress bars work immediately. Idempotent: skips when ranks already exist.
+seedRanks()
+  .then((r) => logger.info(r, "Rank seed checked"))
+  .catch((err) => logger.error({ err }, "Rank seed failed"));
 
 // Run the rank engine shortly after startup so promotions/payouts settle without
 // waiting for the next daily tick (non-blocking, errors are swallowed/logged).

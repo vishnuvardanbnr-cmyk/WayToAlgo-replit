@@ -8,6 +8,7 @@
 - [Replit Helium routing](replit-helium-routing.md) — When REPLIT_HELIUM_ENABLED=true, external traffic routes via artifact router (port 8000), NOT port 5000; fix = proxy 5000→8000 + run artifact router.
 - [Rank engine test isolation](rank-engine-testing.md) — runRankEngine scans ALL users globally (snapshot+restore ambient users); in-process guard blocks concurrent runs, so prove DB atomic claim via raw guarded UPDATE race.
 - [Rank engine](rank-engine.md) — configurable ranks + monthly reward schedules; balanced 40/30/30 legs; 3-layer double-pay protection (in-proc guard + partial unique index + atomic per-month claim); first payout +1 month.
+- [Default rank seed](default-rank-seed.md) — seedRanks() in lib/db seeds Bronze→Diamond on startup ONLY when ranks table empty; never re-creates admin-deleted ranks.
 - [Withdrawal state machine](withdrawal-state-machine.md) — withdrawBalance is the only withdrawable balance; debit/refund/payout must use guarded conditional UPDATEs; only pending is reject/approve-able; auto-process must claim row before on-chain send.
 - [Daily Potential projection](daily-potential-projection.md) — income/summary dailyPotential = best-case ROI+level; mirrors engine ROI base + cap clamp, but intentionally ignores level-qualification gates AND cooling window.
 - [Withdrawal concurrency tests](withdrawal-concurrency-tests.md) — vitest+supertest harness races real routes; dev DB has >1 platform_settings row read via unordered limit(1), so patch ALL rows; mock blockchain send.
