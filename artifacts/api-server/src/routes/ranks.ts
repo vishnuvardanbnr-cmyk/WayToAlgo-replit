@@ -45,7 +45,11 @@ router.get("/ranks/my-progress", requireAuth, async (req, res) => {
 
   const currentRank = user.currentRankId ? ranks.find((r) => r.id === user.currentRankId) : undefined;
   const currentRankNumber = currentRank?.rankNumber ?? 0;
-  const nextRank = ranks.find((r) => r.rankNumber === currentRankNumber + 1);
+  // Next rank = the smallest rank strictly above the current one. Using a search
+  // (not currentRankNumber + 1) so non-contiguous rank numbers — possible after
+  // a rank is deleted or renumbered — still resolve a valid next target. `ranks`
+  // is already ordered ascending by rankNumber.
+  const nextRank = ranks.find((r) => r.rankNumber > currentRankNumber);
 
   // Compute this user's qualification metrics from the full member graph.
   const allUsers = await db.select({ id: usersTable.id, sponsorId: usersTable.sponsorId, totalInvested: usersTable.totalInvested }).from(usersTable);
