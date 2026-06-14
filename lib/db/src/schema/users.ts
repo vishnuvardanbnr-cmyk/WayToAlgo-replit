@@ -30,6 +30,9 @@ export const usersTable = pgTable("users", {
   totalEarnings: numeric("total_earnings", { precision: 20, scale: 6 }).notNull().default("0"),
   totalInvested: numeric("total_invested", { precision: 20, scale: 6 }).notNull().default("0"),
   walletBalance: numeric("wallet_balance", { precision: 20, scale: 6 }).notNull().default("0"),
+  // Withdraw wallet — collects all earnings + sold-WTA proceeds; the ONLY withdrawable balance.
+  // Main walletBalance stays for deposit / invest / P2P only.
+  withdrawBalance: numeric("withdraw_balance", { precision: 20, scale: 6 }).notNull().default("0"),
   hyperCoinBalance: numeric("hyper_coin_balance", { precision: 20, scale: 6 }).notNull().default("0"),
   // Virtual ROI-token balance (18-dp token units) credited by on-chain buy distributions.
   // Not withdrawable until sold back to the contract on the Wallet page.

@@ -998,7 +998,43 @@ export default function WalletPage({ user }: { user: any }) {
         >
           ${usdtBalance.toFixed(2)}
         </div>
-        <div className="text-xs mt-1.5" style={{ color: "rgba(194,210,255,0.28)" }}>USDT · Deposit, invest, withdraw</div>
+        <div className="text-xs mt-1.5" style={{ color: "rgba(194,210,255,0.28)" }}>USDT · Deposit, invest &amp; P2P</div>
+      </div>
+
+      {/* ── Withdraw Wallet Card ── */}
+      <div
+        className="rounded-2xl p-5"
+        style={{
+          background: "linear-gradient(135deg, rgba(52,211,153,0.13), rgba(16,185,129,0.05))",
+          border: "1px solid rgba(52,211,153,0.28)",
+          boxShadow: "0 0 24px rgba(52,211,153,0.08)",
+        }}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.4)" }}>
+              Withdraw Wallet
+            </div>
+            <div
+              className="font-black"
+              style={{ fontFamily: "'Sora', sans-serif", color: "#34d399", fontSize: "2rem", textShadow: "0 0 20px rgba(52,211,153,0.33)", lineHeight: 1.1 }}
+            >
+              ${(summary?.withdrawBalance ?? (parseFloat(user?.withdrawBalance ?? "0") || 0)).toFixed(2)}
+            </div>
+            <div className="text-xs mt-1.5" style={{ color: "rgba(194,210,255,0.28)" }}>USDT · All earnings &amp; sold tokens · Withdrawable</div>
+          </div>
+          <button
+            onClick={() => setLocation("/withdrawals")}
+            className="shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-[0.97]"
+            style={{
+              background: "linear-gradient(135deg, rgba(52,211,153,0.2), rgba(52,211,153,0.08))",
+              border: "1px solid rgba(52,211,153,0.35)",
+              color: "#34d399",
+            }}
+          >
+            Withdraw →
+          </button>
+        </div>
       </div>
 
       {/* ── Earning Wallets ── */}
@@ -1069,7 +1105,7 @@ export default function WalletPage({ user }: { user: any }) {
         style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
         <AlertCircle size={13} className="shrink-0 mt-0.5" style={{ color: "rgba(91,140,255,0.6)" }} />
         <p className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.45)" }}>
-          Tokens in these wallets are held by the platform. Click <strong style={{ color: "rgba(194,210,255,0.7)" }}>Sell</strong> to sell them on-chain and receive USDT in your Main Wallet.
+          Tokens in these wallets are held by the platform. Click <strong style={{ color: "rgba(194,210,255,0.7)" }}>Sell</strong> to sell them on-chain and receive USDT in your Withdraw Wallet.
         </p>
       </div>
 

@@ -266,13 +266,19 @@ router.post("/admin/withdrawals/:id/approve", requireAdmin, async (req, res) => 
   const withdrawPlaintextKey = settings ? resolveKey(settings.withdrawWalletPrivateKey) : null;
   const gasPlaintextKey = settings ? resolveKey(settings.gasWalletPrivateKey) : null;
   if (settings && withdrawPlaintextKey && gasPlaintextKey) {
-    // Mark processing immediately
-    await db.update(withdrawalsTable)
+    // Mark processing immediately — guarded so only a pending withdrawal can be approved
+    // (a rejected/refunded or already-approved row is never re-sent on-chain).
+    const [proc] = await db.update(withdrawalsTable)
       .set({ status: "processing" })
-      .where(eq(withdrawalsTable.id, id));
+      .where(and(eq(withdrawalsTable.id, id), eq(withdrawalsTable.status, "pending")))
+      .returning();
+    if (!proc) {
+      res.status(409).json({ message: `Cannot approve a withdrawal with status "${withdrawal.status}"` });
+      return;
+    }
     res.json(withdrawalToResponse({ ...withdrawal, status: "processing" }));
 
-    // Send on-chain async
+    // Send on-chain async — every transition is guarded on status="processing".
     (async () => {
       try {
         const { sendUsdtToAddress } = await import("../lib/blockchain.js");
@@ -286,26 +292,30 @@ router.post("/admin/withdrawals/:id/approve", requireAdmin, async (req, res) => 
         if (result.success) {
           await db.update(withdrawalsTable)
             .set({ status: "approved", txHash: result.txHash, processedAt: new Date(), processingError: null })
-            .where(eq(withdrawalsTable.id, id));
+            .where(and(eq(withdrawalsTable.id, id), eq(withdrawalsTable.status, "processing")));
         } else {
           await db.update(withdrawalsTable)
             .set({ status: "pending", processingError: result.error })
-            .where(eq(withdrawalsTable.id, id));
+            .where(and(eq(withdrawalsTable.id, id), eq(withdrawalsTable.status, "processing")));
         }
       } catch (err: any) {
         await db.update(withdrawalsTable)
           .set({ status: "pending", processingError: err?.message })
-          .where(eq(withdrawalsTable.id, id));
+          .where(and(eq(withdrawalsTable.id, id), eq(withdrawalsTable.status, "processing")));
       }
     })();
     return;
   }
 
-  // No withdraw wallet configured — approve without on-chain tx
+  // No withdraw wallet configured — approve without on-chain tx (guarded to pending only)
   const [updated] = await db.update(withdrawalsTable)
     .set({ status: "approved", processedAt: new Date() })
-    .where(eq(withdrawalsTable.id, id))
+    .where(and(eq(withdrawalsTable.id, id), eq(withdrawalsTable.status, "pending")))
     .returning();
+  if (!updated) {
+    res.status(409).json({ message: `Cannot approve a withdrawal with status "${withdrawal.status}"` });
+    return;
+  }
   res.json(withdrawalToResponse(updated));
 });
 
@@ -313,15 +323,36 @@ router.post("/admin/withdrawals/:id/approve", requireAdmin, async (req, res) => 
 router.post("/admin/withdrawals/:id/reject", requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id);
   const note = typeof req.body?.note === "string" ? req.body.note.trim() : null;
-  const [updated] = await db.update(withdrawalsTable)
-    .set({ status: "rejected", processedAt: new Date(), note: note || null })
-    .where(eq(withdrawalsTable.id, id))
-    .returning();
-  if (!updated) {
+
+  // Only a PENDING withdrawal can be rejected. The status flip and the refund happen
+  // in one transaction, and the flip is guarded on status="pending" so two concurrent
+  // rejects (or a reject racing an approve) can never both refund the same request.
+  // Rows that are "processing" must resolve (approve/auto) before they can be rejected.
+  let rejected: typeof withdrawalsTable.$inferSelect | undefined;
+  await db.transaction(async (tx) => {
+    const [w] = await tx.update(withdrawalsTable)
+      .set({ status: "rejected", processedAt: new Date(), note: note || null })
+      .where(and(eq(withdrawalsTable.id, id), eq(withdrawalsTable.status, "pending")))
+      .returning();
+    if (w) {
+      await tx.update(usersTable)
+        .set({ withdrawBalance: sql`${usersTable.withdrawBalance} + ${w.amount}::numeric` })
+        .where(eq(usersTable.id, w.userId));
+      rejected = w;
+    }
+  });
+
+  if (rejected) {
+    res.json(withdrawalToResponse(rejected));
+    return;
+  }
+
+  const [existing] = await db.select().from(withdrawalsTable).where(eq(withdrawalsTable.id, id)).limit(1);
+  if (!existing) {
     res.status(404).json({ message: "Withdrawal not found" });
     return;
   }
-  res.json(withdrawalToResponse(updated));
+  res.status(409).json({ message: `Cannot reject a withdrawal with status "${existing.status}"` });
 });
 
 // GET /api/admin/settings

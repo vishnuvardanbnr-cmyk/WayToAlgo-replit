@@ -216,7 +216,11 @@ router.post("/investments", requireAuth, async (req, res) => {
         fromUserName: user.name,
       });
       await db.update(usersTable)
-        .set({ totalEarnings: (parseFloat(recipientUser.totalEarnings) + spotCommission).toString() })
+        .set({
+          totalEarnings: (parseFloat(recipientUser.totalEarnings) + spotCommission).toString(),
+          // Spot referral commission is an earning → credit the withdraw wallet
+          withdrawBalance: (parseFloat(recipientUser.withdrawBalance ?? "0") + spotCommission).toFixed(6),
+        })
         .where(eq(usersTable.id, recipientId));
     }
   }

@@ -234,7 +234,11 @@ router.post("/token/sell", requireAuth, async (req, res) => {
     });
     const [fresh] = await tx.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
     await tx.update(usersTable)
-      .set({ totalEarnings: (parseFloat(fresh!.totalEarnings) + result.usdtReceived!).toString() })
+      .set({
+        totalEarnings: (parseFloat(fresh!.totalEarnings) + result.usdtReceived!).toString(),
+        // Sold-token proceeds land in the withdraw wallet (withdrawable)
+        withdrawBalance: (parseFloat(fresh!.withdrawBalance ?? "0") + result.usdtReceived!).toFixed(6),
+      })
       .where(eq(usersTable.id, user.id));
     await tx.insert(tokenSalesTable).values({
       userId: user.id,

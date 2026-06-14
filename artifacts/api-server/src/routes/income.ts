@@ -78,8 +78,12 @@ router.get("/income/summary", requireAuth, async (req, res) => {
     .filter(w => w.status === "pending")
     .reduce((s, w) => s + parseFloat(w.amount), 0);
 
-  // Available balance is only from USDT earnings (WTA must be sold first)
-  const availableBalance = usdtEarningsTotal - withdrawnTotal - pendingWithdrawal;
+  // Available balance = the user's Withdraw Wallet (all earnings + sold-WTA proceeds).
+  // Pending withdrawals are already debited from this balance at creation time, so it
+  // does not need to be reduced again here.
+  const [wuser] = await db.select({ wb: usersTable.withdrawBalance })
+    .from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
+  const availableBalance = parseFloat(wuser?.wb ?? "0");
 
   // Earnings cap (ROI + level combined) — computed consistently with the distribution engine.
   const [settingsRow] = await db.select().from(platformSettingsTable).limit(1);
@@ -229,6 +233,7 @@ router.get("/income/summary", requireAuth, async (req, res) => {
     tokenSaleTotal,
     usdtEarningsTotal,
     availableBalance: Math.max(0, availableBalance),
+    withdrawBalance: Math.max(0, availableBalance),
     withdrawnTotal,
     pendingWithdrawal,
   });

@@ -254,12 +254,12 @@ router.post("/wallet/convert", requireAuth, async (req, res) => {
 
   const usdtReceived = sellResult.usdtReceived;
 
-  // Credit USDT proceeds to user's main wallet
+  // Credit USDT proceeds to user's WITHDRAW wallet (sold-WTA proceeds are withdrawable, not spendable)
   await db.transaction(async (tx) => {
     const [fresh] = await tx.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
-    const mainBal = parseFloat(fresh?.walletBalance ?? "0");
+    const wdBal = parseFloat(fresh?.withdrawBalance ?? "0");
     await tx.update(usersTable)
-      .set({ walletBalance: (mainBal + usdtReceived).toFixed(6) })
+      .set({ withdrawBalance: (wdBal + usdtReceived).toFixed(6) })
       .where(eq(usersTable.id, user.id));
     await tx.insert(tokenSalesTable).values({
       userId: user.id,
@@ -277,6 +277,7 @@ router.post("/wallet/convert", requireAuth, async (req, res) => {
     usdtReceived,
     sellTxHash: sellResult.txHash,
     walletBalance: parseFloat(after?.walletBalance ?? "0"),
+    withdrawBalance: parseFloat(after?.withdrawBalance ?? "0"),
     tradingProfitBalance: parseFloat(after?.tradingProfitBalance ?? "0"),
     teamBenefitBalance: parseFloat(after?.teamBenefitBalance ?? "0"),
   });

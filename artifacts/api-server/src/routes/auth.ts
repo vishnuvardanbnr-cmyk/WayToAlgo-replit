@@ -73,6 +73,7 @@ function userToResponse(user: typeof usersTable.$inferSelect) {
     totalEarnings: parseFloat(user.totalEarnings),
     totalInvested: parseFloat(user.totalInvested),
     walletBalance: parseFloat(user.walletBalance ?? "0"),
+    withdrawBalance: parseFloat(user.withdrawBalance ?? "0"),
     hyperCoinBalance: parseFloat(user.hyperCoinBalance ?? "0"),
     roiTokenBalance: user.roiTokenBalance ?? "0",
     tradingProfitBalance: user.tradingProfitBalance ?? "0",

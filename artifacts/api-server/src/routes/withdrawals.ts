@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, withdrawalsTable, usersTable, incomeTable, otpCodesTable, platformSettingsTable } from "@workspace/db";
-import { eq, and, desc, count, gte } from "drizzle-orm";
+import { db, withdrawalsTable, usersTable, otpCodesTable, platformSettingsTable } from "@workspace/db";
+import { eq, and, desc, count, gte, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { CreateWithdrawalBody } from "@workspace/api-zod";
 import { isOtpWithdrawalEnabled } from "../lib/email";
@@ -102,43 +102,60 @@ router.post("/withdrawals", requireAuth, async (req, res) => {
   const balanceDebit  = feeMode === "deduct_from_balance" ? amount + fee : amount;
   const amountOnChain = feeMode === "deduct_from_amount"  ? amount - fee : amount;
 
-  const allIncome = await db.select().from(incomeTable).where(eq(incomeTable.userId, user.id));
-  const totalEarnings = allIncome.reduce((s, r) => s + parseFloat(r.amount), 0);
-  const allWithdrawals = await db.select().from(withdrawalsTable).where(eq(withdrawalsTable.userId, user.id));
-  const usedBalance = allWithdrawals
-    .filter(w => w.status !== "rejected")
-    .reduce((s, w) => s + parseFloat(w.amount), 0);
-  const available = totalEarnings - usedBalance;
-
-  if (balanceDebit > available) {
-    res.status(400).json({ message: "Insufficient balance" });
-    return;
-  }
-
   if (amountOnChain <= 0) {
     res.status(400).json({ message: "Amount is too small to cover the withdrawal fee" });
     return;
   }
 
-  // Insert with pending status first — store the balance debit as the record amount
-  const [withdrawal] = await db.insert(withdrawalsTable).values({
-    userId: user.id,
-    userName: user.name,
-    amount: balanceDebit.toString(),
-    walletAddress,
-    status: "pending",
-  }).returning();
+  // Atomically debit the withdraw wallet and create the pending withdrawal record.
+  // The withdraw wallet is the only withdrawable balance; pending requests reduce it
+  // immediately and are refunded if an admin rejects the request.
+  let withdrawal: typeof withdrawalsTable.$inferSelect;
+  try {
+    withdrawal = await db.transaction(async (tx) => {
+      // Atomic conditional debit — the WHERE guard makes the balance check and the
+      // deduction a single statement, so concurrent requests cannot over-withdraw.
+      const debited = await tx.update(usersTable)
+        .set({ withdrawBalance: sql`${usersTable.withdrawBalance} - ${balanceDebit.toFixed(6)}::numeric` })
+        .where(and(
+          eq(usersTable.id, user.id),
+          sql`${usersTable.withdrawBalance} >= ${balanceDebit.toFixed(6)}::numeric`,
+        ))
+        .returning({ id: usersTable.id });
+      if (debited.length === 0) throw Object.assign(new Error("Insufficient balance"), { status: 400 });
+      const [w] = await tx.insert(withdrawalsTable).values({
+        userId: user.id,
+        userName: user.name,
+        amount: balanceDebit.toString(),
+        walletAddress,
+        status: "pending",
+      }).returning();
+      return w;
+    });
+  } catch (err: any) {
+    res.status(err?.status ?? 500).json({ message: err?.message ?? "Could not create withdrawal" });
+    return;
+  }
 
   // Check withdrawal mode — auto-process if configured
   const withdrawPlaintextKey = settings ? resolveKey(settings.withdrawWalletPrivateKey) : null;
   const gasPlaintextKey = settings ? resolveKey(settings.gasWalletPrivateKey) : null;
   if (settings && settings.withdrawalMode === "auto" && withdrawPlaintextKey && gasPlaintextKey) {
-    // Mark as processing so the user sees immediate feedback
-    await db.update(withdrawalsTable)
+    // Claim the row for processing (guarded: only from pending). Only dispatch the
+    // on-chain send if WE won the claim — otherwise a concurrent reject/refund already
+    // took it, and sending now would pay out a refunded request.
+    const [claimed] = await db.update(withdrawalsTable)
       .set({ status: "processing" })
-      .where(eq(withdrawalsTable.id, withdrawal.id));
+      .where(and(eq(withdrawalsTable.id, withdrawal.id), eq(withdrawalsTable.status, "pending")))
+      .returning();
+    if (!claimed) {
+      const [current] = await db.select().from(withdrawalsTable).where(eq(withdrawalsTable.id, withdrawal.id)).limit(1);
+      res.status(201).json(withdrawalToResponse(current));
+      return;
+    }
 
-    // Fire-and-forget the on-chain send, update record when done
+    // Fire-and-forget the on-chain send, update record when done. Every transition is
+    // guarded on status="processing" so a concurrent admin action cannot collide.
     (async () => {
       try {
         const result = await sendUsdtToAddress(
@@ -151,18 +168,18 @@ router.post("/withdrawals", requireAuth, async (req, res) => {
         if (result.success) {
           await db.update(withdrawalsTable)
             .set({ status: "approved", txHash: result.txHash, processedAt: new Date() })
-            .where(eq(withdrawalsTable.id, withdrawal.id));
+            .where(and(eq(withdrawalsTable.id, withdrawal.id), eq(withdrawalsTable.status, "processing")));
           logger.info({ withdrawalId: withdrawal.id, txHash: result.txHash }, "Auto withdrawal sent");
         } else {
           await db.update(withdrawalsTable)
             .set({ status: "pending", processingError: result.error })
-            .where(eq(withdrawalsTable.id, withdrawal.id));
+            .where(and(eq(withdrawalsTable.id, withdrawal.id), eq(withdrawalsTable.status, "processing")));
           logger.error({ withdrawalId: withdrawal.id, error: result.error }, "Auto withdrawal failed, reverted to pending");
         }
       } catch (err: any) {
         await db.update(withdrawalsTable)
           .set({ status: "pending", processingError: err?.message })
-          .where(eq(withdrawalsTable.id, withdrawal.id));
+          .where(and(eq(withdrawalsTable.id, withdrawal.id), eq(withdrawalsTable.status, "processing")));
         logger.error({ withdrawalId: withdrawal.id, err }, "Auto withdrawal exception, reverted to pending");
       }
     })();

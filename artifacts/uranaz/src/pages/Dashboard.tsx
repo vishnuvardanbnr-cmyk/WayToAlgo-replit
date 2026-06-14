@@ -108,7 +108,7 @@ export default function Dashboard({ user }: { user: any }) {
         />
         <div className="relative">
           <div className="text-xs mb-1 tracking-widest uppercase" style={{ color: "rgba(194,210,255,0.5)" }}>
-            Available Balance
+            Withdraw Wallet
           </div>
           <div
             className="text-4xl font-black mb-4"
