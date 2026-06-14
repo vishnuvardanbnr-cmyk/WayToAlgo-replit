@@ -16,9 +16,17 @@ type EligibleUser = {
   referralCode: string; totalInvested: number; teamBusiness: number;
   rewarded: boolean; rewardedAt: string | null; rewardNote: string | null;
 };
+type RewardSchedule = {
+  status: "active" | "completed" | "superseded" | string;
+  monthsPaid: number; totalMonths: number; remaining: number;
+  monthlyAmount: number; totalPaid: number;
+  nextPayoutAt: string | null; startedAt: string | null;
+};
 type AchieverUser = {
   id: number; name: string; email: string; phone: string;
   referralCode: string; totalInvested: number;
+  isCurrentRank: boolean; promotedToRank: string | null;
+  schedule: RewardSchedule | null;
   rewarded: boolean; rewardedAt: string | null; rewardNote: string | null;
 };
 type OfferGroup = {
@@ -26,7 +34,7 @@ type OfferGroup = {
   eligible: EligibleUser[];
 };
 type RankGroup = {
-  rank: { id: number; rankNumber: number; name: string; reward: string };
+  rank: { id: number; rankNumber: number; name: string; reward: string; rewardMonthlyAmount: number; rewardMonths: number };
   achievers: AchieverUser[];
 };
 
@@ -49,6 +57,56 @@ function RewardedBadge({ rewardedAt, note }: { rewardedAt: string | null; note: 
       {note && (
         <span className="text-xs italic" style={{ color: "rgba(194,210,255,0.4)" }}>— {note}</span>
       )}
+    </div>
+  );
+}
+
+function ScheduleDetails({ schedule, promotedToRank }: { schedule: RewardSchedule | null; promotedToRank: string | null }) {
+  if (!schedule) {
+    return (
+      <div className="mt-1 text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
+        No monthly reward configured for this rank
+      </div>
+    );
+  }
+  const { status, monthsPaid, totalMonths, remaining, monthlyAmount, totalPaid, nextPayoutAt } = schedule;
+  const pct = totalMonths > 0 ? Math.min(100, Math.round((monthsPaid / totalMonths) * 100)) : 0;
+
+  const STATUS: Record<string, { label: string; color: string }> = {
+    active: { label: "Active — receiving rewards", color: "#34d399" },
+    completed: { label: "Completed — all months paid", color: "#5B8CFF" },
+    superseded: {
+      label: promotedToRank ? `Promoted to ${promotedToRank} — rewards stopped` : "Promoted — rewards stopped",
+      color: "#fbbf24",
+    },
+  };
+  const meta = STATUS[status] ?? { label: status, color: "rgba(194,210,255,0.6)" };
+
+  return (
+    <div className="mt-2 space-y-1.5">
+      <div className="flex items-center gap-2 flex-wrap text-xs">
+        <span
+          className="px-2 py-0.5 rounded-full font-semibold"
+          style={{ background: `${meta.color}1f`, border: `1px solid ${meta.color}40`, color: meta.color }}
+        >
+          {meta.label}
+        </span>
+      </div>
+      {/* Progress bar */}
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.10)" }}>
+        <div
+          className="h-full rounded-full transition-all"
+          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${meta.color}aa, ${meta.color})` }}
+        />
+      </div>
+      <div className="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs" style={{ color: "rgba(194,210,255,0.55)" }}>
+        <span>Months rewarded: <strong style={{ color: "rgba(194,210,255,0.9)" }}>{monthsPaid}/{totalMonths}</strong></span>
+        <span>Remaining: <strong style={{ color: remaining > 0 && status === "active" ? "#34d399" : "rgba(194,210,255,0.9)" }}>{remaining}</strong></span>
+        <span>Paid out: <strong style={{ color: "rgba(194,210,255,0.9)" }}>${totalPaid.toFixed(0)}</strong> <span style={{ color: "rgba(194,210,255,0.4)" }}>(${monthlyAmount.toFixed(0)}/mo)</span></span>
+        {status === "active" && nextPayoutAt && (
+          <span>Next payout: <strong style={{ color: "rgba(194,210,255,0.9)" }}>{formatDate(nextPayoutAt)}</strong></span>
+        )}
+      </div>
     </div>
   );
 }
@@ -330,9 +388,12 @@ function RankSection({ group, onRefresh }: { group: RankGroup; onRefresh: () => 
                 onMark={(uid, note) => mark(uid, "rank", group.rank.id, note)}
                 onUnmark={(uid) => unmark(uid, "rank", group.rank.id)}
                 extraInfo={
-                  <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: "rgba(194,210,255,0.45)" }}>
-                    <span>Invested: <strong style={{ color: "rgba(194,210,255,0.75)" }}>${u.totalInvested.toFixed(0)}</strong></span>
-                  </div>
+                  <>
+                    <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: "rgba(194,210,255,0.45)" }}>
+                      <span>Invested: <strong style={{ color: "rgba(194,210,255,0.75)" }}>${u.totalInvested.toFixed(0)}</strong></span>
+                    </div>
+                    <ScheduleDetails schedule={u.schedule} promotedToRank={u.promotedToRank} />
+                  </>
                 }
               />
             ))

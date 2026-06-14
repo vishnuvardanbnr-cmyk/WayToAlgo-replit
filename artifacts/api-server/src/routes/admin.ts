@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable } from "@workspace/db";
+import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable, rankRewardSchedulesTable } from "@workspace/db";
 import { eq, desc, ilike, or, and, inArray, sql } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/auth";
 import { UpdateAdminUserBody, UpdateAdminInvestmentBody, UpdateAdminSettingsBody, ListAdminUsersQueryParams, ListAdminInvestmentsQueryParams, ListAdminWithdrawalsQueryParams } from "@workspace/api-zod";
@@ -1753,7 +1753,7 @@ router.get("/admin/offer-eligible", requireAdmin, async (_req, res) => {
 // GET /api/admin/rank-achievers
 // Returns each rank with users who have achieved it (currentRankId === rank.id).
 router.get("/admin/rank-achievers", requireAdmin, async (_req, res) => {
-  const [ranks, users, rewards] = await Promise.all([
+  const [ranks, holders, schedules, rewards] = await Promise.all([
     db.select().from(ranksTable).orderBy(ranksTable.rankNumber),
     db.select({
       id: usersTable.id,
@@ -1764,27 +1764,151 @@ router.get("/admin/rank-achievers", requireAdmin, async (_req, res) => {
       currentRankId: usersTable.currentRankId,
       totalInvested: usersTable.totalInvested,
     }).from(usersTable).where(sql`${usersTable.currentRankId} is not null`),
+    // Reward schedules carry the monthly-payout progress. Join the user so we can
+    // list reward recipients even after they were promoted off this rank.
+    db.select({
+      userId: rankRewardSchedulesTable.userId,
+      rankId: rankRewardSchedulesTable.rankId,
+      status: rankRewardSchedulesTable.status,
+      monthsPaid: rankRewardSchedulesTable.monthsPaid,
+      totalMonths: rankRewardSchedulesTable.totalMonths,
+      monthlyAmount: rankRewardSchedulesTable.monthlyAmount,
+      nextPayoutAt: rankRewardSchedulesTable.nextPayoutAt,
+      startedAt: rankRewardSchedulesTable.startedAt,
+      uName: usersTable.name,
+      uEmail: usersTable.email,
+      uPhone: usersTable.phone,
+      uReferral: usersTable.referralCode,
+      uCurrentRankId: usersTable.currentRankId,
+      uTotalInvested: usersTable.totalInvested,
+    }).from(rankRewardSchedulesTable)
+      .leftJoin(usersTable, eq(rankRewardSchedulesTable.userId, usersTable.id)),
     db.select().from(userRewardsTable).where(eq(userRewardsTable.type, "rank")),
   ]);
 
   const rewardSet = new Set(rewards.map(r => `${r.userId}:${r.referenceId}`));
   const rewardMap = new Map(rewards.map(r => [`${r.userId}:${r.referenceId}`, r]));
+  const rankNameById = new Map(ranks.map(r => [r.id, r.name]));
+
+  type Achiever = {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    referralCode: string;
+    totalInvested: number;
+    isCurrentRank: boolean;
+    promotedToRank: string | null;
+    schedule: {
+      status: string;
+      monthsPaid: number;
+      totalMonths: number;
+      remaining: number;
+      monthlyAmount: number;
+      totalPaid: number;
+      nextPayoutAt: string | null;
+      startedAt: string | null;
+    } | null;
+    rewarded: boolean;
+    rewardedAt: Date | null;
+    rewardNote: string | null;
+  };
 
   const result = ranks.map(rank => {
-    const achievers = users.filter(u => u.currentRankId === rank.id);
-    return {
-      rank: { id: rank.id, rankNumber: rank.rankNumber, name: rank.name, reward: rank.reward },
-      achievers: achievers.map(u => ({
+    const byUser = new Map<number, Achiever>();
+
+    // 1. Current holders of this rank (may not have a monthly schedule if the
+    //    rank pays no monthly reward).
+    for (const u of holders) {
+      if (u.currentRankId !== rank.id) continue;
+      byUser.set(u.id, {
         id: u.id,
         name: u.name,
         email: u.email,
         phone: u.phone,
         referralCode: u.referralCode,
         totalInvested: parseFloat(u.totalInvested ?? "0"),
-        rewarded: rewardSet.has(`${u.id}:${rank.id}`),
-        rewardedAt: rewardMap.get(`${u.id}:${rank.id}`)?.rewardedAt ?? null,
-        rewardNote: rewardMap.get(`${u.id}:${rank.id}`)?.note ?? null,
-      })),
+        isCurrentRank: true,
+        promotedToRank: null,
+        schedule: null,
+        rewarded: false,
+        rewardedAt: null,
+        rewardNote: null,
+      });
+    }
+
+    // 2. Everyone who has a reward schedule for this rank (active, completed, or
+    //    superseded because they were promoted to a higher rank).
+    for (const s of schedules) {
+      if (s.rankId !== rank.id) continue;
+      const isCurrentRank = s.uCurrentRankId === rank.id;
+      const monthly = parseFloat(s.monthlyAmount ?? "0");
+      const remaining = Math.max(0, s.totalMonths - s.monthsPaid);
+      const sched = {
+        status: s.status,
+        monthsPaid: s.monthsPaid,
+        totalMonths: s.totalMonths,
+        remaining,
+        monthlyAmount: monthly,
+        totalPaid: monthly * s.monthsPaid,
+        nextPayoutAt: s.nextPayoutAt ? s.nextPayoutAt.toISOString() : null,
+        startedAt: s.startedAt ? s.startedAt.toISOString() : null,
+      };
+      const promotedToRank =
+        s.status === "superseded" && s.uCurrentRankId != null
+          ? rankNameById.get(s.uCurrentRankId) ?? null
+          : null;
+      const existing = byUser.get(s.userId);
+      if (existing) {
+        existing.schedule = sched;
+        existing.isCurrentRank = isCurrentRank;
+        existing.promotedToRank = promotedToRank;
+      } else {
+        byUser.set(s.userId, {
+          id: s.userId,
+          name: s.uName ?? "",
+          email: s.uEmail ?? "",
+          phone: s.uPhone ?? "",
+          referralCode: s.uReferral ?? "",
+          totalInvested: parseFloat(s.uTotalInvested ?? "0"),
+          isCurrentRank,
+          promotedToRank,
+          schedule: sched,
+          rewarded: false,
+          rewardedAt: null,
+          rewardNote: null,
+        });
+      }
+    }
+
+    // 3. Overlay the manual "physical reward given" marks.
+    const achievers = Array.from(byUser.values()).map(a => {
+      const key = `${a.id}:${rank.id}`;
+      a.rewarded = rewardSet.has(key);
+      a.rewardedAt = rewardMap.get(key)?.rewardedAt ?? null;
+      a.rewardNote = rewardMap.get(key)?.note ?? null;
+      return a;
+    });
+
+    // Active first, then completed, then promoted/superseded; alphabetical within.
+    const statusOrder: Record<string, number> = { active: 0, completed: 1, superseded: 2 };
+    achievers.sort((x, y) => {
+      const sx = x.schedule ? statusOrder[x.schedule.status] ?? 3 : 3;
+      const sy = y.schedule ? statusOrder[y.schedule.status] ?? 3 : 3;
+      if (sx !== sy) return sx - sy;
+      return x.name.localeCompare(y.name);
+    });
+
+    return {
+      rank: {
+        id: rank.id,
+        rankNumber: rank.rankNumber,
+        name: rank.name,
+        reward: rank.reward,
+        rewardMonthlyAmount: parseFloat(rank.rewardMonthlyAmount ?? "0"),
+        rewardMonths: rank.rewardMonths ?? 0,
+      },
+      achievers,
     };
   });
 
