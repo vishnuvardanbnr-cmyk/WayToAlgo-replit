@@ -19,13 +19,16 @@ const fmt = (n: number) =>
   n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
-  // Hidden only when the cap is unavailable or disabled (e.g. admin / uncapped accounts).
-  if (!cap || !cap.enabled || cap.cap == null) return null;
+  // Hidden only when the summary has no cap data at all.
+  if (!cap) return null;
 
-  const noInvestment = cap.personalInvested <= 0;
-  const pct = cap.cap > 0 ? Math.min(100, Math.max(0, (cap.earned / cap.cap) * 100)) : 0;
-  const reached = !noInvestment && (cap.reached || pct >= 100);
-  const isBoosted = cap.directVolume > cap.personalInvested && !noInvestment;
+  // Uncapped = admin accounts or when the cap feature is disabled platform-wide.
+  const uncapped = !cap.enabled || cap.cap == null;
+  const capValue = cap.cap ?? 0;
+  const noInvestment = !uncapped && cap.personalInvested <= 0;
+  const pct = capValue > 0 ? Math.min(100, Math.max(0, (cap.earned / capValue) * 100)) : 0;
+  const reached = !uncapped && !noInvestment && (cap.reached || pct >= 100);
+  const isBoosted = cap.directVolume > cap.personalInvested && !noInvestment && !uncapped;
   const barColor = reached ? AMBER : GREEN;
 
   // Progress of direct-team volume toward the user's own investment (unlocks the boosted tier).
@@ -68,13 +71,13 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
             className="px-3 py-1.5 rounded-xl font-black text-lg"
             style={{
               fontFamily: "'Sora', sans-serif",
-              color: isBoosted ? GREEN : TEAL,
-              background: isBoosted ? "rgba(52,211,153,0.10)" : "rgba(91,140,255,0.10)",
-              border: `1px solid ${isBoosted ? "rgba(52,211,153,0.3)" : "rgba(91,140,255,0.3)"}`,
+              color: uncapped ? GREEN : isBoosted ? GREEN : TEAL,
+              background: (uncapped || isBoosted) ? "rgba(52,211,153,0.10)" : "rgba(91,140,255,0.10)",
+              border: `1px solid ${(uncapped || isBoosted) ? "rgba(52,211,153,0.3)" : "rgba(91,140,255,0.3)"}`,
             }}
-            title={isBoosted ? "Boosted cap unlocked" : "Standard cap"}
+            title={uncapped ? "No earning cap" : isBoosted ? "Boosted cap unlocked" : "Standard cap"}
           >
-            {cap.multiplier}x
+            {uncapped ? "∞" : `${cap.multiplier}x`}
           </div>
         </div>
 
@@ -85,20 +88,29 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
               ${fmt(cap.earned)}
             </span>
             <span className="text-xs ml-1" style={{ color: "rgba(194,210,255,0.4)" }}>
-              / ${fmt(cap.cap)}
+              {uncapped ? "earned" : `/ $${fmt(capValue)}`}
             </span>
           </div>
-          <span className="text-xs font-semibold" style={{ color: reached ? AMBER : GREEN }}>
-            {pct.toFixed(1)}%
-          </span>
+          {!uncapped && (
+            <span className="text-xs font-semibold" style={{ color: reached ? AMBER : GREEN }}>
+              {pct.toFixed(1)}%
+            </span>
+          )}
         </div>
         <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.1)" }}>
-          <div style={{ width: `${pct}%`, height: "100%", background: barColor, transition: "width 0.3s", boxShadow: `0 0 10px ${barColor}` }} />
+          <div style={{ width: uncapped ? "100%" : `${pct}%`, height: "100%", background: barColor, transition: "width 0.3s", boxShadow: `0 0 10px ${barColor}` }} />
         </div>
 
         {/* remaining / reached footer */}
         <div className="mt-2.5 flex items-center gap-1.5 text-xs">
-          {noInvestment ? (
+          {uncapped ? (
+            <>
+              <CheckCircle2 size={12} style={{ color: GREEN }} />
+              <span style={{ color: "rgba(194,210,255,0.55)" }}>
+                No earning limit applies to this account.
+              </span>
+            </>
+          ) : noInvestment ? (
             <>
               <TrendingUp size={12} style={{ color: TEAL }} />
               <span style={{ color: "rgba(194,210,255,0.55)" }}>
