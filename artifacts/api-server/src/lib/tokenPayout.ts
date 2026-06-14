@@ -216,10 +216,13 @@ interface SimResult {
 }
 
 /**
- * Pure distribution math (no DB/chain). Splits `tokensBoughtWei` across eligible
- * investments proportional to ROI principal, carving level commissions to
- * qualifying uplines out of each investment's own share. Also computes the
- * remainingDays/earnedSoFar advance for each eligible investment.
+ * Pure distribution math (no DB/chain). `tokensBoughtWei` funds the TOTAL daily payout
+ * (investor ROI + level commission on top) and is divided across eligible investments
+ * proportional to ROI principal. Of each investment's gross share, investors receive
+ * 1/(1+pct) (the full ROI) and pct/(1+pct) forms the level-commission pool paid to
+ * qualifying uplines; the level pool is the exact remainder of gross after the investor
+ * share so the two always sum to gross. Also computes the remainingDays/earnedSoFar
+ * advance for each eligible investment.
  */
 function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsdt: number): SimResult {
   const { eligible, userById, teamVolumeMap, activeDirectsMap, principalMicro, totalMicro, cfg, levelCommissionPoolPct } = e;
@@ -233,8 +236,12 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
   let reserveAddWei = 0n;
   const recipients = new Set<number>();
 
-  const investorBps = BigInt(Math.round((1 - levelCommissionPoolPct) * 10000));
-  const levelPoolBps = BigInt(Math.round(levelCommissionPoolPct * 10000));
+  // Additive model: investors receive the FULL daily ROI and the level commission is
+  // paid ON TOP as `levelCommissionPoolPct` of that ROI. The bought tokens fund the
+  // TOTAL (ROI + commission), so the effective level share of the bought tokens is
+  // pct/(1+pct) and investors get 1/(1+pct).
+  const effPoolPct = levelCommissionPoolPct > 0 ? levelCommissionPoolPct / (1 + levelCommissionPoolPct) : 0;
+  const investorBps = BigInt(Math.round((1 - effPoolPct) * 10000));
 
   // Running USD earned (roi + level) per user this distribution, seeded with prior totals,
   // so each credit is clamped to the user's remaining cap allowance. Clamped-off tokens are
@@ -276,7 +283,7 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
     if (grossWei <= 0n) continue;
 
     const investorWei0 = (grossWei * investorBps) / 10000n;
-    const investorUsd0 = usdShare * (1 - levelCommissionPoolPct);
+    const investorUsd0 = usdShare * (1 - effPoolPct);
     const { wei: investorWei, usd: investorUsd } = clampToCap(investorWei0, investorUsd0, investor.id);
     if (investorWei > 0n) {
       userTokenAdd.set(investor.id, (userTokenAdd.get(investor.id) ?? 0n) + investorWei);
@@ -290,7 +297,9 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
       });
     }
 
-    const levelPoolWei = (grossWei * levelPoolBps) / 10000n;
+    // Level pool = exact remainder of gross after the investor share, so
+    // investorWei0 + levelPoolWei === grossWei to the wei (no independent-rounding overflow).
+    const levelPoolWei = grossWei - investorWei0;
     let distributedWei = 0n;
 
     let currentUserId: number | null = investor.sponsorId;
@@ -307,8 +316,17 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
       const uplineVolume = teamVolumeMap.get(upline.id) ?? 0;
       if (uplineVolume >= unlock) {
         const rateBps = BigInt(Math.round((cfg.levelRates[level] ?? 0) * 10000));
-        const commissionWei0 = (levelPoolWei * rateBps) / 10000n;
-        const commissionUsd0 = usdShare * levelCommissionPoolPct * (cfg.levelRates[level] ?? 0);
+        let commissionWei0 = (levelPoolWei * rateBps) / 10000n;
+        let commissionUsd0 = usdShare * effPoolPct * (cfg.levelRates[level] ?? 0);
+        // Safety net: cumulative level commissions can never exceed this investment's
+        // level pool, even if configured level rates sum above 100% — keeps supply
+        // conserved by construction so reserveAddWei below is always ≥ 0.
+        const remainingPool = levelPoolWei - distributedWei;
+        if (commissionWei0 > remainingPool) {
+          const capped = remainingPool > 0n ? remainingPool : 0n;
+          if (commissionWei0 > 0n) commissionUsd0 = commissionUsd0 * (Number(capped) / Number(commissionWei0));
+          commissionWei0 = capped;
+        }
         const { wei: commissionWei, usd: commissionUsd } = clampToCap(commissionWei0, commissionUsd0, upline.id);
         if (commissionWei > 0n) {
           userTokenAdd.set(upline.id, (userTokenAdd.get(upline.id) ?? 0n) + commissionWei);
@@ -352,9 +370,12 @@ export interface TokenPreviewResult {
   totalRoiPrincipalUsd: number;
   coolingHours: number;
   cappedInvestorCount: number; // investors excluded today because they hit their earnings cap
-  // Flat daily ROI model
-  dailyRoiRate: number;       // fraction, e.g. 0.004 = 0.4%/day
-  expectedDailyUsd: number;   // minimum to distribute today = totalRoiPrincipalUsd × dailyRoiRate
+  // ROI model — investors get the full daily ROI; level commission is paid on top.
+  dailyRoiRate: number;        // fraction, e.g. 0.004 = 0.4%/day (the INVESTOR rate)
+  levelCommissionPct: number;  // fraction of ROI paid out as level commission, on top
+  expectedInvestorUsd: number; // investor ROI = totalRoiPrincipalUsd × dailyRoiRate
+  expectedLevelUsd: number;    // level commission = expectedInvestorUsd × levelCommissionPct
+  expectedDailyUsd: number;    // total to distribute = investor ROI + level commission
   // Live chain context
   buyPrice?: string;
   sellPrice?: string;
@@ -387,7 +408,8 @@ export async function previewTokenDistribution(
   if (!settings) {
     return { success: false, configured: false, mode, error: "Platform settings not configured",
       eligibleInvestments: 0, eligibleInvestors: 0, totalRoiPrincipalUsd: 0, coolingHours: 24,
-      cappedInvestorCount: 0, dailyRoiRate: 0, expectedDailyUsd: 0 };
+      cappedInvestorCount: 0, dailyRoiRate: 0, levelCommissionPct: 0,
+      expectedInvestorUsd: 0, expectedLevelUsd: 0, expectedDailyUsd: 0 };
   }
 
   const contractAddress = (settings.tokenContractAddress || "").trim();
@@ -396,6 +418,9 @@ export async function previewTokenDistribution(
   const e = await loadEligibility(settings);
   const totalRoiPrincipalUsd = Number(e.totalMicro) / 1e6;
   const dailyRoiRate = parseFloat(settings.dailyRoiRate ?? "0") || 0;
+  const levelCommissionPct = e.levelCommissionPoolPct;
+  const expectedInvestorUsd = totalRoiPrincipalUsd * dailyRoiRate;
+  const expectedLevelUsd = expectedInvestorUsd * levelCommissionPct;
   const out: TokenPreviewResult = {
     success: true,
     configured,
@@ -406,7 +431,10 @@ export async function previewTokenDistribution(
     coolingHours: e.cfg.coolingHours,
     cappedInvestorCount: e.cappedInvestorCount,
     dailyRoiRate,
-    expectedDailyUsd: totalRoiPrincipalUsd * dailyRoiRate,
+    levelCommissionPct,
+    expectedInvestorUsd,
+    expectedLevelUsd,
+    expectedDailyUsd: expectedInvestorUsd + expectedLevelUsd,
   };
 
   if (!configured) {
@@ -551,15 +579,18 @@ async function _runTokenDistribute(
     return { success: false, error: "Eligible investment principal is zero" };
   }
 
-  // ── Flat daily ROI minimum ──
-  // The admin may distribute the same or more than the flat-rate amount, but never less.
-  // Required = eligible ROI principal × dailyRoiRate. Any excess is recorded as "extra".
+  // ── Daily payout minimum (additive model) ──
+  // The admin may distribute the same or more than this amount, but never less.
+  // Required = investor ROI (eligible principal × dailyRoiRate) + level commission on top
+  // (pct of that ROI). Any excess is recorded as "extra".
   const dailyRoiRate = parseFloat(settings.dailyRoiRate ?? "0") || 0;
-  const expectedDailyUsd = (Number(e.totalMicro) / 1e6) * dailyRoiRate;
+  const pct = e.levelCommissionPoolPct;
+  const investorRoiUsd = (Number(e.totalMicro) / 1e6) * dailyRoiRate;
+  const expectedDailyUsd = investorRoiUsd * (1 + pct); // investor ROI + level commission on top
   if (expectedDailyUsd > 0 && profitUsdt + 1e-6 < expectedDailyUsd) {
     return {
       success: false,
-      error: `Amount is below the required daily minimum of $${expectedDailyUsd.toFixed(2)} (eligible principal × ${(dailyRoiRate * 100).toFixed(3)}%/day). Enter at least that much.`,
+      error: `Amount is below the required daily minimum of $${expectedDailyUsd.toFixed(2)} — investor ROI $${investorRoiUsd.toFixed(2)} (principal × ${(dailyRoiRate * 100).toFixed(3)}%/day) plus ${(pct * 100).toFixed(0)}% level commission $${(investorRoiUsd * pct).toFixed(2)}. Enter at least that much.`,
     };
   }
 

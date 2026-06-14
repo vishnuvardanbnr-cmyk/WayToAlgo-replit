@@ -47,6 +47,9 @@ interface Preview {
   totalRoiPrincipalUsd: number;
   coolingHours: number;
   dailyRoiRate: number;
+  levelCommissionPct: number;
+  expectedInvestorUsd: number;
+  expectedLevelUsd: number;
   expectedDailyUsd: number;
   buyPrice?: string;
   sellPrice?: string;
@@ -324,10 +327,10 @@ export default function AdminTokenDistribution() {
           }}>
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(194,210,255,0.5)" }}>Required today (minimum)</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(194,210,255,0.5)" }}>Total required today (minimum)</div>
                 <div className="text-lg font-black" style={{ color: belowMinimum ? RED : TEAL }}>${fmt(requiredUsd, 2)}</div>
                 <div className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
-                  eligible principal ${fmt(preview?.totalRoiPrincipalUsd, 2)} × {fmt((preview?.dailyRoiRate ?? 0) * 100, 3)}%/day — you may distribute more, never less.
+                  investor ROI ${fmt(preview?.expectedInvestorUsd, 2)} (principal × {fmt((preview?.dailyRoiRate ?? 0) * 100, 3)}%/day) + level commission ${fmt(preview?.expectedLevelUsd, 2)} ({fmt((preview?.levelCommissionPct ?? 0) * 100, 0)}% of ROI) — you may distribute more, never less.
                 </div>
               </div>
               <button
@@ -360,16 +363,27 @@ export default function AdminTokenDistribution() {
           Only investments past the {preview?.coolingHours ?? 24}h cooling window are eligible — so today's run pays the previous day's accrued ROI.
         </p>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           <StatChip label="Eligible Users" value={fmt(preview?.eligibleInvestors, 0)} sub={`${fmt(preview?.eligibleInvestments, 0)} investment(s)`} />
           <StatChip label="Total ROI Principal" value={`$${fmt(preview?.totalRoiPrincipalUsd, 2)}`} sub="eligible base" />
+          <StatChip label="Recipients (incl. uplines)" value={fmt(preview?.recipientCount, 0)} sub="users credited" />
           <StatChip
             label="Expected ROI Today"
-            value={`$${fmt(preview?.expectedDailyUsd, 2)}`}
-            sub={`${fmt((preview?.dailyRoiRate ?? 0) * 100, 3)}%/day × principal`}
+            value={`$${fmt(preview?.expectedInvestorUsd, 2)}`}
+            sub={`${fmt((preview?.dailyRoiRate ?? 0) * 100, 3)}%/day × principal (investors)`}
             color={GREEN}
           />
-          <StatChip label="Recipients (incl. uplines)" value={fmt(preview?.recipientCount, 0)} sub="users credited" />
+          <StatChip
+            label="Level Commission"
+            value={`$${fmt(preview?.expectedLevelUsd, 2)}`}
+            sub={`+${fmt((preview?.levelCommissionPct ?? 0) * 100, 0)}% of ROI (uplines)`}
+          />
+          <StatChip
+            label="Total to Distribute"
+            value={`$${fmt(preview?.expectedDailyUsd, 2)}`}
+            sub="ROI + level commission"
+            color={AMBER}
+          />
         </div>
 
         {amtValid && preview?.estTokens && (
