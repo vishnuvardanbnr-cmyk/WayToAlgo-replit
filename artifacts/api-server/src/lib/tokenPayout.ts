@@ -10,9 +10,15 @@ import {
 import { eq } from "drizzle-orm";
 import { logger } from "./logger";
 import { resolveKey } from "./keyEncryption.js";
-import { buyTokens, isValidAddress, getTokenPrices, TOKEN_DECIMALS } from "./tokenChain";
+import {
+  buyTokens,
+  isValidAddress,
+  getTokenPrices,
+  getPlatformBalances,
+  TOKEN_DECIMALS,
+} from "./tokenChain";
 
-const TOKEN_BASE = 10n ** BigInt(TOKEN_DECIMALS);
+export type DistributeMode = "buy" | "held";
 
 function levelConfig(s: typeof platformSettingsTable.$inferSelect) {
   return {
@@ -63,66 +69,42 @@ function buildTeamVolumeMap(
   return map;
 }
 
-export interface TokenDistributeResult {
-  success: boolean;
-  error?: string;
-  batchId?: number;
-  txHash?: string;
-  usdtSpent?: number;
-  tokensBought?: string;
-  roiTokenTotal?: string;
-  levelTokenTotal?: string;
-  recipientCount?: number;
-  eligibleInvestments?: number;
+type SettingsRow = typeof platformSettingsTable.$inferSelect;
+type UserRow = typeof usersTable.$inferSelect;
+type InvestmentRow = typeof investmentsTable.$inferSelect;
+
+interface Eligibility {
+  eligible: InvestmentRow[];
+  userById: Map<number, UserRow>;
+  teamVolumeMap: Map<number, number>;
+  principalMicro: Map<number, bigint>; // investmentId -> micro-USD of ROI principal
+  totalMicro: bigint;
+  investorIds: Set<number>;
+  cfg: ReturnType<typeof levelConfig>;
+  levelCommissionPoolPct: number;
 }
 
 /**
- * The new ROI engine. Admin enters the day's real trading profit (USDT). We:
- *  1. Determine eligible investments (active, past cooling, active investor).
- *  2. Execute a REAL on-chain buy for `profitUsdt` from the withdraw wallet.
- *  3. Distribute the bought tokens VIRTUALLY, proportional to each eligible
- *     investment's principal, carving level commissions to qualifying uplines
- *     out of each investment's own share (so total distributed never exceeds
- *     the tokens actually bought).
- *  4. Advance each eligible investment's remainingDays / earnedSoFar / status.
- *
- * Token rewards are credited to users.roiTokenBalance and logged in
- * token_rewards. They are NOT income rows — they only become withdrawable USDT
- * when the user sells them on the Wallet page.
+ * Determine which investments are eligible to receive ROI right now:
+ *  - status "active"
+ *  - past the withdrawal cooling window (so today's run pays the PREVIOUS day's
+ *    accrued ROI; brand-new investments still cooling are excluded)
+ *  - investor account is active
+ * Returns everything the distribution math needs, with no chain/DB writes.
  */
-export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<TokenDistributeResult> {
-  if (!Number.isFinite(profitUsdt) || profitUsdt <= 0) {
-    return { success: false, error: "Profit amount must be a positive number" };
-  }
-
-  const [settings] = await db.select().from(platformSettingsTable).limit(1);
-  if (!settings) return { success: false, error: "Platform settings not configured" };
-
-  const contractAddress = (settings.tokenContractAddress || "").trim();
-  if (!isValidAddress(contractAddress)) {
-    return { success: false, error: "Token contract address is not configured" };
-  }
-  const withdrawKey = resolveKey(settings.withdrawWalletPrivateKey);
-  const gasKey = resolveKey(settings.gasWalletPrivateKey);
-  if (!withdrawKey || !gasKey) {
-    return { success: false, error: "Withdraw wallet and gas wallet must be configured" };
-  }
-  const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
-
+async function loadEligibility(settings: SettingsRow): Promise<Eligibility> {
   const cfg = levelConfig(settings);
-  // Total % of bought tokens reserved for level commissions (e.g. 0.20 = 20%).
-  // Investors receive (1 - levelCommissionPoolPct) of the tokens as Trading Profit.
-  // Unclaimed level comm tokens (no upline, unqualified, rates < 100%) → reserveTokenBalance.
   const levelCommissionPoolPct = Math.min(
     1,
     Math.max(0, parseFloat(settings.levelCommissionPoolPct ?? "0.2") || 0.2),
   );
   const now = new Date();
 
-  // ── 1. Build eligibility BEFORE buying so we never buy with nobody to pay ──
-  const activeInvestments = await db.select().from(investmentsTable).where(eq(investmentsTable.status, "active"));
+  const activeInvestments = await db
+    .select()
+    .from(investmentsTable)
+    .where(eq(investmentsTable.status, "active"));
 
-  // Investments past the cooling window advance their duration.
   const advancing = activeInvestments.filter((inv) => {
     const hoursElapsed = (now.getTime() - new Date(inv.createdAt).getTime()) / 3_600_000;
     return hoursElapsed >= cfg.coolingHours;
@@ -134,21 +116,16 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
     allUsers.map((u) => ({ id: u.id, sponsorId: u.sponsorId, totalInvested: u.totalInvested })),
   );
 
-  // Investments that actually receive tokens: investor must exist & be active.
   const eligible = advancing.filter((inv) => {
     const u = userById.get(inv.userId);
     return !!u && u.isActive;
   });
 
-  if (eligible.length === 0) {
-    return { success: false, error: "No eligible active investments to distribute to (check cooling period and active investors)" };
-  }
-
-  // Denominator in integer micro-USD to keep BigInt proportions exact.
-  // For Safe investments only the ROI portion (amount − tokenPurchaseAmount) earns
-  // daily returns. For Risky investments the full amount earns returns.
+  // ROI principal per eligible investment in micro-USD (BigInt-exact proportions).
+  // For Safe investments only the ROI portion (amount − tokenPurchaseAmount) earns.
   let totalMicro = 0n;
-  const principalMicro = new Map<number, bigint>(); // investmentId -> micro
+  const principalMicro = new Map<number, bigint>();
+  const investorIds = new Set<number>();
   for (const inv of eligible) {
     const totalAmt = parseFloat(inv.amount);
     const tokenPurchased = parseFloat((inv as any).tokenPurchaseAmount ?? "0");
@@ -156,67 +133,51 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
     const micro = BigInt(Math.round(roiAmt * 1e6));
     principalMicro.set(inv.id, micro);
     totalMicro += micro;
-  }
-  if (totalMicro <= 0n) {
-    return { success: false, error: "Eligible investment principal is zero" };
+    investorIds.add(inv.userId);
   }
 
-  // ── 2. Real on-chain buy ──
-  const [batch] = await db.insert(tokenBuyBatchesTable).values({
-    usdtSpent: profitUsdt.toString(),
-    status: "pending",
-  }).returning();
+  return { eligible, userById, teamVolumeMap, principalMicro, totalMicro, investorIds, cfg, levelCommissionPoolPct };
+}
 
-  let buyPrice = "0";
-  try {
-    const prices = await getTokenPrices(contractAddress, rpcUrl);
-    buyPrice = prices.buyPrice;
-  } catch {
-    /* non-fatal: price is informational */
-  }
-
-  const buy = await buyTokens(profitUsdt, contractAddress, withdrawKey, gasKey, rpcUrl);
-  if (!buy.success || !buy.tokensBought) {
-    await db.update(tokenBuyBatchesTable)
-      .set({ status: "failed", note: buy.error ?? "Buy failed", buyTxHash: buy.txHash ?? null, buyPrice })
-      .where(eq(tokenBuyBatchesTable.id, batch.id));
-    return { success: false, error: buy.error ?? "On-chain buy failed", batchId: batch.id };
-  }
-
-  const tokensBoughtWei = buy.tokensBought;
-
-  // ── 3. Compute distribution (fixed-split model, BigInt wei) ──
-  //
-  // For each eligible investment:
-  //   grossWei       = tokensBought × (principal / totalPrincipal)
-  //   investorWei    = grossWei × (1 - levelCommissionPoolPct)  → investor Trading Profit
-  //   levelPoolWei   = grossWei × levelCommissionPoolPct         → walk upline chain
-  //     For each upline level: commission = levelPoolWei × levelRate[l]
-  //     Any unclaimed portion (no upline / inactive / not unlocked) → reserve
-  //
-  const userTokenAdd = new Map<number, bigint>(); // userId -> wei to credit
-  const rewardRows: {
+interface SimResult {
+  userTokenAdd: Map<number, bigint>;
+  rewardRows: {
     userId: number; type: string; tokenAmount: bigint; usdValue: number;
     level: number | null; fromUserId: number | null; fromUserName: string | null;
-  }[] = [];
-  const investmentUpdates: { id: number; remainingDays: number; earnedSoFar: string; status: string }[] = [];
+  }[];
+  investmentUpdates: { id: number; remainingDays: number; earnedSoFar: string; status: string }[];
+  roiTotalWei: bigint;
+  levelTotalWei: bigint;
+  reserveAddWei: bigint;
+  recipients: Set<number>;
+}
 
+/**
+ * Pure distribution math (no DB/chain). Splits `tokensBoughtWei` across eligible
+ * investments proportional to ROI principal, carving level commissions to
+ * qualifying uplines out of each investment's own share. Also computes the
+ * remainingDays/earnedSoFar advance for each eligible investment.
+ */
+function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsdt: number): SimResult {
+  const { eligible, userById, teamVolumeMap, principalMicro, totalMicro, cfg, levelCommissionPoolPct } = e;
+
+  const userTokenAdd = new Map<number, bigint>();
+  const rewardRows: SimResult["rewardRows"] = [];
+  const investmentUpdates: SimResult["investmentUpdates"] = [];
   let roiTotalWei = 0n;
   let levelTotalWei = 0n;
-  let reserveAddWei = 0n;           // unclaimed level tokens → reserve
+  let reserveAddWei = 0n;
   const recipients = new Set<number>();
 
-  // Pre-compute BigInt ratios for the fixed split (basis-points precision)
   const investorBps = BigInt(Math.round((1 - levelCommissionPoolPct) * 10000));
   const levelPoolBps = BigInt(Math.round(levelCommissionPoolPct * 10000));
 
   for (const inv of eligible) {
     const investor = userById.get(inv.userId)!;
     const micro = principalMicro.get(inv.id)!;
-    const grossWei = (tokensBoughtWei * micro) / totalMicro;
-    const usdShare = profitUsdt * (Number(micro) / Number(totalMicro));
+    const grossWei = totalMicro > 0n ? (tokensBoughtWei * micro) / totalMicro : 0n;
+    const usdShare = totalMicro > 0n ? profitUsdt * (Number(micro) / Number(totalMicro)) : 0;
 
-    // Advance duration
     const newRemaining = Math.max(0, inv.remainingDays - 1);
     const isCompleted = newRemaining === 0;
     const daysElapsed = inv.durationDays - newRemaining;
@@ -229,24 +190,18 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
 
     if (grossWei <= 0n) continue;
 
-    // Fixed investor share (e.g. 80% of grossWei) → Trading Profit
     const investorWei = (grossWei * investorBps) / 10000n;
     if (investorWei > 0n) {
       userTokenAdd.set(investor.id, (userTokenAdd.get(investor.id) ?? 0n) + investorWei);
       roiTotalWei += investorWei;
       recipients.add(investor.id);
       rewardRows.push({
-        userId: investor.id,
-        type: "roi",
-        tokenAmount: investorWei,
+        userId: investor.id, type: "roi", tokenAmount: investorWei,
         usdValue: usdShare * (1 - levelCommissionPoolPct),
-        level: null,
-        fromUserId: null,
-        fromUserName: null,
+        level: null, fromUserId: null, fromUserName: null,
       });
     }
 
-    // Level commission pool (e.g. 20% of grossWei) → distribute to uplines
     const levelPoolWei = (grossWei * levelPoolBps) / 10000n;
     let distributedWei = 0n;
 
@@ -269,13 +224,9 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
           distributedWei += commissionWei;
           recipients.add(upline.id);
           rewardRows.push({
-            userId: upline.id,
-            type: "level",
-            tokenAmount: commissionWei,
+            userId: upline.id, type: "level", tokenAmount: commissionWei,
             usdValue: usdShare * levelCommissionPoolPct * (cfg.levelRates[level] ?? 0),
-            level,
-            fromUserId: investor.id,
-            fromUserName: investor.name || investor.email,
+            level, fromUserId: investor.id, fromUserName: investor.name || investor.email,
           });
         }
       }
@@ -283,29 +234,302 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
       level++;
     }
 
-    // Unclaimed level pool → reserve
-    const unclaimed = levelPoolWei - distributedWei;
-    if (unclaimed > 0n) reserveAddWei += unclaimed;
+    void distributedWei; // tracked per-investment; residual rolled into reserve below
   }
+
+  // Conserve supply exactly: everything not credited to investors or uplines
+  // (unclaimed level pool + all proportional/bps rounding dust) is booked to the
+  // reserve, so tokensBought === roiTotal + levelTotal + reserve to the wei.
+  reserveAddWei = tokensBoughtWei - roiTotalWei - levelTotalWei;
+  if (reserveAddWei < 0n) reserveAddWei = 0n;
+
+  return { userTokenAdd, rewardRows, investmentUpdates, roiTotalWei, levelTotalWei, reserveAddWei, recipients };
+}
+
+// ── Preview ─────────────────────────────────────────────────────────────────
+
+export interface TokenPreviewResult {
+  success: boolean;
+  error?: string;
+  configured: boolean;
+  mode: DistributeMode;
+  // Eligibility (independent of amount)
+  eligibleInvestments: number;
+  eligibleInvestors: number;
+  totalRoiPrincipalUsd: number;
+  coolingHours: number;
+  // Live chain context
+  buyPrice?: string;
+  sellPrice?: string;
+  walletTokenBalance?: string;
+  walletUsdtBalance?: string;
+  walletAddress?: string;
+  // For the entered amount
+  profitUsdt?: number;
+  estTokens?: string;          // tokens that will be distributed (human)
+  estInvestorTokens?: string;  // investor (Trading Profit) share
+  estLevelTokens?: string;     // level commission pool actually paid
+  estReserveTokens?: string;   // unclaimed level tokens → reserve
+  recipientCount?: number;     // distinct users who would receive tokens
+  // Sufficiency checks
+  sufficientUsdt?: boolean;    // buy mode: withdraw wallet has enough USDT
+  sufficientTokens?: boolean;  // held mode: withdraw wallet holds enough tokens
+}
+
+/**
+ * Compute what a distribution of `profitUsdt` (USDT) would look like WITHOUT
+ * touching the chain or DB. `profitUsdt` may be 0/undefined to fetch eligibility
+ * + live context only. Token quantity is derived at the current buy price for
+ * both modes so the two paths are equivalent for the same dollar input.
+ */
+export async function previewTokenDistribution(
+  profitUsdt: number,
+  mode: DistributeMode,
+): Promise<TokenPreviewResult> {
+  const [settings] = await db.select().from(platformSettingsTable).limit(1);
+  if (!settings) {
+    return { success: false, configured: false, mode, error: "Platform settings not configured",
+      eligibleInvestments: 0, eligibleInvestors: 0, totalRoiPrincipalUsd: 0, coolingHours: 24 };
+  }
+
+  const contractAddress = (settings.tokenContractAddress || "").trim();
+  const configured = isValidAddress(contractAddress);
+
+  const e = await loadEligibility(settings);
+  const out: TokenPreviewResult = {
+    success: true,
+    configured,
+    mode,
+    eligibleInvestments: e.eligible.length,
+    eligibleInvestors: e.investorIds.size,
+    totalRoiPrincipalUsd: Number(e.totalMicro) / 1e6,
+    coolingHours: e.cfg.coolingHours,
+  };
+
+  if (!configured) {
+    out.error = "Token contract address is not configured";
+    return out;
+  }
+
+  const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
+  const withdrawKey = resolveKey(settings.withdrawWalletPrivateKey);
+
+  let buyPriceNum = 0;
+  try {
+    const prices = await getTokenPrices(contractAddress, rpcUrl);
+    out.buyPrice = prices.buyPrice;
+    out.sellPrice = prices.sellPrice;
+    buyPriceNum = parseFloat(prices.buyPrice);
+  } catch {
+    /* price read failed — non-fatal for preview */
+  }
+
+  let walletTokenWei = 0n;
+  let walletUsdtWei = 0n;
+  if (withdrawKey) {
+    try {
+      const bal = await getPlatformBalances(contractAddress, withdrawKey, rpcUrl);
+      walletTokenWei = bal.tokenWei;
+      walletUsdtWei = bal.usdtWei;
+      out.walletAddress = bal.address;
+      out.walletTokenBalance = ethers.formatUnits(bal.tokenWei, TOKEN_DECIMALS);
+      out.walletUsdtBalance = ethers.formatUnits(bal.usdtWei, 18);
+    } catch {
+      /* balance read failed — non-fatal */
+    }
+  }
+
+  if (Number.isFinite(profitUsdt) && profitUsdt > 0) {
+    out.profitUsdt = profitUsdt;
+
+    if (buyPriceNum > 0) {
+      const tokensWei = ethers.parseUnits((profitUsdt / buyPriceNum).toFixed(18), TOKEN_DECIMALS);
+      const sim = simulateDistribution(e, tokensWei, profitUsdt);
+      out.estTokens = ethers.formatUnits(tokensWei, TOKEN_DECIMALS);
+      out.estInvestorTokens = ethers.formatUnits(sim.roiTotalWei, TOKEN_DECIMALS);
+      out.estLevelTokens = ethers.formatUnits(sim.levelTotalWei, TOKEN_DECIMALS);
+      out.estReserveTokens = ethers.formatUnits(sim.reserveAddWei, TOKEN_DECIMALS);
+      out.recipientCount = sim.recipients.size;
+      out.sufficientTokens = walletTokenWei >= tokensWei;
+    }
+
+    // buy mode: need enough USDT in the withdraw wallet to fund the buy
+    const usdtNeededWei = ethers.parseUnits(profitUsdt.toFixed(6), 18);
+    out.sufficientUsdt = walletUsdtWei >= usdtNeededWei;
+  }
+
+  return out;
+}
+
+// ── Distribute ──────────────────────────────────────────────────────────────
+
+export interface TokenDistributeResult {
+  success: boolean;
+  error?: string;
+  batchId?: number;
+  txHash?: string;
+  source?: DistributeMode;
+  usdtSpent?: number;
+  tokensBought?: string;
+  roiTokenTotal?: string;
+  levelTokenTotal?: string;
+  recipientCount?: number;
+  eligibleInvestments?: number;
+}
+
+/**
+ * The ROI engine. Admin enters the day's trading profit (USDT).
+ *
+ *  mode "buy"  → execute a REAL on-chain buy for `profitUsdt` from the withdraw
+ *                wallet (raising the live price), then distribute those tokens.
+ *  mode "held" → distribute tokens the admin has ALREADY sent to the withdraw
+ *                wallet. We convert `profitUsdt` to a token quantity at the
+ *                current buy price and verify the wallet holds enough — no buy,
+ *                no transfer (admin funds the wallet manually).
+ *
+ * In both modes the tokens are distributed VIRTUALLY, proportional to each
+ * eligible investment's ROI principal, carving level commissions to qualifying
+ * uplines. Rewards land in users.roiTokenBalance (+ tradingProfit/teamBenefit
+ * sub-balances) and token_rewards rows. They become withdrawable USDT only when
+ * the user sells them on the Wallet page.
+ */
+// In-process guard: distributions are a manual single-admin action; serialising
+// them prevents a TOCTOU where two concurrent runs both pass the held-mode
+// balance check (or double-spend in buy mode) and over-assign tokens.
+let distributionInProgress = false;
+
+export async function runTokenDistribute(
+  profitUsdt: number,
+  mode: DistributeMode,
+): Promise<TokenDistributeResult> {
+  if (distributionInProgress) {
+    return { success: false, error: "Another distribution is already running — please wait for it to finish." };
+  }
+  distributionInProgress = true;
+  try {
+    return await _runTokenDistribute(profitUsdt, mode);
+  } finally {
+    distributionInProgress = false;
+  }
+}
+
+async function _runTokenDistribute(
+  profitUsdt: number,
+  mode: DistributeMode,
+): Promise<TokenDistributeResult> {
+  if (!Number.isFinite(profitUsdt) || profitUsdt <= 0) {
+    return { success: false, error: "Profit amount must be a positive number" };
+  }
+
+  const [settings] = await db.select().from(platformSettingsTable).limit(1);
+  if (!settings) return { success: false, error: "Platform settings not configured" };
+
+  const contractAddress = (settings.tokenContractAddress || "").trim();
+  if (!isValidAddress(contractAddress)) {
+    return { success: false, error: "Token contract address is not configured" };
+  }
+  const withdrawKey = resolveKey(settings.withdrawWalletPrivateKey);
+  const gasKey = resolveKey(settings.gasWalletPrivateKey);
+  if (!withdrawKey) {
+    return { success: false, error: "Withdraw wallet must be configured" };
+  }
+  // Held mode performs no on-chain transaction, so it doesn't need a gas wallet.
+  if (mode === "buy" && !gasKey) {
+    return { success: false, error: "Gas wallet must be configured to buy tokens on-chain" };
+  }
+  const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
+
+  // ── 1. Eligibility BEFORE acting so we never act with nobody to pay ──
+  const e = await loadEligibility(settings);
+  if (e.eligible.length === 0) {
+    return { success: false, error: "No eligible active investments to distribute to (check cooling period and active investors)" };
+  }
+  if (e.totalMicro <= 0n) {
+    return { success: false, error: "Eligible investment principal is zero" };
+  }
+
+  // Live price (needed to record buyPrice, and to convert $→tokens in held mode)
+  let buyPrice = "0";
+  let buyPriceNum = 0;
+  try {
+    const prices = await getTokenPrices(contractAddress, rpcUrl);
+    buyPrice = prices.buyPrice;
+    buyPriceNum = parseFloat(prices.buyPrice);
+  } catch {
+    /* non-fatal for buy mode (price is informational); fatal for held mode below */
+  }
+
+  // ── 2. Determine tokens to distribute ──
+  let tokensBoughtWei: bigint;
+  let buyTxHash: string | null = null;
+  let batchId: number;
+
+  if (mode === "held") {
+    if (buyPriceNum <= 0) {
+      return { success: false, error: "Could not read the live token price needed to convert USDT to tokens" };
+    }
+    tokensBoughtWei = ethers.parseUnits((profitUsdt / buyPriceNum).toFixed(18), TOKEN_DECIMALS);
+
+    // Verify the withdraw wallet already holds enough tokens (admin funds it).
+    try {
+      const bal = await getPlatformBalances(contractAddress, withdrawKey, rpcUrl);
+      if (bal.tokenWei < tokensBoughtWei) {
+        return {
+          success: false,
+          error: `Withdraw wallet holds ${ethers.formatUnits(bal.tokenWei, TOKEN_DECIMALS)} tokens but ${ethers.formatUnits(tokensBoughtWei, TOKEN_DECIMALS)} are needed. Send more tokens to the withdraw wallet first.`,
+        };
+      }
+    } catch (err: any) {
+      return { success: false, error: `Could not read withdraw wallet token balance: ${err?.shortMessage || err?.message || "RPC error"}` };
+    }
+
+    const [batch] = await db.insert(tokenBuyBatchesTable).values({
+      usdtSpent: profitUsdt.toString(),
+      source: "held",
+      buyPrice,
+      status: "pending",
+    }).returning();
+    batchId = batch.id;
+  } else {
+    // buy mode — record a pending batch first so a failed buy is audited
+    const [batch] = await db.insert(tokenBuyBatchesTable).values({
+      usdtSpent: profitUsdt.toString(),
+      source: "buy",
+      status: "pending",
+    }).returning();
+    batchId = batch.id;
+
+    const buy = await buyTokens(profitUsdt, contractAddress, withdrawKey, gasKey, rpcUrl);
+    if (!buy.success || !buy.tokensBought) {
+      await db.update(tokenBuyBatchesTable)
+        .set({ status: "failed", note: buy.error ?? "Buy failed", buyTxHash: buy.txHash ?? null, buyPrice })
+        .where(eq(tokenBuyBatchesTable.id, batchId));
+      return { success: false, error: buy.error ?? "On-chain buy failed", batchId, source: "buy" };
+    }
+    tokensBoughtWei = buy.tokensBought;
+    buyTxHash = buy.txHash ?? null;
+  }
+
+  // ── 3. Compute distribution (pure) ──
+  const sim = simulateDistribution(e, tokensBoughtWei, profitUsdt);
 
   // ── 4. Apply everything in one transaction ──
   try {
     await db.transaction(async (tx) => {
-      for (const upd of investmentUpdates) {
+      for (const upd of sim.investmentUpdates) {
         await tx.update(investmentsTable)
           .set({ remainingDays: upd.remainingDays, earnedSoFar: upd.earnedSoFar, status: upd.status })
           .where(eq(investmentsTable.id, upd.id));
       }
-      for (const [userId, addWei] of userTokenAdd.entries()) {
-        const u = userById.get(userId)!;
+      for (const [userId, addWei] of sim.userTokenAdd.entries()) {
+        const u = e.userById.get(userId)!;
         const current = ethers.parseUnits((u.roiTokenBalance || "0"), TOKEN_DECIMALS);
         const next = current + addWei;
 
-        // Sum token amounts per wallet type (tokens, not USD)
-        const roiTokenWei = rewardRows
+        const roiTokenWei = sim.rewardRows
           .filter(r => r.userId === userId && r.type === "roi")
           .reduce((s, r) => s + r.tokenAmount, 0n);
-        const levelTokenWei = rewardRows
+        const levelTokenWei = sim.rewardRows
           .filter(r => r.userId === userId && r.type === "level")
           .reduce((s, r) => s + r.tokenAmount, 0n);
 
@@ -316,7 +540,6 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
           ? (parseFloat(u.teamBenefitBalance || "0") + parseFloat(ethers.formatUnits(levelTokenWei, TOKEN_DECIMALS))).toFixed(6)
           : u.teamBenefitBalance;
 
-        // totalEarnings tracks USD value of distributed tokens (informational)
         const usdShare = (Number(addWei) / Number(tokensBoughtWei)) * profitUsdt;
 
         await tx.update(usersTable)
@@ -328,11 +551,11 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
           })
           .where(eq(usersTable.id, userId));
       }
-      if (rewardRows.length > 0) {
+      if (sim.rewardRows.length > 0) {
         await tx.insert(tokenRewardsTable).values(
-          rewardRows.map((r) => ({
+          sim.rewardRows.map((r) => ({
             userId: r.userId,
-            batchId: batch.id,
+            batchId,
             type: r.type,
             tokenAmount: ethers.formatUnits(r.tokenAmount, TOKEN_DECIMALS),
             usdValue: r.usdValue.toFixed(6),
@@ -342,12 +565,11 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
           })),
         );
       }
-      // Credit unclaimed level tokens to the platform reserve
-      if (reserveAddWei > 0n) {
+      if (sim.reserveAddWei > 0n) {
         const [ps] = await tx.select().from(platformSettingsTable).limit(1);
         if (ps) {
           const currentReserve = parseFloat(ps.reserveTokenBalance ?? "0");
-          const addReserve = parseFloat(ethers.formatUnits(reserveAddWei, TOKEN_DECIMALS));
+          const addReserve = parseFloat(ethers.formatUnits(sim.reserveAddWei, TOKEN_DECIMALS));
           await tx.update(platformSettingsTable)
             .set({ reserveTokenBalance: (currentReserve + addReserve).toFixed(8) })
             .where(eq(platformSettingsTable.id, ps.id));
@@ -356,42 +578,55 @@ export async function runTokenBuyAndDistribute(profitUsdt: number): Promise<Toke
       await tx.update(tokenBuyBatchesTable)
         .set({
           status: "completed",
-          buyTxHash: buy.txHash ?? null,
+          buyTxHash,
           buyPrice,
           tokensBought: ethers.formatUnits(tokensBoughtWei, TOKEN_DECIMALS),
-          roiTokenTotal: ethers.formatUnits(roiTotalWei, TOKEN_DECIMALS),
-          levelTokenTotal: ethers.formatUnits(levelTotalWei, TOKEN_DECIMALS),
-          recipientCount: recipients.size,
+          roiTokenTotal: ethers.formatUnits(sim.roiTotalWei, TOKEN_DECIMALS),
+          levelTokenTotal: ethers.formatUnits(sim.levelTotalWei, TOKEN_DECIMALS),
+          recipientCount: sim.recipients.size,
         })
-        .where(eq(tokenBuyBatchesTable.id, batch.id));
+        .where(eq(tokenBuyBatchesTable.id, batchId));
     });
   } catch (err: any) {
-    logger.error({ err, batchId: batch.id }, "Token distribution DB transaction failed after on-chain buy");
+    logger.error({ err, batchId }, "Token distribution DB transaction failed");
     await db.update(tokenBuyBatchesTable)
-      .set({ status: "failed", note: `Distribution failed after buy: ${err?.message}`, buyTxHash: buy.txHash ?? null })
-      .where(eq(tokenBuyBatchesTable.id, batch.id));
+      .set({
+        status: "failed",
+        note: `Distribution failed: ${err?.message}`,
+        buyTxHash,
+      })
+      .where(eq(tokenBuyBatchesTable.id, batchId));
     return {
       success: false,
-      error: "On-chain buy succeeded but distribution failed — see batch note. No tokens were credited.",
-      batchId: batch.id,
-      txHash: buy.txHash,
+      error: mode === "buy"
+        ? "On-chain buy succeeded but distribution failed — see batch note. No tokens were credited."
+        : "Distribution failed — see batch note. No tokens were credited.",
+      batchId,
+      txHash: buyTxHash ?? undefined,
+      source: mode,
     };
   }
 
   logger.info(
-    { batchId: batch.id, recipients: recipients.size, eligible: eligible.length },
-    "Token buy & distribute completed",
+    { batchId, mode, recipients: sim.recipients.size, eligible: e.eligible.length },
+    "Token distribute completed",
   );
 
   return {
     success: true,
-    batchId: batch.id,
-    txHash: buy.txHash,
+    batchId,
+    txHash: buyTxHash ?? undefined,
+    source: mode,
     usdtSpent: profitUsdt,
     tokensBought: ethers.formatUnits(tokensBoughtWei, TOKEN_DECIMALS),
-    roiTokenTotal: ethers.formatUnits(roiTotalWei, TOKEN_DECIMALS),
-    levelTokenTotal: ethers.formatUnits(levelTotalWei, TOKEN_DECIMALS),
-    recipientCount: recipients.size,
-    eligibleInvestments: eligible.length,
+    roiTokenTotal: ethers.formatUnits(sim.roiTotalWei, TOKEN_DECIMALS),
+    levelTokenTotal: ethers.formatUnits(sim.levelTotalWei, TOKEN_DECIMALS),
+    recipientCount: sim.recipients.size,
+    eligibleInvestments: e.eligible.length,
   };
+}
+
+/** Backward-compatible wrapper: original buy-and-distribute behaviour. */
+export function runTokenBuyAndDistribute(profitUsdt: number): Promise<TokenDistributeResult> {
+  return runTokenDistribute(profitUsdt, "buy");
 }

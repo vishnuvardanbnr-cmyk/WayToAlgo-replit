@@ -1384,20 +1384,40 @@ router.post("/admin/run-daily-payout", requireAdmin, async (req, res) => {
 
 // ── Token-based ROI payout ──────────────────────────────────────────────────
 
-// POST /api/admin/token/distribute  { profitUsdt: number }
-// Admin enters the day's REAL trading profit. The platform buys that much of the
-// token on-chain (raising the live price) and distributes the bought tokens
-// virtually to investors proportional to active principal, carving level
-// commissions from the same pool.
+// GET /api/admin/token/preview?profitUsdt=&mode=buy|held
+// Returns eligibility (count of users + total ROI amount) and, for a given
+// amount, the token quantity + split that WOULD be distributed — so the admin
+// can confirm exactly who gets paid before acting. No chain/DB writes.
+router.get("/admin/token/preview", requireAdmin, async (req, res) => {
+  const profitUsdt = parseFloat(String(req.query.profitUsdt ?? "0"));
+  const mode = req.query.mode === "held" ? "held" : "buy";
+  try {
+    const { previewTokenDistribution } = await import("../lib/tokenPayout");
+    const result = await previewTokenDistribution(
+      Number.isFinite(profitUsdt) ? profitUsdt : 0,
+      mode as "buy" | "held",
+    );
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err?.message || "Preview failed" });
+  }
+});
+
+// POST /api/admin/token/distribute  { profitUsdt: number, mode?: "buy" | "held" }
+// Admin enters the day's trading profit (USDT). mode "buy" buys that much token
+// on-chain (raising the live price); mode "held" distributes tokens already sent
+// to the withdraw wallet (no buy). Both distribute the tokens virtually to
+// investors proportional to active principal, carving level commissions.
 router.post("/admin/token/distribute", requireAdmin, async (req, res) => {
   const profitUsdt = parseFloat(req.body?.profitUsdt);
+  const mode = req.body?.mode === "held" ? "held" : "buy";
   if (!Number.isFinite(profitUsdt) || profitUsdt <= 0) {
     res.status(400).json({ success: false, message: "Enter a positive profit amount (USDT)" });
     return;
   }
   try {
-    const { runTokenBuyAndDistribute } = await import("../lib/tokenPayout");
-    const result = await runTokenBuyAndDistribute(profitUsdt);
+    const { runTokenDistribute } = await import("../lib/tokenPayout");
+    const result = await runTokenDistribute(profitUsdt, mode as "buy" | "held");
     if (!result.success) {
       res.status(400).json(result);
       return;
@@ -1415,6 +1435,7 @@ router.get("/admin/token/batches", requireAdmin, async (_req, res) => {
   res.json(batches.map((b) => ({
     id: b.id,
     usdtSpent: parseFloat(b.usdtSpent),
+    source: b.source,
     tokensBought: b.tokensBought,
     buyPrice: b.buyPrice,
     buyTxHash: b.buyTxHash,

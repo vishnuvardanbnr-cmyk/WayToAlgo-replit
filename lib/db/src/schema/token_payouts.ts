@@ -13,6 +13,9 @@ export const tokenBuyBatchesTable = pgTable("token_buy_batches", {
   tokensBought: numeric("tokens_bought", { precision: 40, scale: 18 }).notNull().default("0"),
   buyPrice: numeric("buy_price", { precision: 40, scale: 18 }).notNull().default("0"),
   buyTxHash: text("buy_tx_hash"),
+  // "buy"  = fresh on-chain buy (USDT spent → tokens minted to withdraw wallet)
+  // "held" = distribute tokens already held in the withdraw wallet (no buy)
+  source: text("source").notNull().default("buy"),
   recipientCount: integer("recipient_count").notNull().default(0),
   roiTokenTotal: numeric("roi_token_total", { precision: 40, scale: 18 }).notNull().default("0"),
   levelTokenTotal: numeric("level_token_total", { precision: 40, scale: 18 }).notNull().default("0"),

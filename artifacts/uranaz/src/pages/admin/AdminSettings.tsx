@@ -4,6 +4,7 @@ import { useGetAdminSettings, useUpdateAdminSettings, getGetAdminSettingsQueryKe
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import AdminTokenReferral from "@/components/AdminTokenReferral";
+import AdminTokenDistribution from "@/components/AdminTokenDistribution";
 import {
   Settings, Save, Mail, Eye, EyeOff, Wallet, ShieldAlert, RefreshCw, Database,
   AlertTriangle, CheckCircle2, ArrowUpRight, TrendingUp, SlidersHorizontal, Coins, Server,
@@ -1047,6 +1048,14 @@ export default function AdminSettings() {
               </div>
             </form>
           )}
+        </SectionCard>
+
+        <SectionCard
+          icon={Coins}
+          title="ROI Token Distribution"
+          description="Distribute the day's trading profit as WTA — buy new tokens with USDT, or hand out tokens already sent to the withdraw wallet. Preview eligible users and amount before confirming."
+        >
+          <AdminTokenDistribution />
         </SectionCard>
 
         <SectionCard
