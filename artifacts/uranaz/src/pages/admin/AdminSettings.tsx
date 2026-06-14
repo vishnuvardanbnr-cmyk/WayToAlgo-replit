@@ -94,6 +94,16 @@ type IncomeForm = {
   levelDaysL8: number;
   levelDaysL9: number;
   levelDaysL10: number;
+  levelDirectsL1: number;
+  levelDirectsL2: number;
+  levelDirectsL3: number;
+  levelDirectsL4: number;
+  levelDirectsL5: number;
+  levelDirectsL6: number;
+  levelDirectsL7: number;
+  levelDirectsL8: number;
+  levelDirectsL9: number;
+  levelDirectsL10: number;
   dailyRoiRate: number;
   earningsCapEnabled: boolean;
   earningsCapBase: number;
@@ -505,6 +515,8 @@ export default function AdminSettings() {
       levelUnlockL4: 10000, levelUnlockL5: 10000, levelUnlockL6: 10000, levelUnlockL7: 10000, levelUnlockL8: 10000, levelUnlockL9: 10000, levelUnlockL10: 10000,
       levelDaysL1: 0, levelDaysL2: 0, levelDaysL3: 0, levelDaysL4: 0,
       levelDaysL5: 0, levelDaysL6: 0, levelDaysL7: 0, levelDaysL8: 0, levelDaysL9: 0, levelDaysL10: 0,
+      levelDirectsL1: 0, levelDirectsL2: 0, levelDirectsL3: 0, levelDirectsL4: 0, levelDirectsL5: 0,
+      levelDirectsL6: 0, levelDirectsL7: 0, levelDirectsL8: 0, levelDirectsL9: 0, levelDirectsL10: 0,
     },
   });
 
@@ -1431,6 +1443,27 @@ export default function AdminSettings() {
                 </div>
                 <p className="text-[11px] mt-2" style={{ color: "rgba(194,210,255,0.35)" }}>
                   Example: L1 = 180 means the direct upline receives Level 1 commission only for the first 180 days of each investment. After that, L1 commission stops for that investment.
+                </p>
+              </div>
+
+              {/* Required Active Direct Referrals per Level */}
+              <div>
+                <SubHeader hint="Minimum number of ACTIVE (invested) direct referrals an upline must have to earn each level's commission. Set 0 to require none.">
+                  <span className="inline-flex items-center gap-1.5"><Layers size={12} />Required Active Directs per Level (0 = none)</span>
+                </SubHeader>
+                <div className="grid grid-cols-4 lg:grid-cols-5 gap-3 mt-3">
+                  {([1,2,3,4,5,6,7,8,9,10] as const).map(lvl => (
+                    <div key={lvl}>
+                      <FieldLabel>L{lvl}</FieldLabel>
+                      <input type="number" min="0" step="1"
+                        {...incomeForm.register(`levelDirectsL${lvl}` as keyof IncomeForm, { valueAsNumber: true })}
+                        className={INPUT_CLS + " text-center"} style={INPUT_STYLE}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] mt-2" style={{ color: "rgba(194,210,255,0.35)" }}>
+                  Example: L3 = 5 means an upline earns Level 3 commission only if they have at least 5 direct referrals who have invested. "Active" counts a direct only once they have a non-zero invested amount.
                 </p>
               </div>
 

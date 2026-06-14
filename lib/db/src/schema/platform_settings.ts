@@ -125,6 +125,17 @@ export const platformSettingsTable = pgTable("platform_settings", {
   levelDaysL8: integer("level_days_l8").notNull().default(0),
   levelDaysL9: integer("level_days_l9").notNull().default(0),
   levelDaysL10: integer("level_days_l10").notNull().default(0),
+
+  levelDirectsL1: integer("level_directs_l1").notNull().default(0),
+  levelDirectsL2: integer("level_directs_l2").notNull().default(0),
+  levelDirectsL3: integer("level_directs_l3").notNull().default(0),
+  levelDirectsL4: integer("level_directs_l4").notNull().default(0),
+  levelDirectsL5: integer("level_directs_l5").notNull().default(0),
+  levelDirectsL6: integer("level_directs_l6").notNull().default(0),
+  levelDirectsL7: integer("level_directs_l7").notNull().default(0),
+  levelDirectsL8: integer("level_directs_l8").notNull().default(0),
+  levelDirectsL9: integer("level_directs_l9").notNull().default(0),
+  levelDirectsL10: integer("level_directs_l10").notNull().default(0),
 });
 
 export const insertPlatformSettingsSchema = createInsertSchema(platformSettingsTable).omit({ id: true });

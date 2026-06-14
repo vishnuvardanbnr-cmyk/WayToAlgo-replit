@@ -750,6 +750,16 @@ router.get("/admin/income-settings", requireAdmin, async (req, res) => {
     levelDaysL8: s.levelDaysL8,
     levelDaysL9: s.levelDaysL9,
     levelDaysL10: s.levelDaysL10,
+    levelDirectsL1: s.levelDirectsL1,
+    levelDirectsL2: s.levelDirectsL2,
+    levelDirectsL3: s.levelDirectsL3,
+    levelDirectsL4: s.levelDirectsL4,
+    levelDirectsL5: s.levelDirectsL5,
+    levelDirectsL6: s.levelDirectsL6,
+    levelDirectsL7: s.levelDirectsL7,
+    levelDirectsL8: s.levelDirectsL8,
+    levelDirectsL9: s.levelDirectsL9,
+    levelDirectsL10: s.levelDirectsL10,
   });
 });
 
@@ -791,6 +801,16 @@ const IncomeSettingsBody = z.object({
   levelDaysL8: z.number().int().min(0),
   levelDaysL9: z.number().int().min(0),
   levelDaysL10: z.number().int().min(0),
+  levelDirectsL1: z.number().int().min(0).optional(),
+  levelDirectsL2: z.number().int().min(0).optional(),
+  levelDirectsL3: z.number().int().min(0).optional(),
+  levelDirectsL4: z.number().int().min(0).optional(),
+  levelDirectsL5: z.number().int().min(0).optional(),
+  levelDirectsL6: z.number().int().min(0).optional(),
+  levelDirectsL7: z.number().int().min(0).optional(),
+  levelDirectsL8: z.number().int().min(0).optional(),
+  levelDirectsL9: z.number().int().min(0).optional(),
+  levelDirectsL10: z.number().int().min(0).optional(),
 });
 
 // PUT /api/admin/income-settings
@@ -839,6 +859,16 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     levelDaysL8: d.levelDaysL8,
     levelDaysL9: d.levelDaysL9,
     levelDaysL10: d.levelDaysL10,
+    ...(d.levelDirectsL1 != null ? { levelDirectsL1: d.levelDirectsL1 } : {}),
+    ...(d.levelDirectsL2 != null ? { levelDirectsL2: d.levelDirectsL2 } : {}),
+    ...(d.levelDirectsL3 != null ? { levelDirectsL3: d.levelDirectsL3 } : {}),
+    ...(d.levelDirectsL4 != null ? { levelDirectsL4: d.levelDirectsL4 } : {}),
+    ...(d.levelDirectsL5 != null ? { levelDirectsL5: d.levelDirectsL5 } : {}),
+    ...(d.levelDirectsL6 != null ? { levelDirectsL6: d.levelDirectsL6 } : {}),
+    ...(d.levelDirectsL7 != null ? { levelDirectsL7: d.levelDirectsL7 } : {}),
+    ...(d.levelDirectsL8 != null ? { levelDirectsL8: d.levelDirectsL8 } : {}),
+    ...(d.levelDirectsL9 != null ? { levelDirectsL9: d.levelDirectsL9 } : {}),
+    ...(d.levelDirectsL10 != null ? { levelDirectsL10: d.levelDirectsL10 } : {}),
   };
   const [existing] = await db.select().from(platformSettingsTable).limit(1);
   let s;
@@ -886,6 +916,16 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     levelDaysL8: s.levelDaysL8,
     levelDaysL9: s.levelDaysL9,
     levelDaysL10: s.levelDaysL10,
+    levelDirectsL1: s.levelDirectsL1,
+    levelDirectsL2: s.levelDirectsL2,
+    levelDirectsL3: s.levelDirectsL3,
+    levelDirectsL4: s.levelDirectsL4,
+    levelDirectsL5: s.levelDirectsL5,
+    levelDirectsL6: s.levelDirectsL6,
+    levelDirectsL7: s.levelDirectsL7,
+    levelDirectsL8: s.levelDirectsL8,
+    levelDirectsL9: s.levelDirectsL9,
+    levelDirectsL10: s.levelDirectsL10,
   });
 });
 

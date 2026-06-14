@@ -45,7 +45,27 @@ function levelConfig(s: typeof platformSettingsTable.$inferSelect) {
       5: s.levelDaysL5, 6: s.levelDaysL6, 7: s.levelDaysL7, 8: s.levelDaysL8,
       9: s.levelDaysL9, 10: s.levelDaysL10,
     } as Record<number, number>,
+    levelDirects: {
+      1: s.levelDirectsL1, 2: s.levelDirectsL2, 3: s.levelDirectsL3, 4: s.levelDirectsL4,
+      5: s.levelDirectsL5, 6: s.levelDirectsL6, 7: s.levelDirectsL7, 8: s.levelDirectsL8,
+      9: s.levelDirectsL9, 10: s.levelDirectsL10,
+    } as Record<number, number>,
   };
+}
+
+// Count, per user, how many of their DIRECT (level-1) referrals are active
+// investors — "active" meaning the referral has actually invested
+// (totalInvested > 0). Used to gate level-commission eligibility.
+function buildActiveDirectsMap(
+  allUsers: { id: number; sponsorId: number | null; totalInvested: string }[],
+): Map<number, number> {
+  const map = new Map<number, number>();
+  for (const u of allUsers) {
+    if (u.sponsorId == null) continue;
+    const invested = parseFloat(u.totalInvested ?? "0") || 0;
+    if (invested > 0) map.set(u.sponsorId, (map.get(u.sponsorId) ?? 0) + 1);
+  }
+  return map;
 }
 
 // Mirror dailyPayout.buildTeamBusinessVolumeMap (downline totalInvested sum).
@@ -85,6 +105,7 @@ interface Eligibility {
   eligible: InvestmentRow[];
   userById: Map<number, UserRow>;
   teamVolumeMap: Map<number, number>;
+  activeDirectsMap: Map<number, number>;
   principalMicro: Map<number, bigint>; // investmentId -> micro-USD of ROI principal
   totalMicro: bigint;
   investorIds: Set<number>;
@@ -126,6 +147,9 @@ async function loadEligibility(settings: SettingsRow): Promise<Eligibility> {
   const allUsers = await db.select().from(usersTable);
   const userById = new Map(allUsers.map((u) => [u.id, u]));
   const teamVolumeMap = buildTeamVolumeMap(
+    allUsers.map((u) => ({ id: u.id, sponsorId: u.sponsorId, totalInvested: u.totalInvested })),
+  );
+  const activeDirectsMap = buildActiveDirectsMap(
     allUsers.map((u) => ({ id: u.id, sponsorId: u.sponsorId, totalInvested: u.totalInvested })),
   );
 
@@ -173,7 +197,7 @@ async function loadEligibility(settings: SettingsRow): Promise<Eligibility> {
   }
 
   return {
-    eligible, userById, teamVolumeMap, principalMicro, totalMicro, investorIds, cfg, levelCommissionPoolPct,
+    eligible, userById, teamVolumeMap, activeDirectsMap, principalMicro, totalMicro, investorIds, cfg, levelCommissionPoolPct,
     capEnabled: cs.enabled, capMap, earnedMap, cappedInvestorCount: cappedInvestorIds.size,
   };
 }
@@ -198,7 +222,7 @@ interface SimResult {
  * remainingDays/earnedSoFar advance for each eligible investment.
  */
 function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsdt: number): SimResult {
-  const { eligible, userById, teamVolumeMap, principalMicro, totalMicro, cfg, levelCommissionPoolPct } = e;
+  const { eligible, userById, teamVolumeMap, activeDirectsMap, principalMicro, totalMicro, cfg, levelCommissionPoolPct } = e;
   const { capEnabled, capMap, earnedMap } = e;
 
   const userTokenAdd = new Map<number, bigint>();
@@ -277,6 +301,8 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
       if (!upline.isActive) { currentUserId = upline.sponsorId; level++; continue; }
       const maxDays = cfg.levelDays[level] ?? 0;
       if (maxDays > 0 && daysElapsed > maxDays) { currentUserId = upline.sponsorId; level++; continue; }
+      const reqDirects = cfg.levelDirects[level] ?? 0;
+      if (reqDirects > 0 && (activeDirectsMap.get(upline.id) ?? 0) < reqDirects) { currentUserId = upline.sponsorId; level++; continue; }
       const unlock = cfg.levelUnlocks[level] ?? 0;
       const uplineVolume = teamVolumeMap.get(upline.id) ?? 0;
       if (uplineVolume >= unlock) {
