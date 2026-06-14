@@ -55,6 +55,9 @@ export const platformSettingsTable = pgTable("platform_settings", {
   planDailyRate: numeric("plan_daily_rate", { precision: 8, scale: 5 }).notNull().default("0.00800"),
   planDays: integer("plan_days").notNull().default(300),
   planMinAmount: numeric("plan_min_amount", { precision: 10, scale: 2 }).notNull().default("100"),
+  // Flat daily ROI rate (decimal, e.g. 0.004 = 0.4%/day). Used to compute the minimum
+  // token distribution amount required each day = eligible ROI principal × dailyRoiRate.
+  dailyRoiRate: numeric("daily_roi_rate", { precision: 8, scale: 5 }).notNull().default("0.00400"),
   // Wallet conversion fee — user gets this % of their sell proceeds (e.g. 0.81 = 81%)
   walletConvertReturnRate: numeric("wallet_convert_return_rate", { precision: 5, scale: 4 }).notNull().default("0.8100"),
   // Level commission rates (decimal, e.g. 0.20 = 20%)
@@ -66,6 +69,8 @@ export const platformSettingsTable = pgTable("platform_settings", {
   levelCommL6: numeric("level_comm_l6", { precision: 6, scale: 4 }).notNull().default("0.0400"),
   levelCommL7: numeric("level_comm_l7", { precision: 6, scale: 4 }).notNull().default("0.0400"),
   levelCommL8: numeric("level_comm_l8", { precision: 6, scale: 4 }).notNull().default("0.0400"),
+  levelCommL9: numeric("level_comm_l9", { precision: 6, scale: 4 }).notNull().default("0.0400"),
+  levelCommL10: numeric("level_comm_l10", { precision: 6, scale: 4 }).notNull().default("0.0400"),
   // Level unlock thresholds (upline team business volume needed, in USD)
   levelUnlockL2: numeric("level_unlock_l2", { precision: 10, scale: 2 }).notNull().default("1000"),
   levelUnlockL3: numeric("level_unlock_l3", { precision: 10, scale: 2 }).notNull().default("3000"),
@@ -74,6 +79,8 @@ export const platformSettingsTable = pgTable("platform_settings", {
   levelUnlockL6: numeric("level_unlock_l6", { precision: 10, scale: 2 }).notNull().default("10000"),
   levelUnlockL7: numeric("level_unlock_l7", { precision: 10, scale: 2 }).notNull().default("10000"),
   levelUnlockL8: numeric("level_unlock_l8", { precision: 10, scale: 2 }).notNull().default("10000"),
+  levelUnlockL9: numeric("level_unlock_l9", { precision: 10, scale: 2 }).notNull().default("10000"),
+  levelUnlockL10: numeric("level_unlock_l10", { precision: 10, scale: 2 }).notNull().default("10000"),
   // Auto ROI cron toggle
   autoRoiEnabled: boolean("auto_roi_enabled").notNull().default(true),
   // HyperCoin deposit recipient username (admin-configured)
@@ -110,6 +117,8 @@ export const platformSettingsTable = pgTable("platform_settings", {
   levelDaysL6: integer("level_days_l6").notNull().default(0),
   levelDaysL7: integer("level_days_l7").notNull().default(0),
   levelDaysL8: integer("level_days_l8").notNull().default(0),
+  levelDaysL9: integer("level_days_l9").notNull().default(0),
+  levelDaysL10: integer("level_days_l10").notNull().default(0),
 });
 
 export const insertPlatformSettingsSchema = createInsertSchema(platformSettingsTable).omit({ id: true });

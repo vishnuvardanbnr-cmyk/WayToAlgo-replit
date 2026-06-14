@@ -73,6 +73,8 @@ type IncomeForm = {
   levelCommL6: number;
   levelCommL7: number;
   levelCommL8: number;
+  levelCommL9: number;
+  levelCommL10: number;
   levelUnlockL2: number;
   levelUnlockL3: number;
   levelUnlockL4: number;
@@ -80,6 +82,8 @@ type IncomeForm = {
   levelUnlockL6: number;
   levelUnlockL7: number;
   levelUnlockL8: number;
+  levelUnlockL9: number;
+  levelUnlockL10: number;
   levelDaysL1: number;
   levelDaysL2: number;
   levelDaysL3: number;
@@ -88,6 +92,9 @@ type IncomeForm = {
   levelDaysL6: number;
   levelDaysL7: number;
   levelDaysL8: number;
+  levelDaysL9: number;
+  levelDaysL10: number;
+  dailyRoiRate: number;
 };
 
 type SmtpForm = {
@@ -484,13 +491,14 @@ export default function AdminSettings() {
       spotReferralRate: 5,
       planDays: 300,
       planMinAmount: 100,
-      levelCommissionPoolPct: 20,
+      levelCommissionPoolPct: 50,
+      dailyRoiRate: 0.4,
       levelCommL1: 20, levelCommL2: 10, levelCommL3: 10,
-      levelCommL4: 4, levelCommL5: 4, levelCommL6: 4, levelCommL7: 4, levelCommL8: 4,
+      levelCommL4: 4, levelCommL5: 4, levelCommL6: 4, levelCommL7: 4, levelCommL8: 4, levelCommL9: 4, levelCommL10: 4,
       levelUnlockL2: 1000, levelUnlockL3: 3000,
-      levelUnlockL4: 10000, levelUnlockL5: 10000, levelUnlockL6: 10000, levelUnlockL7: 10000, levelUnlockL8: 10000,
+      levelUnlockL4: 10000, levelUnlockL5: 10000, levelUnlockL6: 10000, levelUnlockL7: 10000, levelUnlockL8: 10000, levelUnlockL9: 10000, levelUnlockL10: 10000,
       levelDaysL1: 0, levelDaysL2: 0, levelDaysL3: 0, levelDaysL4: 0,
-      levelDaysL5: 0, levelDaysL6: 0, levelDaysL7: 0, levelDaysL8: 0,
+      levelDaysL5: 0, levelDaysL6: 0, levelDaysL7: 0, levelDaysL8: 0, levelDaysL9: 0, levelDaysL10: 0,
     },
   });
 
@@ -1231,10 +1239,10 @@ export default function AdminSettings() {
 
               {/* Investment Plan */}
               <div>
-                <SubHeader hint="Returns are distributed as WTA proportional to investment size — no fixed daily % rate.">
+                <SubHeader hint="Returns are distributed as WTA proportional to investment size. The Daily ROI Rate sets the minimum token value distributed each day (eligible principal × rate).">
                   <span className="inline-flex items-center gap-1.5"><Coins size={12} />Investment Plan</span>
                 </SubHeader>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
                   <div>
                     <FieldLabel>Plan Duration (days)</FieldLabel>
                     <input type="number" min="1"
@@ -1250,6 +1258,14 @@ export default function AdminSettings() {
                       className={INPUT_CLS} style={INPUT_STYLE}
                     />
                     <FieldHint>Minimum amount a user can invest in one plan.</FieldHint>
+                  </div>
+                  <div>
+                    <FieldLabel>Daily ROI Rate (%)</FieldLabel>
+                    <input type="number" step="0.01" min="0" max="100"
+                      {...incomeForm.register("dailyRoiRate", { valueAsNumber: true })}
+                      className={INPUT_CLS} style={INPUT_STYLE}
+                    />
+                    <FieldHint>Flat daily rate. Sets the minimum token distribution required each day (eligible principal × this %).</FieldHint>
                   </div>
                 </div>
               </div>
@@ -1300,8 +1316,8 @@ export default function AdminSettings() {
                 <SubHeader hint="% of each investor's level pool credited to that upline — rates within the pool above. L1 total rates need not sum to 100%; leftover goes to reserve.">
                   <span className="inline-flex items-center gap-1.5"><Layers size={12} />Level Commission Rates (% of pool)</span>
                 </SubHeader>
-                <div className="grid grid-cols-4 lg:grid-cols-8 gap-3 mt-3">
-                  {([1,2,3,4,5,6,7,8] as const).map(lvl => (
+                <div className="grid grid-cols-4 lg:grid-cols-5 gap-3 mt-3">
+                  {([1,2,3,4,5,6,7,8,9,10] as const).map(lvl => (
                     <div key={lvl}>
                       <FieldLabel>L{lvl}</FieldLabel>
                       <input type="number" step="0.1" min="0" max="100"
@@ -1318,12 +1334,12 @@ export default function AdminSettings() {
                 <SubHeader hint="Total earnings required to unlock each level (L1 is always unlocked)">
                   <span className="inline-flex items-center gap-1.5"><Layers size={12} />Level Unlock Thresholds ($)</span>
                 </SubHeader>
-                <div className="grid grid-cols-4 lg:grid-cols-8 gap-3 mt-3">
+                <div className="grid grid-cols-4 lg:grid-cols-5 gap-3 mt-3">
                   <div className="p-2.5 rounded-xl flex flex-col items-center justify-center" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.15)" }}>
                     <span className="text-xs font-bold" style={{ color: TEAL }}>L1</span>
                     <span className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Always</span>
                   </div>
-                  {([2,3,4,5,6,7,8] as const).map(lvl => (
+                  {([2,3,4,5,6,7,8,9,10] as const).map(lvl => (
                     <div key={lvl}>
                       <FieldLabel>L{lvl} ($)</FieldLabel>
                       <input type="number" min="0"
@@ -1340,8 +1356,8 @@ export default function AdminSettings() {
                 <SubHeader hint="Number of days from investment start that each level earns commission. Set 0 for unlimited (no expiry).">
                   <span className="inline-flex items-center gap-1.5"><Layers size={12} />Level Commission Days (0 = unlimited)</span>
                 </SubHeader>
-                <div className="grid grid-cols-4 lg:grid-cols-8 gap-3 mt-3">
-                  {([1,2,3,4,5,6,7,8] as const).map(lvl => (
+                <div className="grid grid-cols-4 lg:grid-cols-5 gap-3 mt-3">
+                  {([1,2,3,4,5,6,7,8,9,10] as const).map(lvl => (
                     <div key={lvl}>
                       <FieldLabel>L{lvl}</FieldLabel>
                       <input type="number" min="0" step="1"

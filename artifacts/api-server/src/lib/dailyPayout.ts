@@ -16,6 +16,8 @@ async function getIncomeSettings() {
       6: parseFloat(s.levelCommL6),
       7: parseFloat(s.levelCommL7),
       8: parseFloat(s.levelCommL8),
+      9: parseFloat(s.levelCommL9),
+      10: parseFloat(s.levelCommL10),
     } as Record<number, number>,
     levelUnlocks: {
       1: 0,
@@ -26,6 +28,8 @@ async function getIncomeSettings() {
       6: parseFloat(s.levelUnlockL6),
       7: parseFloat(s.levelUnlockL7),
       8: parseFloat(s.levelUnlockL8),
+      9: parseFloat(s.levelUnlockL9),
+      10: parseFloat(s.levelUnlockL10),
     } as Record<number, number>,
     levelDays: {
       1: s.levelDaysL1,
@@ -36,6 +40,8 @@ async function getIncomeSettings() {
       6: s.levelDaysL6,
       7: s.levelDaysL7,
       8: s.levelDaysL8,
+      9: s.levelDaysL9,
+      10: s.levelDaysL10,
     } as Record<number, number>,
   };
 }
@@ -43,14 +49,14 @@ async function getIncomeSettings() {
 // Fallback defaults if no settings row exists yet
 const DEFAULT_LEVEL_RATES: Record<number, number> = {
   1: 0.20, 2: 0.10, 3: 0.10,
-  4: 0.04, 5: 0.04, 6: 0.04, 7: 0.04, 8: 0.04,
+  4: 0.04, 5: 0.04, 6: 0.04, 7: 0.04, 8: 0.04, 9: 0.04, 10: 0.04,
 };
 const DEFAULT_LEVEL_UNLOCKS: Record<number, number> = {
   1: 0, 2: 1000, 3: 3000,
-  4: 10000, 5: 10000, 6: 10000, 7: 10000, 8: 10000,
+  4: 10000, 5: 10000, 6: 10000, 7: 10000, 8: 10000, 9: 10000, 10: 10000,
 };
 const DEFAULT_LEVEL_DAYS: Record<number, number> = {
-  1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0,
+  1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0,
 };
 
 /**
@@ -178,11 +184,11 @@ export async function processDailyPayout(): Promise<{ processed: number; skipped
         .set({ totalEarnings: (parseFloat(investor.totalEarnings) + dailyReturn).toString() })
         .where(eq(usersTable.id, inv.userId));
 
-      // ── Level commissions — walk up the sponsor chain (up to 8 levels) ──
+      // ── Level commissions — walk up the sponsor chain (up to 10 levels) ──
       let currentUserId: number | null = investor.sponsorId;
       let level = 1;
 
-      while (currentUserId && level <= 8) {
+      while (currentUserId && level <= 10) {
         const [upline] = await db.select().from(usersTable).where(eq(usersTable.id, currentUserId)).limit(1);
         if (!upline) break;
 

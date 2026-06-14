@@ -716,6 +716,7 @@ router.get("/admin/income-settings", requireAdmin, async (req, res) => {
     planDays: s.planDays ?? 300,
     planMinAmount: parseFloat(s.planMinAmount ?? "100"),
     levelCommissionPoolPct: parseFloat(s.levelCommissionPoolPct ?? "0.2") * 100,
+    dailyRoiRate: parseFloat(s.dailyRoiRate ?? "0") * 100,
     reserveTokenBalance: parseFloat(s.reserveTokenBalance ?? "0"),
     levelCommL1: parseFloat(s.levelCommL1) * 100,
     levelCommL2: parseFloat(s.levelCommL2) * 100,
@@ -725,6 +726,8 @@ router.get("/admin/income-settings", requireAdmin, async (req, res) => {
     levelCommL6: parseFloat(s.levelCommL6) * 100,
     levelCommL7: parseFloat(s.levelCommL7) * 100,
     levelCommL8: parseFloat(s.levelCommL8) * 100,
+    levelCommL9: parseFloat(s.levelCommL9) * 100,
+    levelCommL10: parseFloat(s.levelCommL10) * 100,
     levelUnlockL2: parseFloat(s.levelUnlockL2),
     levelUnlockL3: parseFloat(s.levelUnlockL3),
     levelUnlockL4: parseFloat(s.levelUnlockL4),
@@ -732,6 +735,8 @@ router.get("/admin/income-settings", requireAdmin, async (req, res) => {
     levelUnlockL6: parseFloat(s.levelUnlockL6),
     levelUnlockL7: parseFloat(s.levelUnlockL7),
     levelUnlockL8: parseFloat(s.levelUnlockL8),
+    levelUnlockL9: parseFloat(s.levelUnlockL9),
+    levelUnlockL10: parseFloat(s.levelUnlockL10),
     levelDaysL1: s.levelDaysL1,
     levelDaysL2: s.levelDaysL2,
     levelDaysL3: s.levelDaysL3,
@@ -740,6 +745,8 @@ router.get("/admin/income-settings", requireAdmin, async (req, res) => {
     levelDaysL6: s.levelDaysL6,
     levelDaysL7: s.levelDaysL7,
     levelDaysL8: s.levelDaysL8,
+    levelDaysL9: s.levelDaysL9,
+    levelDaysL10: s.levelDaysL10,
   });
 });
 
@@ -748,6 +755,7 @@ const IncomeSettingsBody = z.object({
   planDays: z.number().int().min(1).optional(),
   planMinAmount: z.number().min(0).optional(),
   levelCommissionPoolPct: z.number().min(0).max(100).optional(),
+  dailyRoiRate: z.number().min(0).max(100).optional(),
   levelCommL1: z.number().min(0).max(100),
   levelCommL2: z.number().min(0).max(100),
   levelCommL3: z.number().min(0).max(100),
@@ -756,6 +764,8 @@ const IncomeSettingsBody = z.object({
   levelCommL6: z.number().min(0).max(100),
   levelCommL7: z.number().min(0).max(100),
   levelCommL8: z.number().min(0).max(100),
+  levelCommL9: z.number().min(0).max(100),
+  levelCommL10: z.number().min(0).max(100),
   levelUnlockL2: z.number().min(0),
   levelUnlockL3: z.number().min(0),
   levelUnlockL4: z.number().min(0),
@@ -763,6 +773,8 @@ const IncomeSettingsBody = z.object({
   levelUnlockL6: z.number().min(0),
   levelUnlockL7: z.number().min(0),
   levelUnlockL8: z.number().min(0),
+  levelUnlockL9: z.number().min(0),
+  levelUnlockL10: z.number().min(0),
   levelDaysL1: z.number().int().min(0),
   levelDaysL2: z.number().int().min(0),
   levelDaysL3: z.number().int().min(0),
@@ -771,6 +783,8 @@ const IncomeSettingsBody = z.object({
   levelDaysL6: z.number().int().min(0),
   levelDaysL7: z.number().int().min(0),
   levelDaysL8: z.number().int().min(0),
+  levelDaysL9: z.number().int().min(0),
+  levelDaysL10: z.number().int().min(0),
 });
 
 // PUT /api/admin/income-settings
@@ -786,6 +800,7 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     ...(d.planDays != null ? { planDays: d.planDays } : {}),
     ...(d.planMinAmount != null ? { planMinAmount: d.planMinAmount.toString() } : {}),
     ...(d.levelCommissionPoolPct != null ? { levelCommissionPoolPct: (d.levelCommissionPoolPct / 100).toString() } : {}),
+    ...(d.dailyRoiRate != null ? { dailyRoiRate: (d.dailyRoiRate / 100).toString() } : {}),
     levelCommL1: (d.levelCommL1 / 100).toString(),
     levelCommL2: (d.levelCommL2 / 100).toString(),
     levelCommL3: (d.levelCommL3 / 100).toString(),
@@ -794,6 +809,8 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     levelCommL6: (d.levelCommL6 / 100).toString(),
     levelCommL7: (d.levelCommL7 / 100).toString(),
     levelCommL8: (d.levelCommL8 / 100).toString(),
+    levelCommL9: (d.levelCommL9 / 100).toString(),
+    levelCommL10: (d.levelCommL10 / 100).toString(),
     levelUnlockL2: d.levelUnlockL2.toString(),
     levelUnlockL3: d.levelUnlockL3.toString(),
     levelUnlockL4: d.levelUnlockL4.toString(),
@@ -801,6 +818,8 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     levelUnlockL6: d.levelUnlockL6.toString(),
     levelUnlockL7: d.levelUnlockL7.toString(),
     levelUnlockL8: d.levelUnlockL8.toString(),
+    levelUnlockL9: d.levelUnlockL9.toString(),
+    levelUnlockL10: d.levelUnlockL10.toString(),
     levelDaysL1: d.levelDaysL1,
     levelDaysL2: d.levelDaysL2,
     levelDaysL3: d.levelDaysL3,
@@ -809,6 +828,8 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     levelDaysL6: d.levelDaysL6,
     levelDaysL7: d.levelDaysL7,
     levelDaysL8: d.levelDaysL8,
+    levelDaysL9: d.levelDaysL9,
+    levelDaysL10: d.levelDaysL10,
   };
   const [existing] = await db.select().from(platformSettingsTable).limit(1);
   let s;
@@ -822,6 +843,7 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     planDays: s.planDays ?? 300,
     planMinAmount: parseFloat(s.planMinAmount ?? "100"),
     levelCommissionPoolPct: parseFloat(s.levelCommissionPoolPct ?? "0.2") * 100,
+    dailyRoiRate: parseFloat(s.dailyRoiRate ?? "0") * 100,
     reserveTokenBalance: parseFloat(s.reserveTokenBalance ?? "0"),
     levelCommL1: parseFloat(s.levelCommL1) * 100,
     levelCommL2: parseFloat(s.levelCommL2) * 100,
@@ -831,6 +853,8 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     levelCommL6: parseFloat(s.levelCommL6) * 100,
     levelCommL7: parseFloat(s.levelCommL7) * 100,
     levelCommL8: parseFloat(s.levelCommL8) * 100,
+    levelCommL9: parseFloat(s.levelCommL9) * 100,
+    levelCommL10: parseFloat(s.levelCommL10) * 100,
     levelUnlockL2: parseFloat(s.levelUnlockL2),
     levelUnlockL3: parseFloat(s.levelUnlockL3),
     levelUnlockL4: parseFloat(s.levelUnlockL4),
@@ -838,6 +862,8 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     levelUnlockL6: parseFloat(s.levelUnlockL6),
     levelUnlockL7: parseFloat(s.levelUnlockL7),
     levelUnlockL8: parseFloat(s.levelUnlockL8),
+    levelUnlockL9: parseFloat(s.levelUnlockL9),
+    levelUnlockL10: parseFloat(s.levelUnlockL10),
     levelDaysL1: s.levelDaysL1,
     levelDaysL2: s.levelDaysL2,
     levelDaysL3: s.levelDaysL3,
@@ -846,6 +872,8 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     levelDaysL6: s.levelDaysL6,
     levelDaysL7: s.levelDaysL7,
     levelDaysL8: s.levelDaysL8,
+    levelDaysL9: s.levelDaysL9,
+    levelDaysL10: s.levelDaysL10,
   });
 });
 
@@ -1435,6 +1463,7 @@ router.get("/admin/token/batches", requireAdmin, async (_req, res) => {
   res.json(batches.map((b) => ({
     id: b.id,
     usdtSpent: parseFloat(b.usdtSpent),
+    expectedUsdt: parseFloat(b.expectedUsdt ?? "0"),
     source: b.source,
     tokensBought: b.tokensBought,
     buyPrice: b.buyPrice,

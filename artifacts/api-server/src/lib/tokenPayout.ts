@@ -27,15 +27,17 @@ function levelConfig(s: typeof platformSettingsTable.$inferSelect) {
       1: parseFloat(s.levelCommL1), 2: parseFloat(s.levelCommL2), 3: parseFloat(s.levelCommL3),
       4: parseFloat(s.levelCommL4), 5: parseFloat(s.levelCommL5), 6: parseFloat(s.levelCommL6),
       7: parseFloat(s.levelCommL7), 8: parseFloat(s.levelCommL8),
+      9: parseFloat(s.levelCommL9), 10: parseFloat(s.levelCommL10),
     } as Record<number, number>,
     levelUnlocks: {
       1: 0, 2: parseFloat(s.levelUnlockL2), 3: parseFloat(s.levelUnlockL3), 4: parseFloat(s.levelUnlockL4),
       5: parseFloat(s.levelUnlockL5), 6: parseFloat(s.levelUnlockL6), 7: parseFloat(s.levelUnlockL7),
-      8: parseFloat(s.levelUnlockL8),
+      8: parseFloat(s.levelUnlockL8), 9: parseFloat(s.levelUnlockL9), 10: parseFloat(s.levelUnlockL10),
     } as Record<number, number>,
     levelDays: {
       1: s.levelDaysL1, 2: s.levelDaysL2, 3: s.levelDaysL3, 4: s.levelDaysL4,
       5: s.levelDaysL5, 6: s.levelDaysL6, 7: s.levelDaysL7, 8: s.levelDaysL8,
+      9: s.levelDaysL9, 10: s.levelDaysL10,
     } as Record<number, number>,
   };
 }
@@ -207,7 +209,7 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
 
     let currentUserId: number | null = investor.sponsorId;
     let level = 1;
-    while (currentUserId && level <= 8) {
+    while (currentUserId && level <= 10) {
       const upline = userById.get(currentUserId);
       if (!upline) break;
       if (!upline.isActive) { currentUserId = upline.sponsorId; level++; continue; }
@@ -258,6 +260,9 @@ export interface TokenPreviewResult {
   eligibleInvestors: number;
   totalRoiPrincipalUsd: number;
   coolingHours: number;
+  // Flat daily ROI model
+  dailyRoiRate: number;       // fraction, e.g. 0.004 = 0.4%/day
+  expectedDailyUsd: number;   // minimum to distribute today = totalRoiPrincipalUsd × dailyRoiRate
   // Live chain context
   buyPrice?: string;
   sellPrice?: string;
@@ -289,21 +294,26 @@ export async function previewTokenDistribution(
   const [settings] = await db.select().from(platformSettingsTable).limit(1);
   if (!settings) {
     return { success: false, configured: false, mode, error: "Platform settings not configured",
-      eligibleInvestments: 0, eligibleInvestors: 0, totalRoiPrincipalUsd: 0, coolingHours: 24 };
+      eligibleInvestments: 0, eligibleInvestors: 0, totalRoiPrincipalUsd: 0, coolingHours: 24,
+      dailyRoiRate: 0, expectedDailyUsd: 0 };
   }
 
   const contractAddress = (settings.tokenContractAddress || "").trim();
   const configured = isValidAddress(contractAddress);
 
   const e = await loadEligibility(settings);
+  const totalRoiPrincipalUsd = Number(e.totalMicro) / 1e6;
+  const dailyRoiRate = parseFloat(settings.dailyRoiRate ?? "0") || 0;
   const out: TokenPreviewResult = {
     success: true,
     configured,
     mode,
     eligibleInvestments: e.eligible.length,
     eligibleInvestors: e.investorIds.size,
-    totalRoiPrincipalUsd: Number(e.totalMicro) / 1e6,
+    totalRoiPrincipalUsd,
     coolingHours: e.cfg.coolingHours,
+    dailyRoiRate,
+    expectedDailyUsd: totalRoiPrincipalUsd * dailyRoiRate,
   };
 
   if (!configured) {
@@ -448,6 +458,18 @@ async function _runTokenDistribute(
     return { success: false, error: "Eligible investment principal is zero" };
   }
 
+  // ── Flat daily ROI minimum ──
+  // The admin may distribute the same or more than the flat-rate amount, but never less.
+  // Required = eligible ROI principal × dailyRoiRate. Any excess is recorded as "extra".
+  const dailyRoiRate = parseFloat(settings.dailyRoiRate ?? "0") || 0;
+  const expectedDailyUsd = (Number(e.totalMicro) / 1e6) * dailyRoiRate;
+  if (expectedDailyUsd > 0 && profitUsdt + 1e-6 < expectedDailyUsd) {
+    return {
+      success: false,
+      error: `Amount is below the required daily minimum of $${expectedDailyUsd.toFixed(2)} (eligible principal × ${(dailyRoiRate * 100).toFixed(3)}%/day). Enter at least that much.`,
+    };
+  }
+
   // Live price (needed to record buyPrice, and to convert $→tokens in held mode)
   let buyPrice = "0";
   let buyPriceNum = 0;
@@ -485,6 +507,7 @@ async function _runTokenDistribute(
 
     const [batch] = await db.insert(tokenBuyBatchesTable).values({
       usdtSpent: profitUsdt.toString(),
+      expectedUsdt: expectedDailyUsd.toFixed(6),
       source: "held",
       buyPrice,
       status: "pending",
@@ -494,6 +517,7 @@ async function _runTokenDistribute(
     // buy mode — record a pending batch first so a failed buy is audited
     const [batch] = await db.insert(tokenBuyBatchesTable).values({
       usdtSpent: profitUsdt.toString(),
+      expectedUsdt: expectedDailyUsd.toFixed(6),
       source: "buy",
       status: "pending",
     }).returning();

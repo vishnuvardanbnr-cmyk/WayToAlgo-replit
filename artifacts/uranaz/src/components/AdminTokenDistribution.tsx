@@ -46,6 +46,8 @@ interface Preview {
   eligibleInvestors: number;
   totalRoiPrincipalUsd: number;
   coolingHours: number;
+  dailyRoiRate: number;
+  expectedDailyUsd: number;
   buyPrice?: string;
   sellPrice?: string;
   walletTokenBalance?: string;
@@ -63,6 +65,7 @@ interface Preview {
 interface Batch {
   id: number;
   usdtSpent: number;
+  expectedUsdt: number;
   source: "buy" | "held";
   tokensBought: string;
   buyPrice: string;
@@ -188,8 +191,12 @@ export default function AdminTokenDistribution() {
     Math.abs(preview.profitUsdt - amt) < 1e-9 &&
     !!preview.estTokens;
 
+  // Flat daily ROI minimum: admin may distribute the same or more, never less.
+  const requiredUsd = preview?.expectedDailyUsd ?? 0;
+  const belowMinimum = amtValid && requiredUsd > 0 && amt + 1e-6 < requiredUsd;
+
   const canDistribute =
-    amtValid && !!configured && !noEligible && !insufficient &&
+    amtValid && !!configured && !noEligible && !insufficient && !belowMinimum &&
     !previewLoading && !distributing && previewReady;
 
   const doDistribute = async () => {
@@ -310,6 +317,35 @@ export default function AdminTokenDistribution() {
         <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>
           Converted to a WTA quantity at the current buy price. {mode === "buy" ? "This USDT is spent buying tokens on-chain." : "Tokens are taken from those you've sent to the withdraw wallet."}
         </p>
+        {requiredUsd > 0 && (
+          <div className="mt-3 rounded-xl p-3" style={{
+            background: belowMinimum ? "rgba(248,113,113,0.06)" : "rgba(91,140,255,0.05)",
+            border: `1px solid ${belowMinimum ? "rgba(248,113,113,0.25)" : "rgba(91,140,255,0.15)"}`,
+          }}>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(194,210,255,0.5)" }}>Required today (minimum)</div>
+                <div className="text-lg font-black" style={{ color: belowMinimum ? RED : TEAL }}>${fmt(requiredUsd, 2)}</div>
+                <div className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+                  eligible principal ${fmt(preview?.totalRoiPrincipalUsd, 2)} × {fmt((preview?.dailyRoiRate ?? 0) * 100, 3)}%/day — you may distribute more, never less.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setAmount((Math.ceil(requiredUsd * 100) / 100).toFixed(2)); setResult(null); setConfirming(false); }}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0"
+                style={{ color: TEAL, background: "rgba(91,140,255,0.12)" }}
+              >
+                Use minimum
+              </button>
+            </div>
+            {belowMinimum && (
+              <div className="mt-2 flex gap-1.5 text-[11px]" style={{ color: "rgba(248,113,113,0.9)" }}>
+                <AlertTriangle size={13} className="shrink-0 mt-0.5" /> Amount is below the required daily minimum — enter at least ${fmt(requiredUsd, 2)}.
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Preview */}
@@ -419,6 +455,11 @@ export default function AdminTokenDistribution() {
         <SourceChip source={b.source} />
         <span className="text-sm font-bold" style={{ color: "rgba(200,240,255,0.95)" }}>${fmt(b.usdtSpent, 2)}</span>
         <span className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>{fmt(b.tokensBought)} WTA</span>
+        {b.status === "completed" && b.expectedUsdt > 0 && b.usdtSpent - b.expectedUsdt > 0.01 && (
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md" style={{ color: AMBER, background: "rgba(251,191,36,0.12)" }}>
+            +${fmt(b.usdtSpent - b.expectedUsdt, 2)} extra
+          </span>
+        )}
         <span className="ml-auto inline-flex items-center gap-1 text-[11px]" style={{ color: "rgba(194,210,255,0.4)" }}>
           <Clock size={11} />{new Date(b.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
         </span>
@@ -438,6 +479,11 @@ export default function AdminTokenDistribution() {
         <div><span style={{ color: "rgba(194,210,255,0.4)" }}>Levels </span><span style={{ color: TEAL }}>{fmt(b.levelTokenTotal)} WTA</span></div>
         <div><span style={{ color: "rgba(194,210,255,0.4)" }}>Price </span><span style={{ color: "rgba(200,240,255,0.85)" }}>${fmt(b.buyPrice, 6)}</span></div>
       </div>
+      {b.status === "completed" && b.expectedUsdt > 0 && b.usdtSpent - b.expectedUsdt > 0.01 && (
+        <div className="mt-2 text-[11px]" style={{ color: "rgba(251,191,36,0.8)" }}>
+          Flat-rate minimum was ${fmt(b.expectedUsdt, 2)} — ${fmt(b.usdtSpent - b.expectedUsdt, 2)} extra distributed beyond the daily ROI.
+        </div>
+      )}
       {b.note && <div className="mt-2 text-[11px]" style={{ color: "rgba(248,113,113,0.7)" }}>{b.note}</div>}
     </div>
   );
@@ -492,6 +538,7 @@ export default function AdminTokenDistribution() {
             const completed = dayBatches.filter((b) => b.status === "completed");
             const totalUsdt = completed.reduce((s, b) => s + b.usdtSpent, 0);
             const totalRecipients = completed.reduce((s, b) => s + b.recipientCount, 0);
+            const totalExtra = completed.reduce((s, b) => s + Math.max(0, b.usdtSpent - (b.expectedUsdt ?? 0)), 0);
             const isToday = key === todayKey;
             const distributedToday = isToday && completed.length > 0;
             const isPending = isToday && completed.length === 0;
@@ -520,7 +567,7 @@ export default function AdminTokenDistribution() {
                     </span>
                     {completed.length > 0 && (
                       <span className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>
-                        ${fmt(totalUsdt, 2)} · {totalRecipients} recipient(s) · {completed.length} run(s)
+                        ${fmt(totalUsdt, 2)} · {totalRecipients} recipient(s) · {completed.length} run(s){totalExtra > 0.01 && <span style={{ color: AMBER }}> · +${fmt(totalExtra, 2)} extra</span>}
                       </span>
                     )}
                     {isPending && (

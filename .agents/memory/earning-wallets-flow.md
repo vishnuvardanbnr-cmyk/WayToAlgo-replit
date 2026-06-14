@@ -25,3 +25,8 @@ Distribution is serialised in-process (module-level `distributionInProgress` fla
 - **wallet.ts /convert**: Input `amount` = HC token quantity. Deduct tokens from source balance → call `sellTokens(wei, ...)` → credit USDT to `walletBalance`. Refund on sell failure.
 - **Wallet.tsx**: Display HC amounts (`.toFixed(4) HC`), show USD estimate using `hyperCoinPrice` from `/api/settings/public`. Convert modal input is tokens, not USDT.
 - `walletConvertReturnRate` field exists in DB but is unused — actual return is whatever the on-chain sell yields.
+
+## Flat daily ROI minimum (admin distribution)
+`platform_settings.dailyRoiRate` is a **flat fraction** (e.g. 0.004 = 0.4%/day), exposed in the admin API as a percent (×100). It sets the **minimum** USDT value a distribution run must pay: `expectedDailyUsd = eligible ROI principal × dailyRoiRate`. The admin still types the amount manually and may distribute *more*, never less — enforced **both** server-side (`tokenPayout.runTokenDistribute` rejects below min with a 1e-6 epsilon) and client-side (`belowMinimum` blocks submit). The per-run minimum is persisted on each batch (`token_buy_batches.expectedUsdt`); "extra" = `usdtSpent − expectedUsdt`, flagged in history **only for completed batches**.
+**Why:** avoids under-paying ROI while letting admin top up; the "Use minimum" helper button must ceil-to-cent so the rounded value never falls below the full-precision server minimum.
+**How to apply:** level commissions run **10 levels** (L1–L10), not 8 — keep all level loops/config maps (`tokenPayout.ts`, `dailyPayout.ts`), schema columns, admin routes, and the AdminSettings level grids in lockstep when changing level count. `dailyRoiRate = 0` disables the minimum (backward compatible).

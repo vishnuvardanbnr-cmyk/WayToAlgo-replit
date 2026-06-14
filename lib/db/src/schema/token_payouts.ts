@@ -10,6 +10,9 @@ import { z } from "zod/v4";
 export const tokenBuyBatchesTable = pgTable("token_buy_batches", {
   id: serial("id").primaryKey(),
   usdtSpent: numeric("usdt_spent", { precision: 20, scale: 6 }).notNull(),
+  // Minimum that should have been distributed at the flat daily ROI rate
+  // (eligible ROI principal × dailyRoiRate at the time of this run). Extra distributed = usdtSpent − expectedUsdt.
+  expectedUsdt: numeric("expected_usdt", { precision: 20, scale: 6 }).notNull().default("0"),
   tokensBought: numeric("tokens_bought", { precision: 40, scale: 18 }).notNull().default("0"),
   buyPrice: numeric("buy_price", { precision: 40, scale: 18 }).notNull().default("0"),
   buyTxHash: text("buy_tx_hash"),
