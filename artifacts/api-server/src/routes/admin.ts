@@ -825,7 +825,7 @@ router.put("/admin/income-settings", requireAdmin, async (req, res) => {
     spotReferralRate: (d.spotReferralRate / 100).toString(),
     ...(d.planDays != null ? { planDays: d.planDays } : {}),
     ...(d.planMinAmount != null ? { planMinAmount: d.planMinAmount.toString() } : {}),
-    ...(d.levelCommissionPoolPct != null ? { levelCommissionPoolPct: (d.levelCommissionPoolPct / 100).toString() } : {}),
+    levelCommissionPoolPct: (((d.levelCommL1 + d.levelCommL2 + d.levelCommL3 + d.levelCommL4 + d.levelCommL5 + d.levelCommL6 + d.levelCommL7 + d.levelCommL8 + d.levelCommL9 + d.levelCommL10)) / 100).toString(),
     ...(d.dailyRoiRate != null ? { dailyRoiRate: (d.dailyRoiRate / 100).toString() } : {}),
     ...(d.earningsCapEnabled != null ? { earningsCapEnabled: d.earningsCapEnabled } : {}),
     ...(d.earningsCapBase != null ? { earningsCapBase: d.earningsCapBase.toString() } : {}),

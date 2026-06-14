@@ -128,9 +128,13 @@ interface Eligibility {
  */
 async function loadEligibility(settings: SettingsRow): Promise<Eligibility> {
   const cfg = levelConfig(settings);
-  const levelCommissionPoolPct = Math.min(
-    1,
-    Math.max(0, parseFloat(settings.levelCommissionPoolPct ?? "0.2") || 0.2),
+  // Model A: each per-level rate IS a direct fraction of ROI; the total level
+  // commission pool = the sum of the 10 level rates. Investors always receive the
+  // full ROI and levels are paid on top, so this sum drives the additive funding
+  // (the platform buys ROI × (1 + sum) worth of tokens each day).
+  const levelCommissionPoolPct = Math.max(
+    0,
+    Object.values(cfg.levelRates).reduce((s, r) => s + (Number.isFinite(r) && r > 0 ? r : 0), 0),
   );
   const now = new Date();
 
@@ -315,9 +319,13 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
       const unlock = cfg.levelUnlocks[level] ?? 0;
       const uplineVolume = teamVolumeMap.get(upline.id) ?? 0;
       if (uplineVolume >= unlock) {
-        const rateBps = BigInt(Math.round((cfg.levelRates[level] ?? 0) * 10000));
+        // Each level rate is a DIRECT % of ROI; convert it to a share of THIS
+        // investment's level pool (rate ÷ poolSum) so the bought tokens split correctly.
+        // The shares sum to 1.0 across all levels, so the whole pool distributes.
+        const poolFrac = levelCommissionPoolPct > 0 ? (cfg.levelRates[level] ?? 0) / levelCommissionPoolPct : 0;
+        const rateBps = BigInt(Math.round(poolFrac * 10000));
         let commissionWei0 = (levelPoolWei * rateBps) / 10000n;
-        let commissionUsd0 = usdShare * effPoolPct * (cfg.levelRates[level] ?? 0);
+        let commissionUsd0 = usdShare * effPoolPct * poolFrac;
         // Safety net: cumulative level commissions can never exceed this investment's
         // level pool, even if configured level rates sum above 100% — keeps supply
         // conserved by construction so reserveAddWei below is always ≥ 0.

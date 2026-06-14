@@ -1351,29 +1351,32 @@ export default function AdminSettings() {
                 </SubHeader>
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                   <div>
-                    <FieldLabel>Level Commission (% of daily ROI)</FieldLabel>
-                    <input type="number" step="1" min="0" max="100"
-                      {...incomeForm.register("levelCommissionPoolPct", { valueAsNumber: true })}
-                      className={INPUT_CLS} style={INPUT_STYLE}
-                    />
+                    <FieldLabel>Total Level Commission (% of daily ROI)</FieldLabel>
                     {(() => {
-                      const raw = Number(incomeForm.watch("levelCommissionPoolPct"));
-                      const pct = Number.isFinite(raw) ? Math.min(100, Math.max(0, raw)) : 0;
+                      const pct = ([1,2,3,4,5,6,7,8,9,10] as const)
+                        .reduce((s, l) => s + (Number(incomeForm.watch(`levelCommL${l}` as keyof IncomeForm)) || 0), 0);
                       const total = 100 + pct;
                       const invShare = (100 / total) * 100;
                       const lvlShare = (pct / total) * 100;
+                      const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
                       return (
-                        <div className="mt-2.5">
-                          <div className="flex h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.1)" }}>
-                            <div style={{ width: `${invShare}%`, background: "rgb(52,211,153)", transition: "width 0.2s" }} />
-                            <div style={{ width: `${lvlShare}%`, background: "#5B8CFF", transition: "width 0.2s" }} />
+                        <>
+                          <div className="rounded-xl px-3 py-2.5 text-2xl font-black"
+                            style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.15)", color: "#5B8CFF" }}>
+                            {fmt(pct)}%
                           </div>
-                          <div className="flex justify-between mt-1.5 text-[11px] font-semibold">
-                            <span style={{ color: "rgb(52,211,153)" }}>Investor ROI 100%</span>
-                            <span style={{ color: "#5B8CFF" }}>+ Levels {pct}%</span>
+                          <div className="mt-2.5">
+                            <div className="flex h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.1)" }}>
+                              <div style={{ width: `${invShare}%`, background: "rgb(52,211,153)", transition: "width 0.2s" }} />
+                              <div style={{ width: `${lvlShare}%`, background: "#5B8CFF", transition: "width 0.2s" }} />
+                            </div>
+                            <div className="flex justify-between mt-1.5 text-[11px] font-semibold">
+                              <span style={{ color: "rgb(52,211,153)" }}>Investor ROI 100%</span>
+                              <span style={{ color: "#5B8CFF" }}>+ Levels {fmt(pct)}%</span>
+                            </div>
+                            <FieldHint>Auto-calculated as the sum of the 10 level rates below. Investors always get the full daily ROI; levels get an additional {fmt(pct)}% of it on top, so the platform distributes {fmt(total)}% of ROI in total.</FieldHint>
                           </div>
-                          <FieldHint>Investors always get the full daily ROI. Levels get an additional {pct}% of it on top, so the platform distributes {total}% of ROI in total.</FieldHint>
-                        </div>
+                        </>
                       );
                     })()}
                   </div>
@@ -1389,8 +1392,8 @@ export default function AdminSettings() {
 
               {/* Level Commission Rates */}
               <div>
-                <SubHeader hint="% of each investor's level pool credited to that upline — rates within the pool above. L1 total rates need not sum to 100%; leftover goes to reserve.">
-                  <span className="inline-flex items-center gap-1.5"><Layers size={12} />Level Commission Rates (% of pool)</span>
+                <SubHeader hint="Each value is a DIRECT % of the investor's daily ROI paid to that upline level (e.g. L1 = 20 means L1 earns 20% of the ROI). Their sum is the Total Level Commission shown above.">
+                  <span className="inline-flex items-center gap-1.5"><Layers size={12} />Level Commission Rates (% of ROI)</span>
                 </SubHeader>
                 <div className="grid grid-cols-4 lg:grid-cols-5 gap-3 mt-3">
                   {([1,2,3,4,5,6,7,8,9,10] as const).map(lvl => (
