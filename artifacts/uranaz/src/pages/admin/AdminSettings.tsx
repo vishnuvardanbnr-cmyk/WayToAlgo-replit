@@ -1261,12 +1261,29 @@ export default function AdminSettings() {
                 </SubHeader>
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                   <div>
-                    <FieldLabel>Level Commission Pool (%)</FieldLabel>
+                    <FieldLabel>Investor / Levels Split (%)</FieldLabel>
                     <input type="number" step="1" min="0" max="100"
                       {...incomeForm.register("levelCommissionPoolPct", { valueAsNumber: true })}
                       className={INPUT_CLS} style={INPUT_STYLE}
                     />
-                    <FieldHint>e.g. 20 → investors get 80%, levels share 20%</FieldHint>
+                    {(() => {
+                      const raw = Number(incomeForm.watch("levelCommissionPoolPct"));
+                      const pool = Number.isFinite(raw) ? Math.min(100, Math.max(0, raw)) : 0;
+                      const inv = 100 - pool;
+                      return (
+                        <div className="mt-2.5">
+                          <div className="flex h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.1)" }}>
+                            <div style={{ width: `${inv}%`, background: "rgb(52,211,153)", transition: "width 0.2s" }} />
+                            <div style={{ width: `${pool}%`, background: "#5B8CFF", transition: "width 0.2s" }} />
+                          </div>
+                          <div className="flex justify-between mt-1.5 text-[11px] font-semibold">
+                            <span style={{ color: "rgb(52,211,153)" }}>Investor {inv}%</span>
+                            <span style={{ color: "#5B8CFF" }}>Levels {pool}%</span>
+                          </div>
+                          <FieldHint>Enter the % that goes to the level pool — investors get the rest as Trading Profit.</FieldHint>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="col-span-2 rounded-xl p-4" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.12)" }}>
                     <div className="text-xs font-semibold mb-2" style={{ color: "rgba(194,210,255,0.5)" }}>Reserve Wallet (unclaimed level tokens)</div>
