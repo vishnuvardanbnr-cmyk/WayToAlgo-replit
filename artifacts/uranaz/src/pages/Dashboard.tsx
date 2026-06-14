@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Users, DollarSign, Award, ArrowRight, Wallet, CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import DashboardTokenCard from "@/components/DashboardTokenCard";
+import DashboardCapBar from "@/components/DashboardCapBar";
 
 const TEAL = "#5B8CFF";
 const TEAL_DIM = "rgba(91,140,255,0.55)";
@@ -171,6 +172,9 @@ export default function Dashboard({ user }: { user: any }) {
         <StatCard label="Team Members"  value={teamStats?.totalMembers ?? "—"} icon={Users} />
         <StatCard label="Current Level" value={`L${user?.currentLevel ?? 0}`}  icon={Award} accent />
       </div>
+
+      {/* Earnings cap (2x / 3x) */}
+      <DashboardCapBar cap={(summary as any)?.earningsCap} />
 
       {/* On-chain token */}
       <DashboardTokenCard />
