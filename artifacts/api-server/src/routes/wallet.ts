@@ -39,7 +39,6 @@ router.get("/settings/public", async (_req, res) => {
     },
     hcDepositUsername: settings?.hcDepositUsername ?? "",
     coolingHours: settings?.withdrawalCoolingHours ?? 24,
-    walletConvertReturnRate: parseFloat(settings?.walletConvertReturnRate ?? "0.81"),
   });
 });
 
@@ -274,9 +273,8 @@ router.post("/wallet/convert", requireAuth, async (req, res) => {
   const [after] = await db.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
   res.json({
     success: true,
-    converted: reservedAmount,
+    converted: convertAmount,
     usdtReceived,
-    buyTxHash: buyResult.txHash,
     sellTxHash: sellResult.txHash,
     walletBalance: parseFloat(after?.walletBalance ?? "0"),
     tradingProfitBalance: parseFloat(after?.tradingProfitBalance ?? "0"),

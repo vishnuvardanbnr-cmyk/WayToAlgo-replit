@@ -64,8 +64,6 @@ export const platformSettingsTable = pgTable("platform_settings", {
   earningsCapEnabled: boolean("earnings_cap_enabled").notNull().default(true),
   earningsCapBase: numeric("earnings_cap_base", { precision: 6, scale: 2 }).notNull().default("2.00"),
   earningsCapBoosted: numeric("earnings_cap_boosted", { precision: 6, scale: 2 }).notNull().default("3.00"),
-  // Wallet conversion fee — user gets this % of their sell proceeds (e.g. 0.81 = 81%)
-  walletConvertReturnRate: numeric("wallet_convert_return_rate", { precision: 5, scale: 4 }).notNull().default("0.8100"),
   // Level commission rates (decimal, e.g. 0.20 = 20%)
   levelCommL1: numeric("level_comm_l1", { precision: 6, scale: 4 }).notNull().default("0.2000"),
   levelCommL2: numeric("level_comm_l2", { precision: 6, scale: 4 }).notNull().default("0.1000"),
