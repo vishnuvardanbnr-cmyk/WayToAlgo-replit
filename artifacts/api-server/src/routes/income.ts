@@ -169,7 +169,7 @@ router.get("/income/summary", requireAuth, async (req, res) => {
   // If the current user themselves can't earn (inactive / cap reached), both their
   // ROI and level commission would be clamped to zero by the engine.
   const selfEarnable = earnable(user.id);
-  const dailyRoiUsd = selfEarnable ? (roiPrincipalByUser.get(user.id) ?? 0) * dailyRoiRate : 0;
+  let dailyRoiUsd = selfEarnable ? (roiPrincipalByUser.get(user.id) ?? 0) * dailyRoiRate : 0;
 
   // Downline by depth (level 1..10): each member's daily ROI × that level's rate.
   // Assumes the user passes every level's qualification (best-case potential).
@@ -195,6 +195,18 @@ router.get("/income/summary", requireAuth, async (req, res) => {
       }
       frontier = next;
       if (frontier.length === 0) break;
+    }
+  }
+
+  // Clamp the projection to the current user's remaining cap room (partial clamp),
+  // mirroring the engine's clampToCap so a near-cap user is never overstated.
+  if (capInfo.cap !== Infinity) {
+    const room = Math.max(0, capInfo.cap - capInfo.earned);
+    const projTotal = dailyRoiUsd + dailyLevelUsd;
+    if (projTotal > room) {
+      const scale = projTotal > 0 ? room / projTotal : 0;
+      dailyRoiUsd *= scale;
+      dailyLevelUsd *= scale;
     }
   }
 

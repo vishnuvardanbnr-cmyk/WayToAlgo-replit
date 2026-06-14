@@ -6,3 +6,4 @@
 - [ROI additive model](roi-additive-model.md) — investor gets FULL daily ROI; level commission is +pct of ROI on top; token split uses effPoolPct=pct/(1+pct); conserve supply by remainder, not dual bps.
 - [Build & run model](build-run-model.md) — app serves prebuilt bundles; restart never rebuilds; rebuild api (esbuild) + web (vite needs PORT+BASE_PATH) or edits won't show.
 - [Replit Helium routing](replit-helium-routing.md) — When REPLIT_HELIUM_ENABLED=true, external traffic routes via artifact router (port 8000), NOT port 5000; fix = proxy 5000→8000 + run artifact router.
+- [Daily Potential projection](daily-potential-projection.md) — income/summary dailyPotential = best-case ROI+level; mirrors engine ROI base + cap clamp, but intentionally ignores level-qualification gates AND cooling window.

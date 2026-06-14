@@ -164,7 +164,7 @@ export default function Dashboard({ user }: { user: any }) {
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="Total Invested"  value={`$${user?.totalInvested?.toFixed(2) || "0.00"}`} icon={Wallet} accent />
         <StatCard
-          label="Est. Daily Return"
+          label="Daily Potential"
           icon={DollarSign}
           value={`$${(((summary as any)?.dailyPotential?.totalUsd) ?? 0).toFixed(2)}`}
           sub={`ROI $${(((summary as any)?.dailyPotential?.roiUsd) ?? 0).toFixed(2)} · Level $${(((summary as any)?.dailyPotential?.levelUsd) ?? 0).toFixed(2)}`}
