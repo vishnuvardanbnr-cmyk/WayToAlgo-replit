@@ -360,9 +360,15 @@ export default function AdminTokenDistribution() {
           Only investments past the {preview?.coolingHours ?? 24}h cooling window are eligible — so today's run pays the previous day's accrued ROI.
         </p>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <StatChip label="Eligible Users" value={fmt(preview?.eligibleInvestors, 0)} sub={`${fmt(preview?.eligibleInvestments, 0)} investment(s)`} />
           <StatChip label="Total ROI Principal" value={`$${fmt(preview?.totalRoiPrincipalUsd, 2)}`} sub="eligible base" />
+          <StatChip
+            label="Expected ROI Today"
+            value={`$${fmt(preview?.expectedDailyUsd, 2)}`}
+            sub={`${fmt((preview?.dailyRoiRate ?? 0) * 100, 3)}%/day × principal`}
+            color={GREEN}
+          />
           <StatChip label="Recipients (incl. uplines)" value={fmt(preview?.recipientCount, 0)} sub="users credited" />
         </div>
 
