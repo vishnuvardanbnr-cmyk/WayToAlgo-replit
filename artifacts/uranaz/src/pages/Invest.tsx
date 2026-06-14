@@ -35,7 +35,7 @@ function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; cooli
 
   const rows = [
     { icon: Hash,        label: "Investment ID",    value: `#${String(inv.id).padStart(6, "0")}` },
-    { icon: isSafe ? Shield : Zap, label: "Type",   value: isSafe ? "Safe Invest" : "Risky Invest" },
+    { icon: isSafe ? Shield : Zap, label: "Type",   value: isSafe ? "Safe Invest" : "Trading Invest" },
     { icon: Calendar,    label: "Start Date",       value: new Date(inv.startDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) },
     { icon: Calendar,    label: "End Date",         value: new Date(inv.endDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) },
     { icon: Timer,       label: "Duration",         value: `${inv.durationDays} days total` },
@@ -58,22 +58,22 @@ function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; cooli
         className="w-full max-w-sm rounded-3xl overflow-hidden"
         style={{
           background: "linear-gradient(170deg, rgba(4,16,32,0.99) 0%, rgba(2,10,22,0.99) 100%)",
-          border: `1px solid ${isSafe ? "rgba(52,211,153,0.2)" : "rgba(251,113,113,0.2)"}`,
+          border: `1px solid ${isSafe ? "rgba(52,211,153,0.2)" : "rgba(251,146,60,0.2)"}`,
           boxShadow: "0 8px 60px rgba(6,8,20,0.9)",
           maxHeight: "90dvh",
           overflowY: "auto",
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, transparent, ${isSafe ? "#34d399" : "#f87171"}, transparent)` }} />
+        <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, transparent, ${isSafe ? "#34d399" : "#fb923c"}, transparent)` }} />
 
         <div className="flex items-center justify-between px-5 pt-5 pb-4">
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: `linear-gradient(135deg, ${isSafe ? "rgba(52,211,153,0.18)" : "rgba(251,113,113,0.18)"}, rgba(91,140,255,0.06))`, border: `1px solid ${isSafe ? "rgba(52,211,153,0.28)" : "rgba(251,113,113,0.28)"}` }}
+              style={{ background: `linear-gradient(135deg, ${isSafe ? "rgba(52,211,153,0.18)" : "rgba(251,146,60,0.18)"}, rgba(91,140,255,0.06))`, border: `1px solid ${isSafe ? "rgba(52,211,153,0.28)" : "rgba(251,146,60,0.28)"}` }}
             >
-              {isSafe ? <Shield size={17} style={{ color: "#34d399" }} /> : <Zap size={17} style={{ color: "#f87171" }} />}
+              {isSafe ? <Shield size={17} style={{ color: "#34d399" }} /> : <Zap size={17} style={{ color: "#fb923c" }} />}
             </div>
             <div>
               <div className="font-bold tracking-wide" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.8rem" }}>
@@ -224,10 +224,10 @@ function InvestTypeSelector({ value, onChange }: { value: "safe" | "risky"; onCh
     {
       key: "risky",
       icon: Zap,
-      label: "Risky Invest",
+      label: "Trading Invest",
       tag: "Max Returns",
-      color: "#f87171",
-      glow: "rgba(248,113,113,0.15)",
+      color: "#fb923c",
+      glow: "rgba(251,146,60,0.15)",
       desc: "Full amount earns daily returns",
       split: "100% Daily ROI",
     },
@@ -516,17 +516,17 @@ export default function Invest({ user }: { user: any }) {
                   style={{
                     background: watchedType === "safe"
                       ? "linear-gradient(135deg, #34d399, #059669)"
-                      : "linear-gradient(135deg, #f87171, #dc2626)",
+                      : "linear-gradient(135deg, #fb923c, #ea580c)",
                     color: "#fff",
                     letterSpacing: "0.04em",
                     boxShadow: watchedType === "safe"
                       ? "0 0 20px rgba(52,211,153,0.3)"
-                      : "0 0 20px rgba(248,113,113,0.3)",
+                      : "0 0 20px rgba(251,146,60,0.3)",
                   }}
                 >
                   {createInvestment.isPending
                     ? "Processing..."
-                    : `${watchedType === "safe" ? "Safe Invest" : "Risky Invest"} $${watchedAmount || 0}`}
+                    : `${watchedType === "safe" ? "Safe Invest" : "Trading Invest"} $${watchedAmount || 0}`}
                 </button>
               </form>
             </Form>
@@ -543,7 +543,7 @@ export default function Invest({ user }: { user: any }) {
                 {paginatedInvestments.map(inv => {
                   const cooling = getCoolingInfo(inv.createdAt, coolingHours);
                   const isSafe = (inv as any).investmentType === "safe";
-                  const typeColor = isSafe ? "#34d399" : "#f87171";
+                  const typeColor = isSafe ? "#34d399" : "#fb923c";
                   return (
                     <div
                       key={inv.id}
@@ -563,7 +563,7 @@ export default function Invest({ user }: { user: any }) {
                               ${inv.amount.toFixed(2)}
                             </div>
                             <div className="text-xs" style={{ color: typeColor, opacity: 0.8 }}>
-                              {isSafe ? "Safe Invest" : "Risky Invest"}
+                              {isSafe ? "Safe Invest" : "Trading Invest"}
                             </div>
                           </div>
                         </div>
