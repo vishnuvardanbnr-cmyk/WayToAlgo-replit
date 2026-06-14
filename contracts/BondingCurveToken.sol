@@ -103,11 +103,10 @@ contract BondingCurveToken is ERC20, ReentrancyGuard, Ownable {
 
     /**
      * @param _usdt   USDT (BEP-20) token address. BSC mainnet: 0x55d398326f99059fF775485246999027B3197955
-     * @param _name   ERC20 name  (e.g. "WaytoAlgo Token")
-     * @param _symbol ERC20 symbol (e.g. "WAT")
+     * @dev   ERC20 name/symbol are fixed on-chain: "WayToAlgo" / "WTA".
      */
-    constructor(address _usdt, string memory _name, string memory _symbol)
-        ERC20(_name, _symbol)
+    constructor(address _usdt)
+        ERC20("WayToAlgo", "WTA")
         Ownable(msg.sender)
     {
         if (_usdt == address(0)) revert ZeroAddress();
