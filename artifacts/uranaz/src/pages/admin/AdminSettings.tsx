@@ -4,6 +4,7 @@ import { useGetAdminSettings, useUpdateAdminSettings, getGetAdminSettingsQueryKe
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import AdminTokenReferral from "@/components/AdminTokenReferral";
+import AdminTokenSafeReferral from "@/components/AdminTokenSafeReferral";
 import AdminTokenDistribution from "@/components/AdminTokenDistribution";
 import {
   Settings, Save, Mail, Eye, EyeOff, Wallet, ShieldAlert, RefreshCw, Database,
@@ -1091,6 +1092,14 @@ export default function AdminSettings() {
           description="Per-level token reward paid to a buyer's upline on every on-chain purchase. Set via the contract owner wallet in MetaMask."
         >
           <AdminTokenReferral />
+        </SectionCard>
+
+        <SectionCard
+          icon={Users}
+          title="Safe Invest Referral Rewards (On-Chain)"
+          description="Separate per-level scheme that applies only to Safe Invest token purchases. Level 6 is reserved for the admin master wallet. Set via the contract owner wallet in MetaMask."
+        >
+          <AdminTokenSafeReferral />
         </SectionCard>
         </>
       )}

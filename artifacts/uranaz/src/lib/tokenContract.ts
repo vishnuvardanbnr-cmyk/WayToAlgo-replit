@@ -39,6 +39,10 @@ const SEL = {
   getLevelPercents: "0a732428", // getLevelPercents()
   setLevelPercents: "605efdc7", // setLevelPercents(uint256[10])
   owner: "8da5cb5b", // owner()
+  // Safe Invest flow — separate referral table (buySafe / safeLevelPercents).
+  buySafe: "79371dad", // buySafe(uint256,uint256,address[])
+  getSafeLevelPercents: "147b66c7", // getSafeLevelPercents()
+  setSafeLevelPercents: "758a06a0", // setSafeLevelPercents(uint256[10])
 } as const;
 
 // Referral depth — must match BondingCurveToken.LEVELS.
@@ -152,6 +156,17 @@ export async function getAccount(): Promise<string> {
   const from = accounts[0];
   if (!from) throw new Error("No wallet account found.");
   return from;
+}
+
+/**
+ * EIP-191 personal_sign — proves the connected wallet controls its private key.
+ * Used by Safe Invest so the backend can cryptographically bind the on-chain
+ * buySafe tx to the user submitting the API request (prevents claiming another
+ * wallet's public tx). Returns the 0x signature.
+ */
+export async function signMessage(message: string, account: string): Promise<string> {
+  const eth = getEth();
+  return eth.request({ method: "personal_sign", params: [message, account] });
 }
 
 /**
@@ -321,9 +336,36 @@ export async function buyTokens(
   return sendTx(TOKEN_CONTRACT_ADDRESS, data, "0xF4240"); // 1,000,000
 }
 
+/**
+ * Safe Invest on-chain buy — identical to buyTokens but routes through the
+ * contract's `buySafe` so the SEPARATE `safeLevelPercents` referral table is
+ * applied. `referrers` must be the Safe upline (5 sponsors + admin slot).
+ */
+export async function buySafeTokens(
+  usdtWei: bigint,
+  minTokensOut: bigint,
+  referrers: string[] = [],
+): Promise<string> {
+  const refs = referrers.slice(0, REFERRAL_LEVELS);
+  const { head, tail } = encAddressArray(refs, 2); // 2 preceding static args
+  const data = SEL.buySafe + encUint(usdtWei) + encUint(minTokensOut) + head + tail;
+  return sendTx(TOKEN_CONTRACT_ADDRESS, data, "0xF4240"); // 1,000,000
+}
+
 /** Read the on-chain per-level referral percentages (basis points, length 10). */
 export async function readLevelPercents(): Promise<number[]> {
   const raw = (await ethCall(TOKEN_CONTRACT_ADDRESS, SEL.getLevelPercents)).replace(/^0x/, "");
+  const out: number[] = [];
+  for (let i = 0; i < REFERRAL_LEVELS; i++) {
+    const word = raw.slice(i * 64, i * 64 + 64);
+    out.push(word ? Number(BigInt("0x" + word)) : 0);
+  }
+  return out;
+}
+
+/** Read the Safe Invest per-level referral percentages (basis points, length 10). */
+export async function readSafeLevelPercents(): Promise<number[]> {
+  const raw = (await ethCall(TOKEN_CONTRACT_ADDRESS, SEL.getSafeLevelPercents)).replace(/^0x/, "");
   const out: number[] = [];
   for (let i = 0; i < REFERRAL_LEVELS; i++) {
     const word = raw.slice(i * 64, i * 64 + 64);
@@ -345,6 +387,16 @@ export async function readOwner(): Promise<string> {
 export async function setLevelPercents(percentsBps: number[]): Promise<string> {
   const padded = Array.from({ length: REFERRAL_LEVELS }, (_, i) => BigInt(Math.round(percentsBps[i] ?? 0)));
   const data = SEL.setLevelPercents + padded.map((p) => encUint(p)).join("");
+  return sendTx(TOKEN_CONTRACT_ADDRESS, data, "0x30D40"); // 200,000
+}
+
+/**
+ * Owner-only: set the 10 per-level referral percentages (basis points) for the
+ * Safe Invest flow (`safeLevelPercents`). Independent of setLevelPercents.
+ */
+export async function setSafeLevelPercents(percentsBps: number[]): Promise<string> {
+  const padded = Array.from({ length: REFERRAL_LEVELS }, (_, i) => BigInt(Math.round(percentsBps[i] ?? 0)));
+  const data = SEL.setSafeLevelPercents + padded.map((p) => encUint(p)).join("");
   return sendTx(TOKEN_CONTRACT_ADDRESS, data, "0x30D40"); // 200,000
 }
 

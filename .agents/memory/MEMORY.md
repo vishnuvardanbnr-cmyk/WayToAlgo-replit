@@ -6,6 +6,7 @@
 - [ROI additive model](roi-additive-model.md) — investor gets FULL daily ROI; level commission is +pct of ROI on top; token split uses effPoolPct=pct/(1+pct); conserve supply by remainder, not dual bps.
 - [Build & run model](build-run-model.md) — app serves prebuilt bundles; restart never rebuilds; rebuild api (esbuild) + web (vite needs PORT+BASE_PATH) or edits won't show.
 - [Replit Helium routing](replit-helium-routing.md) — When REPLIT_HELIUM_ENABLED=true, external traffic routes via artifact router (port 8000), NOT port 5000; fix = proxy 5000→8000 + run artifact router.
+- [Safe Invest on-chain proof binding](safe-invest-onchain-binding.md) — Safe path grants full credit for half-cost, so txHash needs replay+EIP-191 signature+on-chain verify, all server-side, or it's an economic exploit.
 - [Rank engine test isolation](rank-engine-testing.md) — runRankEngine scans ALL users globally (snapshot+restore ambient users); in-process guard blocks concurrent runs, so prove DB atomic claim via raw guarded UPDATE race.
 - [Rank engine](rank-engine.md) — configurable ranks + monthly reward schedules; balanced 40/30/30 legs; 3-layer double-pay protection (in-proc guard + partial unique index + atomic per-month claim); first payout +1 month.
 - [Default rank seed](default-rank-seed.md) — seedRanks() in lib/db seeds Bronze→Diamond on startup ONLY when ranks table empty; never re-creates admin-deleted ranks.

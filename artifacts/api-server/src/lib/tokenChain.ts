@@ -41,6 +41,86 @@ export interface TokenPrices {
   sellPrice: string;
 }
 
+// Minimal interface used to decode a Safe-Invest buy transaction's calldata.
+const BUYSAFE_IFACE = new ethers.Interface([
+  "function buySafe(uint256 usdtAmount, uint256 minTokensOut, address[] referrers)",
+]);
+
+export interface SafeBuyVerification {
+  ok: boolean;
+  error?: string;
+}
+
+/**
+ * Server-side verification that a Safe-Invest token-half was genuinely bought
+ * on-chain by the user before we let the API create the (half-priced in-app)
+ * investment. Confirms the tx:
+ *   - exists and succeeded on-chain (receipt.status === 1)
+ *   - was sent TO the configured token contract
+ *   - was sent FROM the user's own wallet
+ *   - is a `buySafe(...)` call whose USDT amount is at least the required 50%
+ *
+ * Re-reads tx/receipt a few times to tolerate RPC propagation lag (the frontend
+ * already waited for the receipt, but a different RPC node may lag briefly).
+ * This is the trust boundary: without it a client could call the API directly
+ * with a fabricated hash and pay only the ROI-half. Read-only; never throws.
+ */
+export async function verifySafeBuyTx(params: {
+  txHash: string;
+  expectedFrom: string;
+  expectedUsdtWei: bigint;
+  contractAddress: string;
+  rpcUrl: string;
+}): Promise<SafeBuyVerification> {
+  const { txHash, expectedFrom, expectedUsdtWei, contractAddress, rpcUrl } = params;
+  if (!ADDR_RE.test(contractAddress)) return { ok: false, error: "Token contract is not configured." };
+  if (!ADDR_RE.test(expectedFrom)) return { ok: false, error: "Invalid wallet address." };
+  if (!/^0x[0-9a-fA-F]{64}$/.test(txHash)) return { ok: false, error: "Invalid transaction hash." };
+
+  try {
+    const provider = getProvider(rpcUrl);
+
+    let tx = await provider.getTransaction(txHash);
+    let receipt = await provider.getTransactionReceipt(txHash);
+    for (let i = 0; (!tx || !receipt) && i < 3; i++) {
+      await new Promise((r) => setTimeout(r, 1500));
+      if (!tx) tx = await provider.getTransaction(txHash);
+      if (!receipt) receipt = await provider.getTransactionReceipt(txHash);
+    }
+
+    if (!tx) return { ok: false, error: "Transaction not found on-chain." };
+    if (!receipt) return { ok: false, error: "Transaction not yet confirmed. Please wait a moment and retry." };
+    if (receipt.status !== 1) return { ok: false, error: "The on-chain token purchase failed." };
+
+    if (!tx.to || tx.to.toLowerCase() !== contractAddress.toLowerCase()) {
+      return { ok: false, error: "Transaction was not sent to the token contract." };
+    }
+    if (!tx.from || tx.from.toLowerCase() !== expectedFrom.toLowerCase()) {
+      return { ok: false, error: "Transaction sender does not match your wallet." };
+    }
+
+    let parsed;
+    try {
+      parsed = BUYSAFE_IFACE.parseTransaction({ data: tx.data, value: tx.value });
+    } catch {
+      return { ok: false, error: "Transaction is not a Safe Invest token purchase." };
+    }
+    if (!parsed || parsed.name !== "buySafe") {
+      return { ok: false, error: "Transaction is not a Safe Invest token purchase." };
+    }
+
+    const paidWei = BigInt(parsed.args[0].toString());
+    if (paidWei < expectedUsdtWei) {
+      return { ok: false, error: "On-chain token purchase amount is less than the required 50%." };
+    }
+
+    return { ok: true };
+  } catch (err: any) {
+    logger.warn({ err: err?.message, txHash }, "verifySafeBuyTx failed");
+    return { ok: false, error: "Could not verify the on-chain token purchase. Please retry." };
+  }
+}
+
 /** Read the live on-chain buy/sell prices. Throws if the RPC/contract fails. */
 export async function getTokenPrices(contractAddress: string, rpcUrl: string): Promise<TokenPrices> {
   const provider = getProvider(rpcUrl);

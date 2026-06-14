@@ -65,7 +65,14 @@ contract BondingCurveToken is ERC20, ReentrancyGuard, Ownable {
     uint256 public constant MAX_TOTAL_BPS = 9000;
 
     // Per-level reward percentage in basis points (index 0 = level 1).
+    // Used by the DIRECT buy() flow (the standalone Buy/Sell section).
     uint256[LEVELS] public levelPercents;
+
+    // Separate per-level table used ONLY by buySafe() — the Safe Invest flow.
+    // Kept independent so Safe Invest can run its own scheme (e.g. 5 user
+    // levels + a fixed admin cut placed in one of the level slots) without
+    // affecting the direct Buy/Sell levels. Same MAX_TOTAL_BPS cap applies.
+    uint256[LEVELS] public safeLevelPercents;
 
     mapping(address => uint256) public totalReceivedByUser;
     mapping(address => uint256) public totalBurnedByUser;
@@ -85,6 +92,7 @@ contract BondingCurveToken is ERC20, ReentrancyGuard, Ownable {
     event TokensSold(address indexed seller, uint256 tokenAmount, uint256 usdtAmount);
     event ReferralPaid(address indexed buyer, address indexed sponsor, uint256 indexed level, uint256 amount);
     event LevelPercentsUpdated(uint256[LEVELS] percents);
+    event SafeLevelPercentsUpdated(uint256[LEVELS] percents);
 
     error ZeroAddress();
     error ZeroAmount();
@@ -130,6 +138,26 @@ contract BondingCurveToken is ERC20, ReentrancyGuard, Ownable {
         return levelPercents;
     }
 
+    /**
+     * @notice Set the per-level referral reward percentages used by buySafe()
+     *         (the Safe Invest flow). Independent of levelPercents. Index 0 =
+     *         level 1. Combined total may not exceed MAX_TOTAL_BPS.
+     */
+    function setSafeLevelPercents(uint256[LEVELS] calldata _percents) external onlyOwner {
+        uint256 total;
+        for (uint256 i = 0; i < LEVELS; i++) {
+            total += _percents[i];
+        }
+        if (total > MAX_TOTAL_BPS) revert InvalidPercents();
+        safeLevelPercents = _percents;
+        emit SafeLevelPercentsUpdated(_percents);
+    }
+
+    /// @notice Read the per-level reward percentages used by buySafe() (bps).
+    function getSafeLevelPercents() external view returns (uint256[LEVELS] memory) {
+        return safeLevelPercents;
+    }
+
     function levelCount() external pure returns (uint256) {
         return LEVELS;
     }
@@ -154,6 +182,31 @@ contract BondingCurveToken is ERC20, ReentrancyGuard, Ownable {
         nonReentrant
         returns (uint256 mintAmount)
     {
+        // Direct Buy/Sell flow → uses the standalone levelPercents table.
+        return _buy(_usdtAmount, _minTokensOut, _referrers, levelPercents);
+    }
+
+    /**
+     * @notice Identical to buy(), but uses the SEPARATE `safeLevelPercents`
+     *         table. Called by the Safe Invest flow so it can run its own
+     *         referral scheme (e.g. 5 user levels + a fixed admin cut) without
+     *         touching the direct Buy/Sell levels. One token / one curve.
+     */
+    function buySafe(uint256 _usdtAmount, uint256 _minTokensOut, address[] calldata _referrers)
+        external
+        nonReentrant
+        returns (uint256 mintAmount)
+    {
+        return _buy(_usdtAmount, _minTokensOut, _referrers, safeLevelPercents);
+    }
+
+    /// @dev Shared buy implementation; `percents` selects which referral table.
+    function _buy(
+        uint256 _usdtAmount,
+        uint256 _minTokensOut,
+        address[] calldata _referrers,
+        uint256[LEVELS] storage percents
+    ) private returns (uint256 mintAmount) {
         if (_usdtAmount == 0) revert ZeroAmount();
 
         // Price is captured BEFORE liquidity is added (front-running protection).
@@ -167,7 +220,7 @@ contract BondingCurveToken is ERC20, ReentrancyGuard, Ownable {
         if (gross == 0) revert ZeroAmount();
 
         // ── Distribute per-level referral rewards, carved from `gross` ──
-        uint256 referralTotal = _payReferrals(gross, _referrers);
+        uint256 referralTotal = _payReferrals(gross, _referrers, percents);
 
         mintAmount = gross - referralTotal;
         if (mintAmount < _minTokensOut) revert SlippageExceeded();
@@ -184,15 +237,17 @@ contract BondingCurveToken is ERC20, ReentrancyGuard, Ownable {
         emit PriceUpdated(getBuyPrice(), getSellPrice());
     }
 
-    /// @dev Mints each eligible sponsor their per-level cut of `gross`.
-    function _payReferrals(uint256 gross, address[] calldata _referrers)
-        private
-        returns (uint256 referralTotal)
-    {
+    /// @dev Mints each eligible sponsor their per-level cut of `gross`, using
+    ///      the supplied `percents` table (levelPercents or safeLevelPercents).
+    function _payReferrals(
+        uint256 gross,
+        address[] calldata _referrers,
+        uint256[LEVELS] storage percents
+    ) private returns (uint256 referralTotal) {
         uint256 n = _referrers.length < LEVELS ? _referrers.length : LEVELS;
         for (uint256 i = 0; i < n; i++) {
             address sponsor = _referrers[i];
-            uint256 pct = levelPercents[i];
+            uint256 pct = percents[i];
             if (sponsor == address(0) || sponsor == msg.sender || pct == 0) continue;
             uint256 reward = (gross * pct) / BPS_DENOMINATOR;
             if (reward == 0) continue;
@@ -271,6 +326,26 @@ contract BondingCurveToken is ERC20, ReentrancyGuard, Ownable {
             address sponsor = _referrers[i];
             uint256 pct = levelPercents[i];
             // Mirror _payReferrals: skip zero-address, self, and zero-percent levels.
+            if (sponsor == address(0) || sponsor == msg.sender || pct == 0) continue;
+            referralTotal += (gross * pct) / BPS_DENOMINATOR;
+        }
+        buyerAmount = gross - referralTotal;
+    }
+
+    /**
+     * @notice Like quoteBuyNet, but for the Safe Invest flow — uses the
+     *         `safeLevelPercents` table instead of `levelPercents`.
+     */
+    function quoteBuyNetSafe(uint256 _usdtAmount, address[] calldata _referrers)
+        external
+        view
+        returns (uint256 buyerAmount, uint256 referralTotal)
+    {
+        uint256 gross = quoteBuy(_usdtAmount);
+        uint256 n = _referrers.length < LEVELS ? _referrers.length : LEVELS;
+        for (uint256 i = 0; i < n; i++) {
+            address sponsor = _referrers[i];
+            uint256 pct = safeLevelPercents[i];
             if (sponsor == address(0) || sponsor == msg.sender || pct == 0) continue;
             referralTotal += (gross * pct) / BPS_DENOMINATOR;
         }

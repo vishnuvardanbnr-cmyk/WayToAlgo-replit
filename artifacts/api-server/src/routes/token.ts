@@ -60,6 +60,63 @@ router.get("/token/upline", requireAuth, async (req, res) => {
 });
 
 /**
+ * GET /api/token/upline-safe
+ *
+ * Like /token/upline, but tailored to the Safe Invest referral scheme, which
+ * is SEPARATE from the direct Buy/Sell scheme. The returned address array maps
+ * 1:1 onto the contract's `safeLevelPercents` slots:
+ *   - index 0..4 → the buyer's first 5 upline sponsors (levels 1–5)
+ *   - index 5    → the admin master wallet (the fixed admin cut slot, level 6)
+ *   - index 6..9 → zero address (unused; contract skips them)
+ *
+ * The actual percentages live on-chain in safeLevelPercents; this endpoint only
+ * supplies WHO gets paid at each slot. Read-only, isolated from balance flows.
+ */
+router.get("/token/upline-safe", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+
+  const SAFE_USER_LEVELS = 5; // user sponsor levels (1–5)
+  const addresses: string[] = [];
+  let currentSponsorId: number | null = user.sponsorId ?? null;
+  const seen = new Set<number>([user.id]);
+
+  for (let level = 0; level < SAFE_USER_LEVELS; level++) {
+    if (currentSponsorId == null || seen.has(currentSponsorId)) {
+      addresses.push(ZERO_ADDRESS);
+      currentSponsorId = null;
+      continue;
+    }
+    seen.add(currentSponsorId);
+
+    const [sponsor] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, currentSponsorId))
+      .limit(1);
+
+    if (!sponsor) {
+      addresses.push(ZERO_ADDRESS);
+      currentSponsorId = null;
+      continue;
+    }
+
+    const wallet = (sponsor.walletAddress || "").trim();
+    addresses.push(ADDR_RE.test(wallet) ? wallet : ZERO_ADDRESS);
+    currentSponsorId = sponsor.sponsorId ?? null;
+  }
+
+  // Slot 6 (index 5): admin master wallet — the fixed admin referral cut.
+  const [settings] = await db.select().from(platformSettingsTable).limit(1);
+  const adminWallet = (settings?.adminMasterWallet || "").trim();
+  addresses.push(ADDR_RE.test(adminWallet) ? adminWallet : ZERO_ADDRESS);
+
+  // Remaining slots are unused for the Safe scheme.
+  while (addresses.length < UPLINE_LEVELS) addresses.push(ZERO_ADDRESS);
+
+  res.json({ levels: UPLINE_LEVELS, addresses });
+});
+
+/**
  * GET /api/token/info
  *
  * Public-to-authed live status of the ROI-token cycle: whether the contract is

@@ -13,6 +13,30 @@ import {
   Snowflake, Coins, Shield, Zap, ChevronRight,
 } from "lucide-react";
 import TokenPurchase from "@/components/TokenPurchase";
+import {
+  isTokenConfigured, parseUnits18, formatUnits18, applySlippage,
+  ensureBscNetwork, getAccount, signMessage, waitForReceipt,
+  readQuoteBuy, readUsdtBalance, readAllowance, readBuyPrice, readSafeLevelPercents,
+  approveUsdt, buySafeTokens, BPS_DENOMINATOR, REFERRAL_LEVELS,
+} from "@/lib/tokenContract";
+
+const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
+
+type SafeStage =
+  | "idle" | "switch_network" | "approving" | "approve_confirm"
+  | "sending" | "confirming" | "creating" | "success" | "failed";
+
+const SAFE_STAGE_LABEL: Record<SafeStage, string> = {
+  idle: "",
+  switch_network: "Switching to BSC…",
+  approving: "Confirm USDT approval in wallet…",
+  approve_confirm: "Waiting for approval confirmation…",
+  sending: "Confirm token purchase in wallet…",
+  confirming: "Waiting for on-chain confirmation…",
+  creating: "Finalizing your investment…",
+  success: "Done!",
+  failed: "Transaction failed",
+};
 
 function getCoolingInfo(createdAt: string, coolingHours: number) {
   const msElapsed = Date.now() - new Date(createdAt).getTime();
@@ -315,6 +339,8 @@ export default function Invest({ user }: { user: any }) {
   const { data: investments } = useListInvestments();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [safeStage, setSafeStage] = useState<SafeStage>("idle");
+  const safeBusy = !["idle", "success", "failed"].includes(safeStage);
 
   useEffect(() => {
     fetch("/api/settings/public")
@@ -342,19 +368,162 @@ export default function Invest({ user }: { user: any }) {
   const tokenPortion = watchedType === "safe" ? (watchedAmount || 0) * 0.5 : 0;
   const roiPortion = (watchedAmount || 0) - tokenPortion;
 
+  const handleCreateError = (err: any) => {
+    const errData = err?.data;
+    if (errData?.code === "MAX_INVESTMENT_EXCEEDED") {
+      setLimitModal({ currentTotal: errData.currentTotal ?? 0, remaining: errData.remaining ?? 0, maxTotal: errData.maxTotal ?? maxTotalInvestment });
+      return;
+    }
+    toast({ title: "Investment failed", description: errData?.message || err?.message || "Please try again", variant: "destructive" });
+  };
+
+  // Safe Invest: 50% of the amount buys WTA tokens ON-CHAIN through the user's
+  // own MetaMask (buySafe — its own referral scheme), then the investment is
+  // created server-side with the on-chain proof; the other 50% (ROI-half) is
+  // deducted from the in-app balance by the API.
+  const runSafeInvest = async (amount: number) => {
+    if (!isTokenConfigured()) {
+      toast({ title: "Token trading unavailable", description: "On-chain token purchase is not enabled yet. Please contact support.", variant: "destructive" });
+      return;
+    }
+    try {
+      setSafeStage("switch_network");
+      await ensureBscNetwork();
+      const from = await getAccount();
+
+      // The connected wallet must match the user's registered profile wallet —
+      // the API binds the on-chain proof to it. Check BEFORE spending on-chain so
+      // the user isn't rejected after paying.
+      const profileWallet = (user?.walletAddress ?? "").trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(profileWallet)) {
+        setSafeStage("idle");
+        toast({ title: "Wallet not set", description: "Please set your wallet address in your profile before using Safe Invest.", variant: "destructive" });
+        return;
+      }
+      if (from.toLowerCase() !== profileWallet.toLowerCase()) {
+        setSafeStage("idle");
+        toast({ title: "Wrong wallet connected", description: "Connect the wallet that matches your registered profile address to use Safe Invest.", variant: "destructive" });
+        return;
+      }
+
+      // Token-half is 50% of the stated investment, paid in USDT (18 decimals).
+      const tokenUsdt = amount * 0.5;
+      const wei = parseUnits18(tokenUsdt.toString());
+
+      const usdtBal = await readUsdtBalance(from);
+      if (wei > usdtBal) {
+        setSafeStage("failed");
+        toast({ title: "Insufficient USDT in wallet", description: `Your wallet holds ${formatUnits18(usdtBal, 2)} USDT but ${tokenUsdt} USDT is required for the token purchase.`, variant: "destructive" });
+        return;
+      }
+
+      // Safe referral scheme uplines (L1-L5 + admin at idx5) from the website.
+      let uplines: string[] = [];
+      try {
+        const res = await fetch("/api/token/upline-safe", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}` },
+        });
+        if (res.ok) {
+          const d = await res.json();
+          if (Array.isArray(d?.addresses)) uplines = d.addresses;
+        }
+      } catch { /* non-fatal — buy proceeds without referral payout */ }
+
+      // Referral bps are carved from the buyer's gross mint, so slippage must
+      // protect the NET tokens the buyer actually receives.
+      let refBps = 0;
+      try {
+        const percents = await readSafeLevelPercents();
+        const self = from.toLowerCase();
+        const n = Math.min(uplines.length, percents.length, REFERRAL_LEVELS);
+        for (let i = 0; i < n; i++) {
+          const ref = uplines[i] ? uplines[i].toLowerCase() : "";
+          if (ref && ref !== ZERO_ADDR && ref !== self && percents[i] > 0) refBps += percents[i];
+        }
+      } catch { /* non-fatal — assume no referral carve */ }
+
+      const allowance = await readAllowance(from);
+      if (allowance < wei) {
+        setSafeStage("approving");
+        const aHash = await approveUsdt(wei);
+        setSafeStage("approve_confirm");
+        const aReceipt = await waitForReceipt(aHash);
+        if (!aReceipt || aReceipt.status === "0x0") {
+          setSafeStage("failed");
+          toast({ title: "USDT approval failed", description: "The approval transaction did not confirm. Please try again.", variant: "destructive" });
+          return;
+        }
+      }
+
+      const gross = await readQuoteBuy(wei);
+      const net = gross - (gross * BigInt(refBps)) / BigInt(BPS_DENOMINATOR);
+      const minOut = applySlippage(net);
+
+      setSafeStage("sending");
+      const hash = await buySafeTokens(wei, minOut, uplines);
+      setSafeStage("confirming");
+      const receipt = await waitForReceipt(hash);
+      if (!receipt || receipt.status === "0x0") {
+        setSafeStage("failed");
+        toast({ title: "Token purchase reverted", description: "The on-chain transaction reverted. No investment was created.", variant: "destructive" });
+        return;
+      }
+
+      let buyPrice = "0";
+      try { const bp = await readBuyPrice(); if (bp !== null) buyPrice = formatUnits18(bp, 18); } catch { /* non-fatal */ }
+
+      // Prove control of the buying wallet so the API can bind this on-chain
+      // purchase to our account (gasless signature; must match the backend
+      // message format exactly).
+      setSafeStage("creating");
+      const authMsg = `WaytoAlgo Safe Invest\nWallet: ${from.toLowerCase()}\nTx: ${hash.toLowerCase()}`;
+      let signature: string;
+      try {
+        signature = await signMessage(authMsg, from);
+      } catch (e: any) {
+        if (e?.code === 4001) {
+          setSafeStage("failed");
+          toast({ title: "Authorization declined", description: "Your tokens were purchased on-chain, but the investment was not created because the wallet signature was declined. Please contact support to finalize it.", variant: "destructive" });
+          return;
+        }
+        throw e;
+      }
+
+      await createInvestment.mutateAsync({
+        data: {
+          amount,
+          investmentType: "safe",
+          txHash: hash,
+          walletAddress: from,
+          signature,
+          wtaReceived: formatUnits18(net, 18),
+          buyPrice,
+        } as any,
+      });
+      await queryClient.invalidateQueries({ queryKey: getListInvestmentsQueryKey() });
+      setSafeStage("success");
+      toast({ title: "Investment created!", description: `$${amount} Safe invested — tokens bought on-chain.` });
+      form.reset({ amount: plan.min, investmentType: "safe" });
+      setTimeout(() => setSafeStage("idle"), 1500);
+    } catch (err: any) {
+      if (err?.code === 4001) { setSafeStage("idle"); return; } // user rejected in wallet
+      setSafeStage("failed");
+      handleCreateError(err);
+    }
+  };
+
   const onSubmit = async (data: z.infer<typeof schema>) => {
+    if (data.investmentType === "safe") {
+      await runSafeInvest(data.amount);
+      return;
+    }
     try {
       await createInvestment.mutateAsync({ data: { amount: data.amount, investmentType: data.investmentType } as any });
       await queryClient.invalidateQueries({ queryKey: getListInvestmentsQueryKey() });
       toast({ title: "Investment created!", description: `$${data.amount} invested successfully` });
       form.reset({ amount: plan.min, investmentType: data.investmentType });
     } catch (err: any) {
-      const errData = err?.data;
-      if (errData?.code === "MAX_INVESTMENT_EXCEEDED") {
-        setLimitModal({ currentTotal: errData.currentTotal ?? 0, remaining: errData.remaining ?? 0, maxTotal: errData.maxTotal ?? maxTotalInvestment });
-        return;
-      }
-      toast({ title: "Investment failed", description: errData?.message || err?.message || "Please try again", variant: "destructive" });
+      handleCreateError(err);
     }
   };
 
@@ -511,7 +680,7 @@ export default function Invest({ user }: { user: any }) {
                 <button
                   data-testid="button-submit-invest"
                   type="submit"
-                  disabled={createInvestment.isPending}
+                  disabled={createInvestment.isPending || safeBusy}
                   className="w-full py-3 rounded-xl font-bold transition-all disabled:opacity-60"
                   style={{
                     background: watchedType === "safe"
@@ -524,10 +693,17 @@ export default function Invest({ user }: { user: any }) {
                       : "0 0 20px rgba(251,146,60,0.3)",
                   }}
                 >
-                  {createInvestment.isPending
-                    ? "Processing..."
-                    : `${watchedType === "safe" ? "Safe Invest" : "Trading Invest"} $${watchedAmount || 0}`}
+                  {safeBusy
+                    ? SAFE_STAGE_LABEL[safeStage]
+                    : createInvestment.isPending
+                      ? "Processing..."
+                      : `${watchedType === "safe" ? "Safe Invest" : "Trading Invest"} $${watchedAmount || 0}`}
                 </button>
+                {watchedType === "safe" && (
+                  <p className="text-xs text-center" style={{ color: "rgba(194,210,255,0.45)" }}>
+                    50% buys WTA tokens on-chain via your wallet · 50% earns daily ROI from your balance
+                  </p>
+                )}
               </form>
             </Form>
           </div>
