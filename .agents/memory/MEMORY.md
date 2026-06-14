@@ -6,6 +6,7 @@
 - [ROI additive model](roi-additive-model.md) — investor gets FULL daily ROI; level commission is +pct of ROI on top; token split uses effPoolPct=pct/(1+pct); conserve supply by remainder, not dual bps.
 - [Build & run model](build-run-model.md) — app serves prebuilt bundles; restart never rebuilds; rebuild api (esbuild) + web (vite needs PORT+BASE_PATH) or edits won't show.
 - [Replit Helium routing](replit-helium-routing.md) — When REPLIT_HELIUM_ENABLED=true, external traffic routes via artifact router (port 8000), NOT port 5000; fix = proxy 5000→8000 + run artifact router.
+- [Rank engine](rank-engine.md) — configurable ranks + monthly reward schedules; balanced 40/30/30 legs; 3-layer double-pay protection (in-proc guard + partial unique index + atomic per-month claim); first payout +1 month.
 - [Withdrawal state machine](withdrawal-state-machine.md) — withdrawBalance is the only withdrawable balance; debit/refund/payout must use guarded conditional UPDATEs; only pending is reject/approve-able; auto-process must claim row before on-chain send.
 - [Daily Potential projection](daily-potential-projection.md) — income/summary dailyPotential = best-case ROI+level; mirrors engine ROI base + cap clamp, but intentionally ignores level-qualification gates AND cooling window.
 - [Withdrawal concurrency tests](withdrawal-concurrency-tests.md) — vitest+supertest harness races real routes; dev DB has >1 platform_settings row read via unordered limit(1), so patch ALL rows; mock blockchain send.

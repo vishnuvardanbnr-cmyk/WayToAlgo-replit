@@ -6,13 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { Rank } from "./rank";
-import type { RankProgressLugsProgressItem } from "./rankProgressLugsProgressItem";
+import type { RankProgressMetrics } from "./rankProgressMetrics";
+import type { RankProgressProgress } from "./rankProgressProgress";
+import type { RankProgressSchedule } from "./rankProgressSchedule";
 
 export interface RankProgress {
   currentRank?: Rank;
   nextRank?: Rank;
-  currentEarnings?: number;
-  levelsCompleted: number;
-  qualifyingReferrersCount: number;
-  lugsProgress: RankProgressLugsProgressItem[];
+  qualifiedRank?: Rank;
+  metrics: RankProgressMetrics;
+  progress?: RankProgressProgress;
+  schedule?: RankProgressSchedule;
 }

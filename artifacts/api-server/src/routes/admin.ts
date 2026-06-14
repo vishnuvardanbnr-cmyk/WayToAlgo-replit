@@ -1385,12 +1385,55 @@ router.get("/admin/reports/p2p", requireAdmin, async (req, res) => {
 const RankBody = z.object({
   rankNumber: z.number().int().min(1),
   name: z.string().min(1),
-  criteria: z.string().min(1),
-  reward: z.string().min(1),
-  requiresRankId: z.number().int().nullable().optional(),
-  requiresCount: z.number().int().nullable().optional(),
-  requiresLevels: z.number().int().nullable().optional(),
+  selfInvestmentMin: z.number().min(0).optional(),
+  directBusinessMin: z.number().min(0).optional(),
+  teamBusinessMin: z.number().min(0).optional(),
+  legTopPct: z.number().int().min(0).max(100).optional(),
+  legSecondPct: z.number().int().min(0).max(100).optional(),
+  legRestPct: z.number().int().min(0).max(100).optional(),
+  rewardMonthlyAmount: z.number().min(0).optional(),
+  rewardMonths: z.number().int().min(0).optional(),
+  // Optional display overrides — auto-generated from the structured fields when omitted.
+  criteria: z.string().optional(),
+  reward: z.string().optional(),
 });
+
+function fmtUsd(n: number): string {
+  return n % 1 === 0 ? `$${n.toLocaleString("en-US")}` : `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Build the human-readable criteria/reward strings from the structured fields.
+function deriveRankDisplay(b: {
+  selfInvestmentMin?: number; directBusinessMin?: number; teamBusinessMin?: number;
+  rewardMonthlyAmount?: number; rewardMonths?: number;
+}) {
+  const self = b.selfInvestmentMin ?? 0;
+  const direct = b.directBusinessMin ?? 0;
+  const team = b.teamBusinessMin ?? 0;
+  const monthly = b.rewardMonthlyAmount ?? 0;
+  const months = b.rewardMonths ?? 0;
+  const criteria = `Self invest ≥ ${fmtUsd(self)} · Direct business ≥ ${fmtUsd(direct)} · Team business ≥ ${fmtUsd(team)}`;
+  const reward = months > 0 && monthly > 0
+    ? `${fmtUsd(monthly)}/month × ${months} months (${fmtUsd(monthly * months)} total)`
+    : "—";
+  return { criteria, reward };
+}
+
+// Convert numeric fields to the string form drizzle expects for numeric columns.
+function rankValuesFrom(data: z.infer<typeof RankBody> | Partial<z.infer<typeof RankBody>>) {
+  const v: Record<string, unknown> = {};
+  if (data.rankNumber !== undefined) v["rankNumber"] = data.rankNumber;
+  if (data.name !== undefined) v["name"] = data.name;
+  if (data.selfInvestmentMin !== undefined) v["selfInvestmentMin"] = data.selfInvestmentMin.toFixed(6);
+  if (data.directBusinessMin !== undefined) v["directBusinessMin"] = data.directBusinessMin.toFixed(6);
+  if (data.teamBusinessMin !== undefined) v["teamBusinessMin"] = data.teamBusinessMin.toFixed(6);
+  if (data.legTopPct !== undefined) v["legTopPct"] = data.legTopPct;
+  if (data.legSecondPct !== undefined) v["legSecondPct"] = data.legSecondPct;
+  if (data.legRestPct !== undefined) v["legRestPct"] = data.legRestPct;
+  if (data.rewardMonthlyAmount !== undefined) v["rewardMonthlyAmount"] = data.rewardMonthlyAmount.toFixed(6);
+  if (data.rewardMonths !== undefined) v["rewardMonths"] = data.rewardMonths;
+  return v;
+}
 
 // GET /api/admin/ranks
 router.get("/admin/ranks", requireAdmin, async (_req, res) => {
@@ -1402,7 +1445,13 @@ router.get("/admin/ranks", requireAdmin, async (_req, res) => {
 router.post("/admin/ranks", requireAdmin, async (req, res) => {
   const parsed = RankBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ message: "Invalid input" }); return; }
-  const [rank] = await db.insert(ranksTable).values(parsed.data).returning();
+  const display = deriveRankDisplay(parsed.data);
+  const values = {
+    ...rankValuesFrom(parsed.data),
+    criteria: parsed.data.criteria ?? display.criteria,
+    reward: parsed.data.reward ?? display.reward,
+  } as typeof ranksTable.$inferInsert;
+  const [rank] = await db.insert(ranksTable).values(values).returning();
   res.status(201).json(rank);
 });
 
@@ -1412,9 +1461,36 @@ router.put("/admin/ranks/:id", requireAdmin, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ message: "Invalid id" }); return; }
   const parsed = RankBody.partial().safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ message: "Invalid input" }); return; }
-  const [rank] = await db.update(ranksTable).set(parsed.data).where(eq(ranksTable.id, id)).returning();
+  // Recompute display strings from the merged record so they stay in sync.
+  const [existing] = await db.select().from(ranksTable).where(eq(ranksTable.id, id)).limit(1);
+  if (!existing) { res.status(404).json({ message: "Not found" }); return; }
+  const merged = {
+    selfInvestmentMin: parsed.data.selfInvestmentMin ?? parseFloat(existing.selfInvestmentMin),
+    directBusinessMin: parsed.data.directBusinessMin ?? parseFloat(existing.directBusinessMin),
+    teamBusinessMin: parsed.data.teamBusinessMin ?? parseFloat(existing.teamBusinessMin),
+    rewardMonthlyAmount: parsed.data.rewardMonthlyAmount ?? parseFloat(existing.rewardMonthlyAmount),
+    rewardMonths: parsed.data.rewardMonths ?? existing.rewardMonths,
+  };
+  const display = deriveRankDisplay(merged);
+  const values = {
+    ...rankValuesFrom(parsed.data),
+    criteria: parsed.data.criteria ?? display.criteria,
+    reward: parsed.data.reward ?? display.reward,
+  };
+  const [rank] = await db.update(ranksTable).set(values).where(eq(ranksTable.id, id)).returning();
   if (!rank) { res.status(404).json({ message: "Not found" }); return; }
   res.json(rank);
+});
+
+// POST /api/admin/ranks/run-engine — manually trigger auto-promotion + payouts
+router.post("/admin/ranks/run-engine", requireAdmin, async (_req, res) => {
+  try {
+    const { runRankEngine } = await import("../lib/rankEngine");
+    const result = await runRankEngine();
+    res.json({ ok: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message ?? "Rank engine failed" });
+  }
 });
 
 // DELETE /api/admin/ranks/:id

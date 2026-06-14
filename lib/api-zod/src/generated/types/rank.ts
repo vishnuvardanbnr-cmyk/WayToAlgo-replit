@@ -12,6 +12,14 @@ export interface Rank {
   name: string;
   criteria: string;
   reward: string;
+  selfInvestmentMin?: number;
+  directBusinessMin?: number;
+  teamBusinessMin?: number;
+  legTopPct?: number;
+  legSecondPct?: number;
+  legRestPct?: number;
+  rewardMonthlyAmount?: number;
+  rewardMonths?: number;
   requiresRankId?: number | null;
   requiresCount?: number | null;
   requiresLevels?: number | null;

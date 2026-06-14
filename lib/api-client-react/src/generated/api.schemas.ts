@@ -246,24 +246,76 @@ export interface Rank {
   name: string;
   criteria: string;
   reward: string;
+  selfInvestmentMin?: number;
+  directBusinessMin?: number;
+  teamBusinessMin?: number;
+  legTopPct?: number;
+  legSecondPct?: number;
+  legRestPct?: number;
+  rewardMonthlyAmount?: number;
+  rewardMonths?: number;
   requiresRankId?: number | null;
   requiresCount?: number | null;
   requiresLevels?: number | null;
 }
 
-export type RankProgressLugsProgressItem = {
-  lugIndex: number;
-  business: number;
+export interface RankRequirement {
+  current: number;
   required: number;
+}
+
+export type RankLegBandBand =
+  (typeof RankLegBandBand)[keyof typeof RankLegBandBand];
+
+export const RankLegBandBand = {
+  top: "top",
+  second: "second",
+  rest: "rest",
+} as const;
+
+export interface RankLegBand {
+  band: RankLegBandBand;
+  current: number;
+  required: number;
+}
+
+export type RankProgressMetrics = {
+  selfInvest: number;
+  directBusiness: number;
+  legVolumes: number[];
 };
+
+export type RankProgressProgress = {
+  self: RankRequirement;
+  direct: RankRequirement;
+  legs: RankLegBand[];
+} | null;
+
+export type RankProgressScheduleStatus =
+  (typeof RankProgressScheduleStatus)[keyof typeof RankProgressScheduleStatus];
+
+export const RankProgressScheduleStatus = {
+  active: "active",
+  completed: "completed",
+  superseded: "superseded",
+} as const;
+
+export type RankProgressSchedule = {
+  rankId: number;
+  monthlyAmount: number;
+  totalMonths: number;
+  monthsPaid: number;
+  nextPayoutAt?: string | null;
+  status: RankProgressScheduleStatus;
+} | null;
 
 export interface RankProgress {
   currentRank?: Rank;
   nextRank?: Rank;
-  currentEarnings?: number;
-  levelsCompleted: number;
-  qualifyingReferrersCount: number;
-  lugsProgress: RankProgressLugsProgressItem[];
+  qualifiedRank?: Rank;
+  metrics: RankProgressMetrics;
+  progress?: RankProgressProgress;
+  schedule?: RankProgressSchedule;
 }
 
 export interface AdminStats {

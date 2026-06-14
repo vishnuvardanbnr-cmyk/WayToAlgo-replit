@@ -4,6 +4,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { setupWebSocket } from "./lib/wsManager";
 import { sendDatabaseBackupEmail } from "./lib/email";
+import { runRankEngine } from "./lib/rankEngine";
 import { db, platformSettingsTable } from "@workspace/db";
 
 // ── Crash guards ───────────────────────────────────────────────────────────────
@@ -60,6 +61,27 @@ cron.schedule("0 * * * *", async () => {
 });
 
 logger.info("Hourly DB backup cron scheduled — every hour at :00");
+
+// ── Daily rank engine cron ──────────────────────────────────────────────────
+// Auto-promotes users to the highest rank they qualify for and pays out due
+// monthly rank rewards to the Withdraw Wallet. Runs daily at 01:00.
+cron.schedule("0 1 * * *", async () => {
+  logger.info("Cron: starting daily rank engine");
+  try {
+    const result = await runRankEngine();
+    logger.info(result, "Cron: rank engine finished");
+  } catch (err) {
+    logger.error({ err }, "Cron: rank engine failed");
+  }
+});
+
+logger.info("Daily rank engine cron scheduled — every day at 01:00");
+
+// Run the rank engine shortly after startup so promotions/payouts settle without
+// waiting for the next daily tick (non-blocking, errors are swallowed/logged).
+setTimeout(() => {
+  runRankEngine().catch((err) => logger.error({ err }, "Startup rank engine run failed"));
+}, 15_000);
 
 server.listen(port, (err?: Error) => {
   if (err) {

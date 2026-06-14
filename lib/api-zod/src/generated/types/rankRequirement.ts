@@ -6,8 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type RankProgressLugsProgressItem = {
-  lugIndex: number;
-  business: number;
+export interface RankRequirement {
+  current: number;
   required: number;
-};
+}

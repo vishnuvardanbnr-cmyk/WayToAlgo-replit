@@ -331,6 +331,14 @@ export const ListRanksResponseItem = zod.object({
   name: zod.string(),
   criteria: zod.string(),
   reward: zod.string(),
+  selfInvestmentMin: zod.number().optional(),
+  directBusinessMin: zod.number().optional(),
+  teamBusinessMin: zod.number().optional(),
+  legTopPct: zod.number().optional(),
+  legSecondPct: zod.number().optional(),
+  legRestPct: zod.number().optional(),
+  rewardMonthlyAmount: zod.number().optional(),
+  rewardMonths: zod.number().optional(),
   requiresRankId: zod.number().nullish(),
   requiresCount: zod.number().nullish(),
   requiresLevels: zod.number().nullish(),
@@ -348,6 +356,14 @@ export const GetMyRankProgressResponse = zod.object({
       name: zod.string(),
       criteria: zod.string(),
       reward: zod.string(),
+      selfInvestmentMin: zod.number().optional(),
+      directBusinessMin: zod.number().optional(),
+      teamBusinessMin: zod.number().optional(),
+      legTopPct: zod.number().optional(),
+      legSecondPct: zod.number().optional(),
+      legRestPct: zod.number().optional(),
+      rewardMonthlyAmount: zod.number().optional(),
+      rewardMonths: zod.number().optional(),
       requiresRankId: zod.number().nullish(),
       requiresCount: zod.number().nullish(),
       requiresLevels: zod.number().nullish(),
@@ -360,21 +376,73 @@ export const GetMyRankProgressResponse = zod.object({
       name: zod.string(),
       criteria: zod.string(),
       reward: zod.string(),
+      selfInvestmentMin: zod.number().optional(),
+      directBusinessMin: zod.number().optional(),
+      teamBusinessMin: zod.number().optional(),
+      legTopPct: zod.number().optional(),
+      legSecondPct: zod.number().optional(),
+      legRestPct: zod.number().optional(),
+      rewardMonthlyAmount: zod.number().optional(),
+      rewardMonths: zod.number().optional(),
       requiresRankId: zod.number().nullish(),
       requiresCount: zod.number().nullish(),
       requiresLevels: zod.number().nullish(),
     })
     .optional(),
-  currentEarnings: zod.number().optional(),
-  levelsCompleted: zod.number(),
-  qualifyingReferrersCount: zod.number(),
-  lugsProgress: zod.array(
-    zod.object({
-      lugIndex: zod.number(),
-      business: zod.number(),
-      required: zod.number(),
-    }),
-  ),
+  qualifiedRank: zod
+    .object({
+      id: zod.number(),
+      rankNumber: zod.number(),
+      name: zod.string(),
+      criteria: zod.string(),
+      reward: zod.string(),
+      selfInvestmentMin: zod.number().optional(),
+      directBusinessMin: zod.number().optional(),
+      teamBusinessMin: zod.number().optional(),
+      legTopPct: zod.number().optional(),
+      legSecondPct: zod.number().optional(),
+      legRestPct: zod.number().optional(),
+      rewardMonthlyAmount: zod.number().optional(),
+      rewardMonths: zod.number().optional(),
+      requiresRankId: zod.number().nullish(),
+      requiresCount: zod.number().nullish(),
+      requiresLevels: zod.number().nullish(),
+    })
+    .optional(),
+  metrics: zod.object({
+    selfInvest: zod.number(),
+    directBusiness: zod.number(),
+    legVolumes: zod.array(zod.number()),
+  }),
+  progress: zod
+    .object({
+      self: zod.object({
+        current: zod.number(),
+        required: zod.number(),
+      }),
+      direct: zod.object({
+        current: zod.number(),
+        required: zod.number(),
+      }),
+      legs: zod.array(
+        zod.object({
+          band: zod.enum(["top", "second", "rest"]),
+          current: zod.number(),
+          required: zod.number(),
+        }),
+      ),
+    })
+    .nullish(),
+  schedule: zod
+    .object({
+      rankId: zod.number(),
+      monthlyAmount: zod.number(),
+      totalMonths: zod.number(),
+      monthsPaid: zod.number(),
+      nextPayoutAt: zod.string().nullish(),
+      status: zod.enum(["active", "completed", "superseded"]),
+    })
+    .nullish(),
 });
 
 /**

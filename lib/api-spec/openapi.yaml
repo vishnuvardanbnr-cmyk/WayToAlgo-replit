@@ -922,6 +922,22 @@ components:
           type: string
         reward:
           type: string
+        selfInvestmentMin:
+          type: number
+        directBusinessMin:
+          type: number
+        teamBusinessMin:
+          type: number
+        legTopPct:
+          type: integer
+        legSecondPct:
+          type: integer
+        legRestPct:
+          type: integer
+        rewardMonthlyAmount:
+          type: number
+        rewardMonths:
+          type: integer
         requiresRankId:
           type: integer
           nullable: true
@@ -933,6 +949,27 @@ components:
           nullable: true
       required: [id, rankNumber, name, criteria, reward]
 
+    RankRequirement:
+      type: object
+      properties:
+        current:
+          type: number
+        required:
+          type: number
+      required: [current, required]
+
+    RankLegBand:
+      type: object
+      properties:
+        band:
+          type: string
+          enum: [top, second, rest]
+        current:
+          type: number
+        required:
+          type: number
+      required: [band, current, required]
+
     RankProgress:
       type: object
       properties:
@@ -940,25 +977,53 @@ components:
           $ref: "#/components/schemas/Rank"
         nextRank:
           $ref: "#/components/schemas/Rank"
-        currentEarnings:
-          type: number
-        levelsCompleted:
-          type: integer
-        qualifyingReferrersCount:
-          type: integer
-        lugsProgress:
-          type: array
-          items:
-            type: object
-            properties:
-              lugIndex:
-                type: integer
-              business:
+        qualifiedRank:
+          $ref: "#/components/schemas/Rank"
+        metrics:
+          type: object
+          properties:
+            selfInvest:
+              type: number
+            directBusiness:
+              type: number
+            legVolumes:
+              type: array
+              items:
                 type: number
-              required:
-                type: number
-            required: [lugIndex, business, required]
-      required: [levelsCompleted, qualifyingReferrersCount, lugsProgress]
+          required: [selfInvest, directBusiness, legVolumes]
+        progress:
+          type: object
+          nullable: true
+          properties:
+            self:
+              $ref: "#/components/schemas/RankRequirement"
+            direct:
+              $ref: "#/components/schemas/RankRequirement"
+            legs:
+              type: array
+              items:
+                $ref: "#/components/schemas/RankLegBand"
+          required: [self, direct, legs]
+        schedule:
+          type: object
+          nullable: true
+          properties:
+            rankId:
+              type: integer
+            monthlyAmount:
+              type: number
+            totalMonths:
+              type: integer
+            monthsPaid:
+              type: integer
+            nextPayoutAt:
+              type: string
+              nullable: true
+            status:
+              type: string
+              enum: [active, completed, superseded]
+          required: [rankId, monthlyAmount, totalMonths, monthsPaid, status]
+      required: [metrics]
 
     AdminStats:
       type: object

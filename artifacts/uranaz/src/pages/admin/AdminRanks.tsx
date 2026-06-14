@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Award, Plus, Pencil, Trash2, X, Save, ChevronUp, ChevronDown } from "lucide-react";
+import { Award, Plus, Pencil, Trash2, X, Save, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const TEAL = "#5B8CFF";
@@ -18,19 +18,40 @@ type Rank = {
   name: string;
   criteria: string;
   reward: string;
-  requiresRankId: number | null;
-  requiresCount: number | null;
-  requiresLevels: number | null;
+  selfInvestmentMin: string | number;
+  directBusinessMin: string | number;
+  teamBusinessMin: string | number;
+  legTopPct: number;
+  legSecondPct: number;
+  legRestPct: number;
+  rewardMonthlyAmount: string | number;
+  rewardMonths: number;
 };
 
-const BLANK: Omit<Rank, "id"> = {
+type RankForm = {
+  rankNumber: number;
+  name: string;
+  selfInvestmentMin: number;
+  directBusinessMin: number;
+  teamBusinessMin: number;
+  legTopPct: number;
+  legSecondPct: number;
+  legRestPct: number;
+  rewardMonthlyAmount: number;
+  rewardMonths: number;
+};
+
+const BLANK: RankForm = {
   rankNumber: 1,
   name: "",
-  criteria: "",
-  reward: "",
-  requiresRankId: null,
-  requiresCount: null,
-  requiresLevels: null,
+  selfInvestmentMin: 0,
+  directBusinessMin: 0,
+  teamBusinessMin: 0,
+  legTopPct: 40,
+  legSecondPct: 30,
+  legRestPct: 30,
+  rewardMonthlyAmount: 0,
+  rewardMonths: 0,
 };
 
 const RANK_GRADIENTS = [
@@ -40,6 +61,10 @@ const RANK_GRADIENTS = [
   { from: "#7c3aed", to: "#a78bfa" },
   { from: "#0891b2", to: "#5B8CFF" },
 ];
+
+function fmtUsd(n: number) {
+  return n % 1 === 0 ? `$${n.toLocaleString("en-US")}` : `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
 function RankBadge({ index }: { index: number }) {
   const g = RANK_GRADIENTS[index % RANK_GRADIENTS.length] ?? RANK_GRADIENTS[0]!;
@@ -58,8 +83,9 @@ export default function AdminRanks() {
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [running, setRunning] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [form, setForm] = useState<Omit<Rank, "id"> | null>(null);
+  const [form, setForm] = useState<RankForm | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
 
   async function load() {
@@ -83,9 +109,19 @@ export default function AdminRanks() {
   }
 
   function openEdit(rank: Rank) {
-    const { id, ...rest } = rank;
-    setForm({ ...rest });
-    setEditId(id);
+    setForm({
+      rankNumber: rank.rankNumber,
+      name: rank.name,
+      selfInvestmentMin: Number(rank.selfInvestmentMin) || 0,
+      directBusinessMin: Number(rank.directBusinessMin) || 0,
+      teamBusinessMin: Number(rank.teamBusinessMin) || 0,
+      legTopPct: rank.legTopPct ?? 40,
+      legSecondPct: rank.legSecondPct ?? 30,
+      legRestPct: rank.legRestPct ?? 30,
+      rewardMonthlyAmount: Number(rank.rewardMonthlyAmount) || 0,
+      rewardMonths: rank.rewardMonths ?? 0,
+    });
+    setEditId(rank.id);
   }
 
   function closeForm() { setForm(null); setEditId(null); }
@@ -99,12 +135,7 @@ export default function AdminRanks() {
       const res = await fetch(url, {
         method,
         headers: authHeaders(),
-        body: JSON.stringify({
-          ...form,
-          requiresRankId: form.requiresRankId || null,
-          requiresCount: form.requiresCount || null,
-          requiresLevels: form.requiresLevels || null,
-        }),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Save failed");
@@ -129,19 +160,50 @@ export default function AdminRanks() {
     }
   }
 
-  function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  async function runEngine() {
+    setRunning(true);
+    try {
+      const res = await fetch("/api/admin/ranks/run-engine", { method: "POST", headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed");
+      toast({ title: `Engine ran — ${data.promoted} promoted, ${data.paid} rewards paid` });
+    } catch (err: any) {
+      toast({ title: err?.message || "Engine failed", variant: "destructive" });
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
     return (
       <div className="space-y-1.5">
         <label className="text-xs font-medium" style={{ color: "rgba(194,210,255,0.55)" }}>{label}</label>
         {children}
+        {hint && <p className="text-[10px]" style={{ color: "rgba(194,210,255,0.3)" }}>{hint}</p>}
       </div>
     );
   }
 
+  function NumField({ label, hint, value, onChange, step, min }: { label: string; hint?: string; value: number; onChange: (n: number) => void; step?: string; min?: string }) {
+    return (
+      <Field label={label} hint={hint}>
+        <input
+          type="number" min={min ?? "0"} step={step ?? "1"}
+          value={value}
+          onChange={e => onChange(e.target.value === "" ? 0 : parseFloat(e.target.value))}
+          className={INPUT_CLS}
+          style={INPUT_STYLE}
+        />
+      </Field>
+    );
+  }
+
+  const legSum = form ? form.legTopPct + form.legSecondPct + form.legRestPct : 0;
+
   return (
     <div className="px-4 md:px-6 py-6 max-w-4xl mx-auto pb-24 md:pb-10">
       {/* Header */}
-      <header className="mb-6 flex items-center justify-between gap-4">
+      <header className="mb-6 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <div
             className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
@@ -158,21 +220,32 @@ export default function AdminRanks() {
               Rank Management
             </h1>
             <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
-              Define ranks, criteria, and rewards shown to users
+              Define ranks, qualification requirements, and monthly rewards
             </p>
           </div>
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
-          style={{
-            background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(61,92,224,0.08))",
-            border: "1px solid rgba(91,140,255,0.4)",
-            color: TEAL,
-          }}
-        >
-          <Plus size={15} /> New Rank
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={runEngine}
+            disabled={running}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-50"
+            style={{ background: "rgba(52,211,153,0.10)", border: "1px solid rgba(52,211,153,0.3)", color: "rgba(52,211,153,0.95)" }}
+            title="Run auto-promotion + pay due rewards now"
+          >
+            <RefreshCw size={15} className={running ? "animate-spin" : ""} /> Run Engine
+          </button>
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
+            style={{
+              background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(61,92,224,0.08))",
+              border: "1px solid rgba(91,140,255,0.4)",
+              color: TEAL,
+            }}
+          >
+            <Plus size={15} /> New Rank
+          </button>
+        </div>
       </header>
 
       {/* List */}
@@ -203,24 +276,18 @@ export default function AdminRanks() {
                     Rank #{rank.rankNumber}
                   </span>
                 </div>
-                <p className="text-xs mt-1 line-clamp-1" style={{ color: "rgba(194,210,255,0.45)" }}>{rank.criteria}</p>
-                <div className="flex flex-wrap gap-3 mt-2">
-                  <span className="text-xs" style={{ color: "rgba(52,211,153,0.85)" }}>🎁 {rank.reward}</span>
-                  {rank.requiresLevels != null && (
-                    <span className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>
-                      Levels required: <strong style={{ color: "rgba(194,210,255,0.8)" }}>{rank.requiresLevels}</strong>
-                    </span>
-                  )}
-                  {rank.requiresCount != null && (
-                    <span className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>
-                      Qualifying refs: <strong style={{ color: "rgba(194,210,255,0.8)" }}>{rank.requiresCount}</strong>
-                    </span>
-                  )}
-                  {rank.requiresRankId != null && (
-                    <span className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>
-                      Refs need rank ID: <strong style={{ color: "rgba(194,210,255,0.8)" }}>{rank.requiresRankId}</strong>
-                    </span>
-                  )}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-2 text-xs" style={{ color: "rgba(194,210,255,0.55)" }}>
+                  <span>Self ≥ <strong style={{ color: "rgba(194,210,255,0.85)" }}>{fmtUsd(Number(rank.selfInvestmentMin) || 0)}</strong></span>
+                  <span>Direct ≥ <strong style={{ color: "rgba(194,210,255,0.85)" }}>{fmtUsd(Number(rank.directBusinessMin) || 0)}</strong></span>
+                  <span>Team ≥ <strong style={{ color: "rgba(194,210,255,0.85)" }}>{fmtUsd(Number(rank.teamBusinessMin) || 0)}</strong></span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 mt-2">
+                  <span className="text-xs font-semibold" style={{ color: "rgba(52,211,153,0.9)" }}>
+                    🎁 {fmtUsd(Number(rank.rewardMonthlyAmount) || 0)}/mo × {rank.rewardMonths} mo = {fmtUsd((Number(rank.rewardMonthlyAmount) || 0) * (rank.rewardMonths || 0))}
+                  </span>
+                  <span className="text-[11px]" style={{ color: "rgba(194,210,255,0.4)" }}>
+                    Legs {rank.legTopPct}/{rank.legSecondPct}/{rank.legRestPct}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -263,17 +330,7 @@ export default function AdminRanks() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Rank Number">
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number" min="1"
-                    value={form.rankNumber}
-                    onChange={e => setForm(f => f && ({ ...f, rankNumber: parseInt(e.target.value) || 1 }))}
-                    className={INPUT_CLS}
-                    style={INPUT_STYLE}
-                  />
-                </div>
-              </Field>
+              <NumField label="Rank Number" value={form.rankNumber} onChange={n => setForm(f => f && ({ ...f, rankNumber: Math.max(1, Math.round(n)) }))} min="1" />
               <Field label="Rank Name">
                 <input
                   value={form.name}
@@ -285,69 +342,39 @@ export default function AdminRanks() {
               </Field>
             </div>
 
-            <Field label="Criteria (displayed to users)">
-              <textarea
-                value={form.criteria}
-                onChange={e => setForm(f => f && ({ ...f, criteria: e.target.value }))}
-                rows={2}
-                className={INPUT_CLS + " resize-none"}
-                style={INPUT_STYLE}
-                placeholder="e.g. Complete 3 active levels with qualifying referrals"
-              />
-            </Field>
-
-            <Field label="Reward">
-              <input
-                value={form.reward}
-                onChange={e => setForm(f => f && ({ ...f, reward: e.target.value }))}
-                className={INPUT_CLS}
-                style={INPUT_STYLE}
-                placeholder="e.g. Bronze Badge + 2% bonus"
-              />
-            </Field>
-
-            <div
-              className="rounded-xl p-4 space-y-4"
-              style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}
-            >
-              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(194,210,255,0.4)" }}>Progress Requirements</p>
+            {/* Qualification requirements */}
+            <div className="rounded-xl p-4 space-y-4" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(194,210,255,0.4)" }}>Qualification Requirements</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Field label="Levels Required">
-                  <input
-                    type="number" min="0"
-                    value={form.requiresLevels ?? ""}
-                    onChange={e => setForm(f => f && ({ ...f, requiresLevels: e.target.value === "" ? null : parseInt(e.target.value) }))}
-                    className={INPUT_CLS}
-                    style={INPUT_STYLE}
-                    placeholder="None"
-                  />
-                </Field>
-                <Field label="Qualifying Refs">
-                  <input
-                    type="number" min="0"
-                    value={form.requiresCount ?? ""}
-                    onChange={e => setForm(f => f && ({ ...f, requiresCount: e.target.value === "" ? null : parseInt(e.target.value) }))}
-                    className={INPUT_CLS}
-                    style={INPUT_STYLE}
-                    placeholder="None"
-                  />
-                </Field>
-                <Field label="Refs Need Rank ID">
-                  <select
-                    value={form.requiresRankId ?? ""}
-                    onChange={e => setForm(f => f && ({ ...f, requiresRankId: e.target.value === "" ? null : parseInt(e.target.value) }))}
-                    className={INPUT_CLS}
-                    style={{ ...INPUT_STYLE, cursor: "pointer" }}
-                  >
-                    <option value="">None</option>
-                    {ranks.filter(r => r.id !== editId).map(r => (
-                      <option key={r.id} value={r.id} style={{ background: "#030c1a" }}>
-                        #{r.rankNumber} {r.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                <NumField label="Self Investment ($)" value={form.selfInvestmentMin} onChange={n => setForm(f => f && ({ ...f, selfInvestmentMin: n }))} step="0.01" />
+                <NumField label="Direct Business ($)" hint="Sum of directs' own invest" value={form.directBusinessMin} onChange={n => setForm(f => f && ({ ...f, directBusinessMin: n }))} step="0.01" />
+                <NumField label="Team Business ($)" hint="Total balanced-leg volume" value={form.teamBusinessMin} onChange={n => setForm(f => f && ({ ...f, teamBusinessMin: n }))} step="0.01" />
               </div>
+            </div>
+
+            {/* Balanced leg caps */}
+            <div className="rounded-xl p-4 space-y-4" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(194,210,255,0.4)" }}>Balanced Leg Caps (% of team requirement)</p>
+              <div className="grid grid-cols-3 gap-3">
+                <NumField label="Top Leg %" value={form.legTopPct} onChange={n => setForm(f => f && ({ ...f, legTopPct: Math.round(n) }))} />
+                <NumField label="Second Leg %" value={form.legSecondPct} onChange={n => setForm(f => f && ({ ...f, legSecondPct: Math.round(n) }))} />
+                <NumField label="Rest Legs %" value={form.legRestPct} onChange={n => setForm(f => f && ({ ...f, legRestPct: Math.round(n) }))} />
+              </div>
+              <p className="text-[11px]" style={{ color: legSum === 100 ? "rgba(52,211,153,0.8)" : "rgba(251,191,36,0.85)" }}>
+                {legSum === 100 ? "✓ Caps total 100%" : `⚠ Caps total ${legSum}% (recommended 100%)`}
+              </p>
+            </div>
+
+            {/* Reward */}
+            <div className="rounded-xl p-4 space-y-4" style={{ background: "rgba(52,211,153,0.04)", border: "1px solid rgba(52,211,153,0.12)" }}>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(52,211,153,0.55)" }}>Monthly Reward</p>
+              <div className="grid grid-cols-2 gap-3">
+                <NumField label="Monthly Amount ($)" value={form.rewardMonthlyAmount} onChange={n => setForm(f => f && ({ ...f, rewardMonthlyAmount: n }))} step="0.01" />
+                <NumField label="Number of Months" value={form.rewardMonths} onChange={n => setForm(f => f && ({ ...f, rewardMonths: Math.max(0, Math.round(n)) }))} />
+              </div>
+              <p className="text-[11px]" style={{ color: "rgba(194,210,255,0.45)" }}>
+                Total payout: <strong style={{ color: "rgba(52,211,153,0.9)" }}>{fmtUsd(form.rewardMonthlyAmount * form.rewardMonths)}</strong> credited to the Withdraw Wallet over {form.rewardMonths} months.
+              </p>
             </div>
 
             <div className="flex gap-3 pt-1">
@@ -360,7 +387,7 @@ export default function AdminRanks() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={saving || !form.name || !form.criteria || !form.reward}
+                disabled={saving || !form.name}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
                 style={{
                   background: "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(61,92,224,0.10))",

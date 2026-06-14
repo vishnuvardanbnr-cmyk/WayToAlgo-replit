@@ -1,7 +1,13 @@
 import { Router } from "express";
-import { db, ranksTable, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, ranksTable, usersTable, rankRewardSchedulesTable } from "@workspace/db";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
+import {
+  buildMaps,
+  computeUserRankMetrics,
+  highestQualifiedRank,
+  rankProgressForRank,
+} from "../lib/rankEngine";
 
 const router = Router();
 
@@ -12,6 +18,14 @@ function rankToResponse(r: typeof ranksTable.$inferSelect) {
     name: r.name,
     criteria: r.criteria,
     reward: r.reward,
+    selfInvestmentMin: parseFloat(r.selfInvestmentMin),
+    directBusinessMin: parseFloat(r.directBusinessMin),
+    teamBusinessMin: parseFloat(r.teamBusinessMin),
+    legTopPct: r.legTopPct,
+    legSecondPct: r.legSecondPct,
+    legRestPct: r.legRestPct,
+    rewardMonthlyAmount: parseFloat(r.rewardMonthlyAmount),
+    rewardMonths: r.rewardMonths,
     requiresRankId: r.requiresRankId,
     requiresCount: r.requiresCount,
     requiresLevels: r.requiresLevels,
@@ -29,42 +43,57 @@ router.get("/ranks/my-progress", requireAuth, async (req, res) => {
   const user = (req as any).user;
   const ranks = await db.select().from(ranksTable).orderBy(ranksTable.rankNumber);
 
-  const currentRankId = user.currentRankId;
-  const currentRank = currentRankId ? ranks.find(r => r.id === currentRankId) : undefined;
+  const currentRank = user.currentRankId ? ranks.find((r) => r.id === user.currentRankId) : undefined;
   const currentRankNumber = currentRank?.rankNumber ?? 0;
-  const nextRank = ranks.find(r => r.rankNumber === currentRankNumber + 1);
+  const nextRank = ranks.find((r) => r.rankNumber === currentRankNumber + 1);
 
-  // Count how many levels they've completed (simplified by checking currentLevel)
-  const levelsCompleted = user.currentLevel;
+  // Compute this user's qualification metrics from the full member graph.
+  const allUsers = await db.select({ id: usersTable.id, sponsorId: usersTable.sponsorId, totalInvested: usersTable.totalInvested }).from(usersTable);
+  const { children, invested } = buildMaps(allUsers);
+  const metrics = computeUserRankMetrics(user.id, children, invested);
 
-  // Count qualifying rank-1 referrers in their downline
-  const directRefs = await db.select().from(usersTable).where(eq(usersTable.sponsorId, user.id));
-  const qualifyingReferrersCount = directRefs.filter(u => u.currentRankId !== null).length;
+  // Sanity: surface the highest rank they actually qualify for (auto-promotion
+  // runs on a schedule, so this can be ahead of the stored currentRankId).
+  const qualified = highestQualifiedRank(metrics, ranks);
 
-  // Lugs progress (3-leg requirement for ranks 2+)
-  const lugsProgress = [];
-  const legRequirement = nextRank?.rankNumber === 2 ? 10000
-    : nextRank?.rankNumber === 3 ? 25000
-    : nextRank?.rankNumber === 4 ? 50000
-    : nextRank?.rankNumber === 5 ? 100000
-    : 10000;
+  // Detailed progress toward the next rank (or, if maxed out, the current one).
+  const target = nextRank ?? currentRank;
+  const progress = target ? rankProgressForRank(metrics, target) : null;
 
-  for (let i = 0; i < 3; i++) {
-    const legUser = directRefs[i];
-    let legBusiness = 0;
-    if (legUser) {
-      legBusiness = parseFloat(legUser.totalInvested);
-    }
-    lugsProgress.push({ lugIndex: i + 1, business: legBusiness, required: legRequirement });
-  }
+  // Active reward schedule status (for the current rank).
+  const [schedule] = await db
+    .select()
+    .from(rankRewardSchedulesTable)
+    .where(
+      and(
+        eq(rankRewardSchedulesTable.userId, user.id),
+        inArray(rankRewardSchedulesTable.status, ["active", "completed"]),
+      ),
+    )
+    .orderBy(desc(rankRewardSchedulesTable.startedAt))
+    .limit(1);
 
   const response: any = {
-    levelsCompleted,
-    qualifyingReferrersCount,
-    lugsProgress,
+    metrics: {
+      selfInvest: metrics.selfInvest,
+      directBusiness: metrics.directBusiness,
+      legVolumes: metrics.legVolumes,
+    },
+    progress,
   };
   if (currentRank) response.currentRank = rankToResponse(currentRank);
   if (nextRank) response.nextRank = rankToResponse(nextRank);
+  if (qualified) response.qualifiedRank = rankToResponse(qualified);
+  if (schedule) {
+    response.schedule = {
+      rankId: schedule.rankId,
+      monthlyAmount: parseFloat(schedule.monthlyAmount),
+      totalMonths: schedule.totalMonths,
+      monthsPaid: schedule.monthsPaid,
+      nextPayoutAt: schedule.status === "active" ? schedule.nextPayoutAt.toISOString() : null,
+      status: schedule.status,
+    };
+  }
 
   res.json(response);
 });
