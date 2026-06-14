@@ -99,6 +99,47 @@ export default function Income() {
         </div>
       </div>
 
+      {/* Earnings cap progress */}
+      {(() => {
+        const cap = (summary as any)?.earningsCap;
+        if (!cap || !cap.enabled || cap.cap == null) return null;
+        const earned = Number(cap.earned ?? 0);
+        const ceiling = Number(cap.cap ?? 0);
+        const pct = ceiling > 0 ? Math.min(100, (earned / ceiling) * 100) : 0;
+        const remaining = Number(cap.remaining ?? Math.max(0, ceiling - earned));
+        const reached = !!cap.reached;
+        const barColor = reached ? "#f87171" : pct >= 80 ? "#fbbf24" : "#34d399";
+        return (
+          <div className="rounded-2xl p-4" style={GLASS}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs tracking-wide uppercase" style={{ color: "rgba(194,210,255,0.45)" }}>
+                Earnings Cap
+              </div>
+              <div
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={{ color: TEAL, background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.25)" }}
+              >
+                {Number(cap.multiplier ?? 0)}× INVESTED
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between mb-1.5">
+              <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.9)" }}>
+                ${earned.toFixed(2)} <span style={{ color: "rgba(194,210,255,0.4)", fontWeight: 400 }}>of ${ceiling.toFixed(2)}</span>
+              </div>
+              <div className="text-xs" style={{ color: reached ? "#f87171" : "rgba(194,210,255,0.55)" }}>
+                {reached ? "Cap reached" : `$${remaining.toFixed(2)} left`}
+              </div>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.12)" }}>
+              <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
+            </div>
+            <div className="text-[11px] mt-2" style={{ color: "rgba(194,210,255,0.4)" }}>
+              Trading Profit + Team Benefit combined. Grow your direct team's volume past your own investment to unlock a higher cap.
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Income type breakdown */}
       <div className="grid grid-cols-2 gap-3">
         {[

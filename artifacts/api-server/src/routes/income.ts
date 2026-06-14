@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { db, incomeTable, withdrawalsTable } from "@workspace/db";
-import { eq, and, desc, sum } from "drizzle-orm";
+import { db, incomeTable, withdrawalsTable, usersTable, platformSettingsTable, tokenRewardsTable } from "@workspace/db";
+import { eq, and, desc, sum, inArray, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
+import { capSettingsFrom, capForUser } from "../lib/earningsCap";
 
 const router = Router();
 
@@ -80,7 +81,34 @@ router.get("/income/summary", requireAuth, async (req, res) => {
   // Available balance is only from USDT earnings (WTA must be sold first)
   const availableBalance = usdtEarningsTotal - withdrawnTotal - pendingWithdrawal;
 
+  // Earnings cap (ROI + level combined) — computed consistently with the distribution engine.
+  const [settingsRow] = await db.select().from(platformSettingsTable).limit(1);
+  const [u] = await db.select().from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
+  const directRows = await db
+    .select({ ti: usersTable.totalInvested })
+    .from(usersTable)
+    .where(eq(usersTable.sponsorId, user.id));
+  const directVolume = directRows.reduce((s, r) => s + (parseFloat(r.ti ?? "0") || 0), 0);
+  const [earnedRow] = await db
+    .select({ total: sql<string>`coalesce(sum(${tokenRewardsTable.usdValue}), 0)` })
+    .from(tokenRewardsTable)
+    .where(and(eq(tokenRewardsTable.userId, user.id), inArray(tokenRewardsTable.type, ["roi", "level"])));
+  const capEarned = parseFloat(earnedRow?.total ?? "0") || 0;
+  const cs = settingsRow ? capSettingsFrom(settingsRow) : { enabled: true, base: 2, boosted: 3 };
+  const capInfo = capForUser(u ?? { isAdmin: user.isAdmin, totalInvested: "0" }, directVolume, capEarned, cs);
+  const earningsCap = {
+    enabled: capInfo.enabled,
+    multiplier: capInfo.multiplier,
+    personalInvested: capInfo.personalInvested,
+    directVolume: capInfo.directVolume,
+    earned: capInfo.earned,
+    cap: capInfo.cap === Infinity ? null : capInfo.cap,
+    remaining: capInfo.remaining === Infinity ? null : capInfo.remaining,
+    reached: capInfo.reached,
+  };
+
   res.json({
+    earningsCap,
     totalEarnings: usdtEarningsTotal,   // USDT only — what can actually be withdrawn
     wtaEarningsTotal,                    // WTA tokens total (daily + level comm)
     dailyReturnTotal,

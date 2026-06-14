@@ -95,6 +95,9 @@ type IncomeForm = {
   levelDaysL9: number;
   levelDaysL10: number;
   dailyRoiRate: number;
+  earningsCapEnabled: boolean;
+  earningsCapBase: number;
+  earningsCapBoosted: number;
 };
 
 type SmtpForm = {
@@ -493,6 +496,9 @@ export default function AdminSettings() {
       planMinAmount: 100,
       levelCommissionPoolPct: 50,
       dailyRoiRate: 0.4,
+      earningsCapEnabled: true,
+      earningsCapBase: 2,
+      earningsCapBoosted: 3,
       levelCommL1: 20, levelCommL2: 10, levelCommL3: 10,
       levelCommL4: 4, levelCommL5: 4, levelCommL6: 4, levelCommL7: 4, levelCommL8: 4, levelCommL9: 4, levelCommL10: 4,
       levelUnlockL2: 1000, levelUnlockL3: 3000,
@@ -664,6 +670,7 @@ export default function AdminSettings() {
   const withdrawalMode = withdrawalForm.watch("withdrawalMode");
   const withdrawFeeMode = withdrawalForm.watch("withdrawFeeMode");
   const smtpEnabled = smtpForm.watch("smtpEnabled");
+  const earningsCapEnabled = incomeForm.watch("earningsCapEnabled");
   const activeTabMeta = TABS.find(t => t.key === activeTab) ?? TABS[0];
 
   // Manual ROI payout
@@ -1266,6 +1273,61 @@ export default function AdminSettings() {
                       className={INPUT_CLS} style={INPUT_STYLE}
                     />
                     <FieldHint>Flat daily rate. Sets the minimum token distribution required each day (eligible principal × this %).</FieldHint>
+                  </div>
+                </div>
+              </div>
+
+              {/* Earnings Cap */}
+              <div>
+                <SubHeader hint="Limits how much a user can earn from Trading Profit (ROI) + Team Benefit (level commission) combined, as a multiple of their own personal investment. Spot referral income is not capped. Admins are never capped.">
+                  <span className="inline-flex items-center gap-1.5"><Coins size={12} />Earnings Cap</span>
+                </SubHeader>
+                <div
+                  className="flex items-center justify-between gap-4 rounded-xl px-4 py-3 mt-3"
+                  style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.20)" }}
+                >
+                  <div>
+                    <div className="text-sm font-bold" style={{ color: "rgba(194,210,255,0.95)" }}>Enable Earnings Cap</div>
+                    <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.5)" }}>
+                      When ON, ROI + level earnings stop once a user reaches their cap.
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" className="sr-only" {...incomeForm.register("earningsCapEnabled")} />
+                    <div
+                      className="w-11 h-6 rounded-full transition-colors"
+                      style={{
+                        background: earningsCapEnabled ? TEAL : "rgba(91,140,255,0.15)",
+                        border: `1px solid ${earningsCapEnabled ? TEAL : "rgba(91,140,255,0.25)"}`,
+                        position: "relative",
+                      }}
+                    >
+                      <div
+                        className="absolute top-0.5 w-5 h-5 rounded-full transition-transform"
+                        style={{
+                          left: earningsCapEnabled ? "calc(100% - 22px)" : "2px",
+                          background: earningsCapEnabled ? "#060814" : "rgba(194,210,255,0.4)",
+                        }}
+                      />
+                    </div>
+                  </label>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                  <div>
+                    <FieldLabel>Base Multiplier (×)</FieldLabel>
+                    <input type="number" step="0.1" min="1"
+                      {...incomeForm.register("earningsCapBase", { valueAsNumber: true })}
+                      className={INPUT_CLS} style={INPUT_STYLE}
+                    />
+                    <FieldHint>Default cap = this × personal investment (e.g. 2 = earn up to 2× invested).</FieldHint>
+                  </div>
+                  <div>
+                    <FieldLabel>Boosted Multiplier (×)</FieldLabel>
+                    <input type="number" step="0.1" min="1"
+                      {...incomeForm.register("earningsCapBoosted", { valueAsNumber: true })}
+                      className={INPUT_CLS} style={INPUT_STYLE}
+                    />
+                    <FieldHint>Applied when a user's direct referrals' total invested exceeds their own (e.g. 3 = 3× invested).</FieldHint>
                   </div>
                 </div>
               </div>

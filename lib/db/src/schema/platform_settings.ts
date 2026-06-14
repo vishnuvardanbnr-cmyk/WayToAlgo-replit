@@ -58,6 +58,12 @@ export const platformSettingsTable = pgTable("platform_settings", {
   // Flat daily ROI rate (decimal, e.g. 0.004 = 0.4%/day). Used to compute the minimum
   // token distribution amount required each day = eligible ROI principal × dailyRoiRate.
   dailyRoiRate: numeric("daily_roi_rate", { precision: 8, scale: 5 }).notNull().default("0.00400"),
+  // Earnings cap — a user can earn at most (multiplier × personal investment) from
+  // ROI + level commission combined. base applies normally; boosted applies when the
+  // user's DIRECT referrals' total invested volume exceeds their own personal investment.
+  earningsCapEnabled: boolean("earnings_cap_enabled").notNull().default(true),
+  earningsCapBase: numeric("earnings_cap_base", { precision: 6, scale: 2 }).notNull().default("2.00"),
+  earningsCapBoosted: numeric("earnings_cap_boosted", { precision: 6, scale: 2 }).notNull().default("3.00"),
   // Wallet conversion fee — user gets this % of their sell proceeds (e.g. 0.81 = 81%)
   walletConvertReturnRate: numeric("wallet_convert_return_rate", { precision: 5, scale: 4 }).notNull().default("0.8100"),
   // Level commission rates (decimal, e.g. 0.20 = 20%)

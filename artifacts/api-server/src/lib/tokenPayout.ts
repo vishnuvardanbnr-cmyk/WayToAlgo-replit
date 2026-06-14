@@ -17,6 +17,12 @@ import {
   getPlatformBalances,
   TOKEN_DECIMALS,
 } from "./tokenChain";
+import {
+  capSettingsFrom,
+  buildDirectVolumeMap,
+  loadRoiLevelEarnedMap,
+  capForUser,
+} from "./earningsCap";
 
 export type DistributeMode = "buy" | "held";
 
@@ -84,6 +90,11 @@ interface Eligibility {
   investorIds: Set<number>;
   cfg: ReturnType<typeof levelConfig>;
   levelCommissionPoolPct: number;
+  // Earnings cap
+  capEnabled: boolean;
+  capMap: Map<number, number>;    // userId -> cap USD ceiling (Infinity when uncapped)
+  earnedMap: Map<number, number>; // userId -> cumulative roi+level USD earned (prior rounds)
+  cappedInvestorCount: number;    // investors excluded today because they already hit their cap
 }
 
 /**
@@ -118,9 +129,32 @@ async function loadEligibility(settings: SettingsRow): Promise<Eligibility> {
     allUsers.map((u) => ({ id: u.id, sponsorId: u.sponsorId, totalInvested: u.totalInvested })),
   );
 
+  // ── Earnings cap (ROI + level) ──
+  // multiplier × personal investment is the ceiling; boosted when a user's direct
+  // referrals' total invested exceeds their own personal investment. Recomputed each run.
+  const cs = capSettingsFrom(settings);
+  const earnedMap = await loadRoiLevelEarnedMap();
+  const directVolumeMap = buildDirectVolumeMap(
+    allUsers.map((u) => ({ id: u.id, sponsorId: u.sponsorId, totalInvested: u.totalInvested })),
+  );
+  const capMap = new Map<number, number>();
+  for (const u of allUsers) {
+    const info = capForUser(u, directVolumeMap.get(u.id) ?? 0, earnedMap.get(u.id) ?? 0, cs);
+    capMap.set(u.id, info.cap);
+  }
+
+  // Exclude fully-capped users' investments from today's ROI base entirely so the
+  // minimum + proportional split reflect only principal that can actually earn.
+  const cappedInvestorIds = new Set<number>();
   const eligible = advancing.filter((inv) => {
     const u = userById.get(inv.userId);
-    return !!u && u.isActive;
+    if (!u || !u.isActive) return false;
+    if (cs.enabled) {
+      const cap = capMap.get(u.id) ?? Infinity;
+      const earned = earnedMap.get(u.id) ?? 0;
+      if (cap !== Infinity && earned + 1e-9 >= cap) { cappedInvestorIds.add(u.id); return false; }
+    }
+    return true;
   });
 
   // ROI principal per eligible investment in micro-USD (BigInt-exact proportions).
@@ -138,7 +172,10 @@ async function loadEligibility(settings: SettingsRow): Promise<Eligibility> {
     investorIds.add(inv.userId);
   }
 
-  return { eligible, userById, teamVolumeMap, principalMicro, totalMicro, investorIds, cfg, levelCommissionPoolPct };
+  return {
+    eligible, userById, teamVolumeMap, principalMicro, totalMicro, investorIds, cfg, levelCommissionPoolPct,
+    capEnabled: cs.enabled, capMap, earnedMap, cappedInvestorCount: cappedInvestorIds.size,
+  };
 }
 
 interface SimResult {
@@ -162,6 +199,7 @@ interface SimResult {
  */
 function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsdt: number): SimResult {
   const { eligible, userById, teamVolumeMap, principalMicro, totalMicro, cfg, levelCommissionPoolPct } = e;
+  const { capEnabled, capMap, earnedMap } = e;
 
   const userTokenAdd = new Map<number, bigint>();
   const rewardRows: SimResult["rewardRows"] = [];
@@ -173,6 +211,27 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
 
   const investorBps = BigInt(Math.round((1 - levelCommissionPoolPct) * 10000));
   const levelPoolBps = BigInt(Math.round(levelCommissionPoolPct * 10000));
+
+  // Running USD earned (roi + level) per user this distribution, seeded with prior totals,
+  // so each credit is clamped to the user's remaining cap allowance. Clamped-off tokens are
+  // left uncredited and roll into the reserve via the supply-conservation remainder below.
+  const runningEarned = new Map(earnedMap);
+  function clampToCap(wei: bigint, usd: number, userId: number): { wei: bigint; usd: number } {
+    if (!capEnabled) return { wei, usd };
+    const cap = capMap.get(userId) ?? Infinity;
+    if (cap === Infinity) return { wei, usd };
+    const remaining = cap - (runningEarned.get(userId) ?? 0);
+    if (remaining <= 0) return { wei: 0n, usd: 0 };
+    if (usd <= remaining || usd <= 0) return { wei, usd };
+    // Scale wei by remaining/usd using exact bigint math (micro-USD) to avoid float drift.
+    const remMicro = BigInt(Math.round(remaining * 1e6));
+    const usdMicro = BigInt(Math.round(usd * 1e6));
+    if (usdMicro <= 0n) return { wei, usd };
+    let cw = (wei * remMicro) / usdMicro;
+    if (cw < 0n) cw = 0n;
+    if (cw > wei) cw = wei;
+    return { wei: cw, usd: remaining };
+  }
 
   for (const inv of eligible) {
     const investor = userById.get(inv.userId)!;
@@ -192,14 +251,17 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
 
     if (grossWei <= 0n) continue;
 
-    const investorWei = (grossWei * investorBps) / 10000n;
+    const investorWei0 = (grossWei * investorBps) / 10000n;
+    const investorUsd0 = usdShare * (1 - levelCommissionPoolPct);
+    const { wei: investorWei, usd: investorUsd } = clampToCap(investorWei0, investorUsd0, investor.id);
     if (investorWei > 0n) {
       userTokenAdd.set(investor.id, (userTokenAdd.get(investor.id) ?? 0n) + investorWei);
       roiTotalWei += investorWei;
       recipients.add(investor.id);
+      runningEarned.set(investor.id, (runningEarned.get(investor.id) ?? 0) + investorUsd);
       rewardRows.push({
         userId: investor.id, type: "roi", tokenAmount: investorWei,
-        usdValue: usdShare * (1 - levelCommissionPoolPct),
+        usdValue: investorUsd,
         level: null, fromUserId: null, fromUserName: null,
       });
     }
@@ -219,15 +281,18 @@ function simulateDistribution(e: Eligibility, tokensBoughtWei: bigint, profitUsd
       const uplineVolume = teamVolumeMap.get(upline.id) ?? 0;
       if (uplineVolume >= unlock) {
         const rateBps = BigInt(Math.round((cfg.levelRates[level] ?? 0) * 10000));
-        const commissionWei = (levelPoolWei * rateBps) / 10000n;
+        const commissionWei0 = (levelPoolWei * rateBps) / 10000n;
+        const commissionUsd0 = usdShare * levelCommissionPoolPct * (cfg.levelRates[level] ?? 0);
+        const { wei: commissionWei, usd: commissionUsd } = clampToCap(commissionWei0, commissionUsd0, upline.id);
         if (commissionWei > 0n) {
           userTokenAdd.set(upline.id, (userTokenAdd.get(upline.id) ?? 0n) + commissionWei);
           levelTotalWei += commissionWei;
           distributedWei += commissionWei;
           recipients.add(upline.id);
+          runningEarned.set(upline.id, (runningEarned.get(upline.id) ?? 0) + commissionUsd);
           rewardRows.push({
             userId: upline.id, type: "level", tokenAmount: commissionWei,
-            usdValue: usdShare * levelCommissionPoolPct * (cfg.levelRates[level] ?? 0),
+            usdValue: commissionUsd,
             level, fromUserId: investor.id, fromUserName: investor.name || investor.email,
           });
         }
@@ -260,6 +325,7 @@ export interface TokenPreviewResult {
   eligibleInvestors: number;
   totalRoiPrincipalUsd: number;
   coolingHours: number;
+  cappedInvestorCount: number; // investors excluded today because they hit their earnings cap
   // Flat daily ROI model
   dailyRoiRate: number;       // fraction, e.g. 0.004 = 0.4%/day
   expectedDailyUsd: number;   // minimum to distribute today = totalRoiPrincipalUsd × dailyRoiRate
@@ -295,7 +361,7 @@ export async function previewTokenDistribution(
   if (!settings) {
     return { success: false, configured: false, mode, error: "Platform settings not configured",
       eligibleInvestments: 0, eligibleInvestors: 0, totalRoiPrincipalUsd: 0, coolingHours: 24,
-      dailyRoiRate: 0, expectedDailyUsd: 0 };
+      cappedInvestorCount: 0, dailyRoiRate: 0, expectedDailyUsd: 0 };
   }
 
   const contractAddress = (settings.tokenContractAddress || "").trim();
@@ -312,6 +378,7 @@ export async function previewTokenDistribution(
     eligibleInvestors: e.investorIds.size,
     totalRoiPrincipalUsd,
     coolingHours: e.cfg.coolingHours,
+    cappedInvestorCount: e.cappedInvestorCount,
     dailyRoiRate,
     expectedDailyUsd: totalRoiPrincipalUsd * dailyRoiRate,
   };
