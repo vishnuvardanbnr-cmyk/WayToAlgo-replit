@@ -3,7 +3,7 @@ import { getProvider, USDT_CONTRACT, USDT_DECIMALS } from "./blockchain";
 import { logger } from "./logger";
 
 /**
- * Server-side client for the BondingCurveToken used by the ROI-token payout
+ * Server-side client for the WaytoAlgoToken used by the ROI-token payout
  * cycle. All buys/sells are executed from the platform WITHDRAW wallet (the
  * same wallet that funds user withdrawals), with BNB gas topped up from the
  * gas wallet — mirroring the deposit-sweep / withdrawal patterns in

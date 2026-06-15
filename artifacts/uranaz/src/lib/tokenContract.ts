@@ -45,7 +45,7 @@ const SEL = {
   setSafeLevelPercents: "758a06a0", // setSafeLevelPercents(uint256[10])
 } as const;
 
-// Referral depth — must match BondingCurveToken.LEVELS.
+// Referral depth — must match WaytoAlgoToken.LEVELS.
 export const REFERRAL_LEVELS = 10;
 export const BPS_DENOMINATOR = 10000;
 

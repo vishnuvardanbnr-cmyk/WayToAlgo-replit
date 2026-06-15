@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title BondingCurveToken
+ * @title WaytoAlgoToken
  * @notice USDT-backed bonding-curve token for WaytoAlgo.
  *
  * @dev Based on the supplied MvaultToken reference, adapted so that USERS can
@@ -45,7 +45,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *      ASSUMES an 18-decimal USDT (BSC BEP-20 USDT, 0x55d3...7955 is 18 dp) and
  *      a non fee-on-transfer token.
  */
-contract BondingCurveToken is ERC20, ReentrancyGuard, Ownable {
+contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable usdtToken;

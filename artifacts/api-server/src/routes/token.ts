@@ -10,7 +10,7 @@ import { logger } from "../lib/logger";
 const router = Router();
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-const UPLINE_LEVELS = 10; // must match BondingCurveToken.LEVELS
+const UPLINE_LEVELS = 10; // must match WaytoAlgoToken.LEVELS
 const ADDR_RE = /^0x[0-9a-fA-F]{40}$/;
 
 /**
