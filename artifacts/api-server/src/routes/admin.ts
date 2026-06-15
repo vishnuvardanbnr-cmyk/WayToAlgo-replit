@@ -2146,27 +2146,71 @@ router.get("/admin/token-allocations/pending", requireAdmin, async (_req, res) =
 });
 
 // POST /api/admin/token-allocations/settle
-// Admin triggers on-chain token minting for all pending allocations.
-// Requires the platform withdraw wallet to have sufficient USDT.
-// Each pending record is processed: tokens are bought and transferred to the user's
-// wallet. Records are updated with the real tx hash and amount on success.
-router.post("/admin/token-allocations/settle", requireAdmin, async (_req, res) => {
+// Admin triggers on-chain token minting for pending allocations.
+// Body: { ids?: number[] } — if ids is provided, only those records are settled;
+//   omit ids (or pass empty array) to settle ALL pending records.
+// For each record the buyer's 5-level upline + admin master wallet are resolved
+// and passed on-chain so the contract distributes referral cuts automatically.
+router.post("/admin/token-allocations/settle", requireAdmin, async (req, res) => {
   const { buyAndTransferToUser, TOKEN_DECIMALS } = await import("../lib/tokenChain.js");
   const { ethers } = await import("ethers");
+
+  const bodyParsed = z.object({ ids: z.array(z.number().int().positive()).optional() }).safeParse(req.body);
+  const selectedIds: number[] | undefined = bodyParsed.success ? bodyParsed.data.ids : undefined;
 
   const [cfg] = await db.select().from(platformSettingsTable).limit(1);
   const contractAddress = cfg?.tokenContractAddress ?? "";
   const withdrawKey     = cfg?.withdrawWalletPrivateKey ?? "";
   const gasKey          = cfg?.gasWalletPrivateKey ?? "";
   const rpcUrl          = cfg?.bscRpcUrl ?? "";
+  const adminMasterWallet = (cfg?.adminMasterWallet ?? "").trim();
 
   if (!contractAddress || !withdrawKey || !gasKey || !rpcUrl) {
     res.status(400).json({ message: "Token contract, withdraw wallet, gas wallet, and RPC URL must all be configured in Settings before settling." });
     return;
   }
 
+  const ADDR_RE_LOCAL = /^0x[0-9a-fA-F]{40}$/;
+  const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
+  const SAFE_USER_LEVELS = 5;
+  const TOTAL_LEVELS = 10;
+
+  // Build the 10-slot referrers array for a given user (mirrors /token/upline-safe logic).
+  async function buildReferrers(userId: number): Promise<string[]> {
+    const addresses: string[] = [];
+    const [buyer] = await db.select({ sponsorId: usersTable.sponsorId }).from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+    let currentSponsorId: number | null = buyer?.sponsorId ?? null;
+    const seen = new Set<number>([userId]);
+
+    for (let level = 0; level < SAFE_USER_LEVELS; level++) {
+      if (currentSponsorId == null || seen.has(currentSponsorId)) {
+        addresses.push(ZERO_ADDR);
+        currentSponsorId = null;
+        continue;
+      }
+      seen.add(currentSponsorId);
+      const [sponsor] = await db.select({ id: usersTable.id, walletAddress: usersTable.walletAddress, sponsorId: usersTable.sponsorId })
+        .from(usersTable).where(eq(usersTable.id, currentSponsorId)).limit(1);
+      if (!sponsor) { addresses.push(ZERO_ADDR); currentSponsorId = null; continue; }
+      const w = (sponsor.walletAddress ?? "").trim();
+      addresses.push(ADDR_RE_LOCAL.test(w) ? w : ZERO_ADDR);
+      currentSponsorId = sponsor.sponsorId ?? null;
+    }
+
+    // Slot 5: admin master wallet (the fixed admin cut)
+    addresses.push(ADDR_RE_LOCAL.test(adminMasterWallet) ? adminMasterWallet : ZERO_ADDR);
+
+    // Remaining slots unused
+    while (addresses.length < TOTAL_LEVELS) addresses.push(ZERO_ADDR);
+    return addresses;
+  }
+
+  const whereClause = selectedIds && selectedIds.length > 0
+    ? and(like(userTokenPurchasesTable.txHash, "virtual:%"), inArray(userTokenPurchasesTable.id, selectedIds))
+    : like(userTokenPurchasesTable.txHash, "virtual:%");
+
   const pending = await db.select().from(userTokenPurchasesTable)
-    .where(like(userTokenPurchasesTable.txHash, "virtual:%"))
+    .where(whereClause!)
     .orderBy(desc(userTokenPurchasesTable.createdAt));
 
   if (pending.length === 0) {
@@ -2179,12 +2223,14 @@ router.post("/admin/token-allocations/settle", requireAdmin, async (_req, res) =
   for (const row of pending) {
     const [user] = await db.select({ walletAddress: usersTable.walletAddress })
       .from(usersTable).where(eq(usersTable.id, row.userId)).limit(1);
-    const userWallet = user?.walletAddress ?? "";
+    const userWallet = (user?.walletAddress ?? "").trim();
 
-    if (!userWallet || !/^0x[0-9a-fA-F]{40}$/.test(userWallet)) {
+    if (!ADDR_RE_LOCAL.test(userWallet)) {
       results.push({ id: row.id, userId: row.userId, usdtSpent: parseFloat(row.usdtSpent), status: "failed", error: "User has no valid wallet address" });
       continue;
     }
+
+    const referrers = await buildReferrers(row.userId);
 
     const result = await buyAndTransferToUser({
       usdtAmount: parseFloat(row.usdtSpent),
@@ -2193,6 +2239,7 @@ router.post("/admin/token-allocations/settle", requireAdmin, async (_req, res) =
       withdrawWalletPrivateKey: withdrawKey,
       gasWalletPrivateKey: gasKey,
       rpcUrl,
+      referrers,
     });
 
     if (result.success && result.transferTxHash && result.tokensBought) {

@@ -191,6 +191,7 @@ export async function buyTokens(
   withdrawWalletPrivateKey: string,
   gasWalletPrivateKey: string,
   rpcUrl: string,
+  referrers: string[] = [],
 ): Promise<BuyResult> {
   try {
     const provider = getProvider(rpcUrl);
@@ -237,7 +238,7 @@ export async function buyTokens(
     }
 
     const balBefore: bigint = await token.balanceOf(wallet.address);
-    const buyTx = await token.buy(amountWei, minOut, [], { gasLimit: BUY_GAS, gasPrice });
+    const buyTx = await token.buy(amountWei, minOut, referrers, { gasLimit: BUY_GAS, gasPrice });
     await buyTx.wait(1);
     const balAfter: bigint = await token.balanceOf(wallet.address);
     const tokensBought = balAfter - balBefore;
@@ -287,8 +288,9 @@ export async function buyAndTransferToUser(params: {
   withdrawWalletPrivateKey: string;
   gasWalletPrivateKey: string;
   rpcUrl: string;
+  referrers?: string[];
 }): Promise<BuyAndTransferResult> {
-  const { usdtAmount, userWallet, contractAddress, withdrawWalletPrivateKey, gasWalletPrivateKey, rpcUrl } = params;
+  const { usdtAmount, userWallet, contractAddress, withdrawWalletPrivateKey, gasWalletPrivateKey, rpcUrl, referrers } = params;
 
   if (!ADDR_RE.test(userWallet)) {
     return { success: false, error: "User wallet address is invalid or not set." };
@@ -297,8 +299,8 @@ export async function buyAndTransferToUser(params: {
     return { success: false, error: "Token contract address is not configured." };
   }
 
-  // Step 1: buy tokens into the platform withdraw wallet
-  const buyResult = await buyTokens(usdtAmount, contractAddress, withdrawWalletPrivateKey, gasWalletPrivateKey, rpcUrl);
+  // Step 1: buy tokens into the platform withdraw wallet (with upline referrers so the contract distributes their cuts on-chain)
+  const buyResult = await buyTokens(usdtAmount, contractAddress, withdrawWalletPrivateKey, gasWalletPrivateKey, rpcUrl, referrers ?? []);
   if (!buyResult.success || !buyResult.tokensBought) {
     return { success: false, buyTxHash: buyResult.txHash, error: buyResult.error ?? "Buy failed" };
   }
