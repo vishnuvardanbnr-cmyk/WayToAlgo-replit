@@ -59,13 +59,21 @@ const TrustWalletLogo = () => (
   </svg>
 );
 
-/* TokenPocket — official brand logo */
+/* TokenPocket — crisp inline SVG matching official TP brand */
 const TokenPocketLogo = () => (
-  <img
-    src="/wallets/tokenpocket.png"
-    alt="TokenPocket"
-    style={{ width: 44, height: 44, objectFit: "contain", borderRadius: 10 }}
-  />
+  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+    <rect width="44" height="44" rx="10" fill="#2980FE" />
+    <text
+      x="22"
+      y="30"
+      textAnchor="middle"
+      fontFamily="'Arial Black', Arial, sans-serif"
+      fontWeight="900"
+      fontSize="20"
+      fill="white"
+      letterSpacing="-1"
+    >TP</text>
+  </svg>
 );
 
 /* SafePal — brand: dark #0E1C36, cyan shield with keyhole */
