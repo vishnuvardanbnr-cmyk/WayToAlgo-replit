@@ -50,7 +50,7 @@ function shortId(id: string | number) {
   return String(id).slice(0, 8).toUpperCase();
 }
 
-const TOKEN_TYPES = new Set(["daily_return", "level_commission"]);
+const TOKEN_TYPES = new Set(["daily_return"]);
 
 function fmtAmount(type: string, amount: number) {
   return TOKEN_TYPES.has(type)

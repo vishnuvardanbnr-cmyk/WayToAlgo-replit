@@ -7,10 +7,10 @@ const TEAL = "#00FF94";
 const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 
 const levelCommissions: Record<number, string> = {
-  1: "20%", 2: "10%", 3: "10%", 4: "4%", 5: "4%", 6: "4%", 7: "4%", 8: "4%",
+  1: "20%", 2: "10%", 3: "10%", 4: "4%", 5: "4%", 6: "4%", 7: "4%", 8: "4%", 9: "4%", 10: "4%",
 };
 const levelUnlockRequirements: Record<number, number> = {
-  1: 0, 2: 1000, 3: 3000, 4: 10000, 5: 10000, 6: 10000, 7: 10000, 8: 10000,
+  1: 0, 2: 1000, 3: 3000, 4: 10000, 5: 10000, 6: 10000, 7: 10000, 8: 10000, 9: 10000, 10: 10000,
 };
 
 export default function Team({ user }: { user: any }) {
@@ -217,7 +217,7 @@ export default function Team({ user }: { user: any }) {
             { label: "Total Members",    value: stats.totalMembers },
             { label: "Direct Referrals", value: stats.directReferrals },
             { label: "Active Members",   value: stats.activeMembers },
-            { label: "Levels Unlocked",  value: `${stats.levelsUnlocked} / 8` },
+            { label: "Levels Unlocked",  value: `${stats.levelsUnlocked} / 10` },
           ].map(item => (
             <div key={item.label} className="rounded-xl p-4" style={GLASS}>
               <div className="text-xl font-bold" style={{ color: TEAL }}>{item.value}</div>
@@ -253,7 +253,7 @@ export default function Team({ user }: { user: any }) {
             </div>
             <div className="mt-3">
               <div className="flex justify-between text-xs mb-1.5" style={{ color: "rgba(176,255,224,0.4)" }}>
-                <span>Level {stats.levelsUnlocked} → Level {Math.min(stats.levelsUnlocked + 1, 8)}</span>
+                <span>Level {stats.levelsUnlocked} → Level {Math.min(stats.levelsUnlocked + 1, 10)}</span>
                 {(stats.nextLevelRequirement ?? 0) > 0 && (
                   <span>${stats.totalTeamBusiness.toFixed(0)} / ${(stats.nextLevelRequirement ?? 0).toLocaleString()}</span>
                 )}

@@ -31,7 +31,7 @@ async function getTeamMembers(userId: number, maxLevel: number): Promise<Map<num
 // GET /api/team
 router.get("/team", requireAuth, async (req, res) => {
   const user = (req as any).user;
-  const teamMap = await getTeamMembers(user.id, 8);
+  const teamMap = await getTeamMembers(user.id, 10);
 
   const levels = [];
   for (const [level, members] of teamMap.entries()) {
@@ -65,7 +65,7 @@ router.get("/team", requireAuth, async (req, res) => {
 // GET /api/team/stats
 router.get("/team/stats", requireAuth, async (req, res) => {
   const user = (req as any).user;
-  const teamMap = await getTeamMembers(user.id, 8);
+  const teamMap = await getTeamMembers(user.id, 10);
 
   let totalMembers = 0;
   let activeMembers = 0;
@@ -95,12 +95,12 @@ router.get("/team/stats", requireAuth, async (req, res) => {
   // Level unlock thresholds — based on team business volume
   const levelRequirements: Record<number, number> = {
     1: 0, 2: 1000, 3: 3000, 4: 10000,
-    5: 10000, 6: 10000, 7: 10000, 8: 10000,
+    5: 10000, 6: 10000, 7: 10000, 8: 10000, 9: 10000, 10: 10000,
   };
 
   // Count how many levels are unlocked based on team business volume
   let levelsUnlocked = 0;
-  for (let lvl = 1; lvl <= 8; lvl++) {
+  for (let lvl = 1; lvl <= 10; lvl++) {
     if (totalTeamBusiness >= levelRequirements[lvl]) {
       levelsUnlocked = lvl;
     } else {
@@ -109,7 +109,7 @@ router.get("/team/stats", requireAuth, async (req, res) => {
   }
 
   // Next level to unlock and progress toward it
-  const nextLevel = Math.min(levelsUnlocked + 1, 8);
+  const nextLevel = Math.min(levelsUnlocked + 1, 10);
   const nextLevelRequirement = levelRequirements[nextLevel] || 0;
   const nextLevelProgress = nextLevelRequirement > 0
     ? Math.min(100, (totalTeamBusiness / nextLevelRequirement) * 100)
