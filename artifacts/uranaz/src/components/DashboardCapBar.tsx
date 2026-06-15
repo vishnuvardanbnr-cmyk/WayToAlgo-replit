@@ -1,6 +1,6 @@
 import { Gauge, TrendingUp, Lock, CheckCircle2 } from "lucide-react";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const GREEN = "rgb(52,211,153)";
 const AMBER = "rgb(251,191,36)";
 
@@ -39,7 +39,7 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-semibold text-sm tracking-wide" style={{ color: "rgba(194,210,255,0.8)" }}>
+        <h2 className="font-semibold text-sm tracking-wide" style={{ color: "rgba(176,255,224,0.8)" }}>
           Earnings Cap
         </h2>
       </div>
@@ -47,14 +47,14 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
       <div className="rounded-2xl p-5" style={{
         background: "rgba(10,14,30,0.65)",
         backdropFilter: "blur(14px)",
-        border: "1px solid rgba(91,140,255,0.12)",
+        border: "1px solid rgba(0,255,148,0.12)",
       }}>
         {/* header: icon + eligible multiplier badge */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))", border: "1px solid rgba(91,140,255,0.28)" }}
+              style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,255,148,0.06))", border: "1px solid rgba(0,255,148,0.28)" }}
             >
               <Gauge size={18} style={{ color: TEAL }} />
             </div>
@@ -62,7 +62,7 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
               <div className="font-bold tracking-wide" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.85rem" }}>
                 Total Earning Limit
               </div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
                 ROI + level income ceiling
               </div>
             </div>
@@ -72,8 +72,8 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
             style={{
               fontFamily: "'Sora', sans-serif",
               color: uncapped ? GREEN : isBoosted ? GREEN : TEAL,
-              background: (uncapped || isBoosted) ? "rgba(52,211,153,0.10)" : "rgba(91,140,255,0.10)",
-              border: `1px solid ${(uncapped || isBoosted) ? "rgba(52,211,153,0.3)" : "rgba(91,140,255,0.3)"}`,
+              background: (uncapped || isBoosted) ? "rgba(52,211,153,0.10)" : "rgba(0,255,148,0.10)",
+              border: `1px solid ${(uncapped || isBoosted) ? "rgba(52,211,153,0.3)" : "rgba(0,255,148,0.3)"}`,
             }}
             title={uncapped ? "No earning cap" : isBoosted ? "Boosted cap unlocked" : "Standard cap"}
           >
@@ -87,7 +87,7 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
             <span className="text-xl font-black" style={{ color: reached ? AMBER : "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif" }}>
               ${fmt(cap.earned)}
             </span>
-            <span className="text-xs ml-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <span className="text-xs ml-1" style={{ color: "rgba(176,255,224,0.4)" }}>
               {uncapped ? "earned" : `/ $${fmt(capValue)}`}
             </span>
           </div>
@@ -97,7 +97,7 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
             </span>
           )}
         </div>
-        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.1)" }}>
+        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(0,255,148,0.1)" }}>
           <div style={{ width: uncapped ? "100%" : `${pct}%`, height: "100%", background: barColor, transition: "width 0.3s", boxShadow: `0 0 10px ${barColor}` }} />
         </div>
 
@@ -106,14 +106,14 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
           {uncapped ? (
             <>
               <CheckCircle2 size={12} style={{ color: GREEN }} />
-              <span style={{ color: "rgba(194,210,255,0.55)" }}>
+              <span style={{ color: "rgba(176,255,224,0.55)" }}>
                 No earning limit applies to this account.
               </span>
             </>
           ) : noInvestment ? (
             <>
               <TrendingUp size={12} style={{ color: TEAL }} />
-              <span style={{ color: "rgba(194,210,255,0.55)" }}>
+              <span style={{ color: "rgba(176,255,224,0.55)" }}>
                 Invest to activate your earning limit — you'll be able to earn up to{" "}
                 <span style={{ color: TEAL, fontWeight: 600 }}>{cap.multiplier}×</span> your investment.
               </span>
@@ -126,7 +126,7 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
           ) : (
             <>
               <TrendingUp size={12} style={{ color: GREEN }} />
-              <span style={{ color: "rgba(194,210,255,0.55)" }}>
+              <span style={{ color: "rgba(176,255,224,0.55)" }}>
                 <span style={{ color: GREEN, fontWeight: 600 }}>${fmt(cap.remaining ?? 0)}</span> left to earn (at {cap.multiplier}× your ${fmt(cap.personalInvested)} invested)
               </span>
             </>
@@ -136,14 +136,14 @@ export default function DashboardCapBar({ cap }: { cap?: EarningsCap | null }) {
         {/* unlock-3x hint when not yet boosted (only once invested) */}
         {!isBoosted && !noInvestment && (
           <div className="mt-3 rounded-xl p-3" style={{ background: "rgba(52,211,153,0.05)", border: "1px solid rgba(52,211,153,0.15)" }}>
-            <div className="flex items-center gap-1.5 text-xs mb-2" style={{ color: "rgba(194,210,255,0.6)" }}>
+            <div className="flex items-center gap-1.5 text-xs mb-2" style={{ color: "rgba(176,255,224,0.6)" }}>
               <Lock size={12} style={{ color: GREEN }} />
               Unlock a higher cap: grow your direct team's investment past your own
             </div>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(52,211,153,0.12)" }}>
               <div style={{ width: `${boostPct}%`, height: "100%", background: GREEN, transition: "width 0.3s" }} />
             </div>
-            <div className="mt-1.5 flex justify-between text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <div className="mt-1.5 flex justify-between text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
               <span>Team: ${fmt(cap.directVolume)}</span>
               <span>You: ${fmt(cap.personalInvested)}</span>
             </div>

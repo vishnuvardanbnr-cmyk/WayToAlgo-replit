@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearch, useLocation } from "wouter";
 import { ExternalLink, Wallet } from "lucide-react";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 
 /* ── Wallet definitions ─────────────────────────────────────────────────── */
 interface WalletDef {
@@ -196,7 +196,7 @@ export default function Join() {
   if (redirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-sm" style={{ color: "rgba(194,210,255,0.5)" }}>Opening…</div>
+        <div className="text-sm" style={{ color: "rgba(176,255,224,0.5)" }}>Opening…</div>
       </div>
     );
   }
@@ -209,7 +209,7 @@ export default function Join() {
         <div className="text-center space-y-2">
           <div
             className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3"
-            style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.22)" }}
+            style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.22)" }}
           >
             <Wallet size={26} style={{ color: TEAL }} />
           </div>
@@ -217,7 +217,7 @@ export default function Join() {
             className="text-2xl font-bold"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -225,7 +225,7 @@ export default function Join() {
           >
             Open in Your Wallet
           </h1>
-          <p className="text-sm leading-relaxed" style={{ color: "rgba(194,210,255,0.55)" }}>
+          <p className="text-sm leading-relaxed" style={{ color: "rgba(176,255,224,0.55)" }}>
             Choose a wallet to open this invite link in its built-in browser
           </p>
         </div>
@@ -235,14 +235,14 @@ export default function Join() {
           <div
             className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
             style={{
-              background: "rgba(91,140,255,0.07)",
-              border: "1px solid rgba(91,140,255,0.18)",
+              background: "rgba(0,255,148,0.07)",
+              border: "1px solid rgba(0,255,148,0.18)",
             }}
           >
             <div>
               <div
                 className="text-[10px] font-semibold uppercase tracking-widest mb-0.5"
-                style={{ color: "rgba(194,210,255,0.45)" }}
+                style={{ color: "rgba(176,255,224,0.45)" }}
               >
                 Referral Code
               </div>
@@ -252,7 +252,7 @@ export default function Join() {
             </div>
             <div
               className="text-[10px] font-semibold px-2 py-1 rounded-lg"
-              style={{ background: "rgba(91,140,255,0.15)", color: TEAL }}
+              style={{ background: "rgba(0,255,148,0.15)", color: TEAL }}
             >
               AUTO-FILLED
             </div>
@@ -278,7 +278,7 @@ export default function Join() {
                 <div className="font-bold text-sm" style={{ color: "rgba(200,240,255,0.95)" }}>
                   {wallet.name}
                 </div>
-                <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>
+                <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.45)" }}>
                   {wallet.desc}
                 </div>
               </div>
@@ -290,12 +290,12 @@ export default function Join() {
         {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full" style={{ borderTop: "1px solid rgba(91,140,255,0.12)" }} />
+            <div className="w-full" style={{ borderTop: "1px solid rgba(0,255,148,0.12)" }} />
           </div>
           <div className="relative flex justify-center">
             <span
               className="px-3 text-[11px]"
-              style={{ background: "#060814", color: "rgba(194,210,255,0.35)" }}
+              style={{ background: "#050C0A", color: "rgba(176,255,224,0.35)" }}
             >
               or continue in browser
             </span>
@@ -306,8 +306,8 @@ export default function Join() {
           href={`/register${ref ? `?ref=${encodeURIComponent(ref)}` : ""}`}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all"
           style={{
-            background: "rgba(91,140,255,0.07)",
-            border: "1px solid rgba(91,140,255,0.18)",
+            background: "rgba(0,255,148,0.07)",
+            border: "1px solid rgba(0,255,148,0.18)",
             color: TEAL,
           }}
         >
@@ -316,7 +316,7 @@ export default function Join() {
 
         <p
           className="text-center text-[11px] leading-relaxed"
-          style={{ color: "rgba(194,210,255,0.3)" }}
+          style={{ color: "rgba(176,255,224,0.3)" }}
         >
           Your referral code is automatically included when you open the link through any wallet above.
         </p>

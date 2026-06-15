@@ -12,23 +12,23 @@ import {
   Layers, BadgeDollarSign, Search, ChevronLeft, ChevronRight, X, Upload, FileArchive, Users,
 } from "lucide-react";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 const INPUT_CLS = "w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-colors";
 const INPUT_STYLE = {
   background: "rgba(0,20,40,0.7)",
-  border: "1px solid rgba(91,140,255,0.18)",
-  color: "rgba(194,210,255,0.9)",
+  border: "1px solid rgba(0,255,148,0.18)",
+  color: "rgba(176,255,224,0.9)",
 };
 const SAVE_BTN_STYLE = {
-  background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-  color: "#060814",
+  background: "linear-gradient(135deg, #00FF94, #00CC77)",
+  color: "#050C0A",
   letterSpacing: "0.04em",
-  boxShadow: "0 0 20px rgba(91,140,255,0.3)",
+  boxShadow: "0 0 20px rgba(0,255,148,0.3)",
 };
 const ORBITRON_GRADIENT_STYLE = {
   fontFamily: "'Sora', sans-serif",
-  background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+  background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent" as const,
   backgroundClip: "text",
@@ -192,7 +192,7 @@ function SectionCard({
           >
             {title}
           </h2>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.5)" }}>
+          <p className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.5)" }}>
             {description}
           </p>
         </div>
@@ -205,15 +205,15 @@ function SectionCard({
 /** A subsection rule: small uppercase label with a teal divider. */
 function SubHeader({ children, hint }: { children: ReactNode; hint?: string }) {
   return (
-    <div className="pb-2" style={{ borderBottom: "1px solid rgba(91,140,255,0.10)" }}>
+    <div className="pb-2" style={{ borderBottom: "1px solid rgba(0,255,148,0.10)" }}>
       <h3
         className="font-semibold text-[11px] tracking-[0.18em] uppercase"
-        style={{ color: "rgba(194,210,255,0.55)" }}
+        style={{ color: "rgba(176,255,224,0.55)" }}
       >
         {children}
       </h3>
       {hint && (
-        <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>
+        <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.35)" }}>
           {hint}
         </p>
       )}
@@ -223,7 +223,7 @@ function SubHeader({ children, hint }: { children: ReactNode; hint?: string }) {
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(194,210,255,0.6)" }}>
+    <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(176,255,224,0.6)" }}>
       {children}
     </label>
   );
@@ -231,7 +231,7 @@ function FieldLabel({ children }: { children: ReactNode }) {
 
 function FieldHint({ children }: { children: ReactNode }) {
   return (
-    <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>
+    <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.35)" }}>
       {children}
     </p>
   );
@@ -716,7 +716,7 @@ export default function AdminSettings() {
     return (
       <div className="px-4 md:px-6 py-6 max-w-5xl mx-auto space-y-4">
         {[1,2,3].map(i => (
-          <div key={i} className="rounded-2xl h-24 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+          <div key={i} className="rounded-2xl h-24 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
         ))}
       </div>
     );
@@ -744,9 +744,9 @@ export default function AdminSettings() {
           <div
             className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
             style={{
-              background: "linear-gradient(135deg, rgba(91,140,255,0.2), rgba(61,92,224,0.08))",
-              border: "1px solid rgba(91,140,255,0.35)",
-              boxShadow: "0 0 20px rgba(91,140,255,0.18)",
+              background: "linear-gradient(135deg, rgba(0,255,148,0.2), rgba(0,204,119,0.08))",
+              border: "1px solid rgba(0,255,148,0.35)",
+              boxShadow: "0 0 20px rgba(0,255,148,0.18)",
             }}
           >
             <Settings size={20} style={{ color: TEAL }} />
@@ -755,7 +755,7 @@ export default function AdminSettings() {
             <h1 className="text-xl md:text-2xl font-bold leading-tight" style={ORBITRON_GRADIENT_STYLE}>
               Platform Settings
             </h1>
-            <p className="text-xs md:text-sm" style={{ color: "rgba(194,210,255,0.5)" }}>
+            <p className="text-xs md:text-sm" style={{ color: "rgba(176,255,224,0.5)" }}>
               Configure how the platform behaves, from deposit limits to email delivery.
             </p>
           </div>
@@ -771,7 +771,7 @@ export default function AdminSettings() {
           className="flex gap-1 overflow-x-auto rounded-2xl p-1.5 scrollbar-none"
           style={{
             background: "rgba(10,14,30,0.85)",
-            border: "1px solid rgba(91,140,255,0.14)",
+            border: "1px solid rgba(0,255,148,0.14)",
             backdropFilter: "blur(14px)",
           }}
         >
@@ -787,24 +787,24 @@ export default function AdminSettings() {
                 style={
                   isActive
                     ? {
-                        background: "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(61,92,224,0.10))",
+                        background: "linear-gradient(135deg, rgba(0,255,148,0.22), rgba(0,204,119,0.10))",
                         color: TEAL,
                         border: `1px solid ${TEAL}60`,
                         boxShadow: `0 0 12px ${TEAL}30`,
                       }
                     : {
-                        color: "rgba(194,210,255,0.55)",
+                        color: "rgba(176,255,224,0.55)",
                         border: "1px solid transparent",
                       }
                 }
               >
-                <Icon size={15} style={{ color: isActive ? TEAL : "rgba(194,210,255,0.55)" }} />
+                <Icon size={15} style={{ color: isActive ? TEAL : "rgba(176,255,224,0.55)" }} />
                 {t.label}
               </button>
             );
           })}
         </div>
-        <p className="text-xs mt-2 px-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+        <p className="text-xs mt-2 px-1" style={{ color: "rgba(176,255,224,0.4)" }}>
           {activeTabMeta.desc}
         </p>
       </div>
@@ -881,7 +881,7 @@ export default function AdminSettings() {
                   key={item.key}
                   htmlFor={`toggle-${item.key}`}
                   className="flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors"
-                  style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(91,140,255,0.10)" }}
+                  style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(0,255,148,0.10)" }}
                 >
                   <input
                     id={`toggle-${item.key}`}
@@ -892,8 +892,8 @@ export default function AdminSettings() {
                     style={{ accentColor: TEAL }}
                   />
                   <div className="min-w-0">
-                    <div className="text-sm font-medium" style={{ color: "rgba(194,210,255,0.85)" }}>{item.label}</div>
-                    <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{item.desc}</div>
+                    <div className="text-sm font-medium" style={{ color: "rgba(176,255,224,0.85)" }}>{item.label}</div>
+                    <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{item.desc}</div>
                   </div>
                 </label>
               ))}
@@ -914,14 +914,14 @@ export default function AdminSettings() {
             <label
               htmlFor="toggle-autoRoiEnabled"
               className="flex items-center justify-between gap-4 p-4 rounded-xl cursor-pointer transition-colors"
-              style={{ background: "rgba(0,15,30,0.55)", border: "1px solid rgba(91,140,255,0.14)" }}
+              style={{ background: "rgba(0,15,30,0.55)", border: "1px solid rgba(0,255,148,0.14)" }}
             >
               <div className="flex items-start gap-3 min-w-0">
                 <RefreshCw size={14} className="shrink-0 mt-0.5" style={{ color: TEAL }} />
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold mb-0.5" style={{ color: "rgba(194,210,255,0.85)" }}>Auto ROI Schedule</div>
-                  <div className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.5)" }}>
-                    When enabled, daily return + level commissions run automatically <strong style={{ color: "rgba(194,210,255,0.75)" }}>Mon–Fri at 03:00 AM IST</strong>. Disable to pause auto-runs without affecting manual payouts.
+                  <div className="text-sm font-semibold mb-0.5" style={{ color: "rgba(176,255,224,0.85)" }}>Auto ROI Schedule</div>
+                  <div className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.5)" }}>
+                    When enabled, daily return + level commissions run automatically <strong style={{ color: "rgba(176,255,224,0.75)" }}>Mon–Fri at 03:00 AM IST</strong>. Disable to pause auto-runs without affecting manual payouts.
                   </div>
                 </div>
               </div>
@@ -962,12 +962,12 @@ export default function AdminSettings() {
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: "Processed", value: payoutResult.processed, color: "rgba(52,211,153,0.9)" },
-                    { label: "Skipped",   value: payoutResult.skipped,   color: "rgba(194,210,255,0.6)" },
-                    { label: "Errors",    value: payoutResult.errors,     color: payoutResult.errors > 0 ? "rgba(248,113,113,0.9)" : "rgba(194,210,255,0.4)" },
+                    { label: "Skipped",   value: payoutResult.skipped,   color: "rgba(176,255,224,0.6)" },
+                    { label: "Errors",    value: payoutResult.errors,     color: payoutResult.errors > 0 ? "rgba(248,113,113,0.9)" : "rgba(176,255,224,0.4)" },
                   ].map(s => (
                     <div key={s.label} className="text-center p-2 rounded-lg" style={{ background: "rgba(0,10,20,0.4)" }}>
                       <div className="text-lg font-bold" style={{ color: s.color, fontFamily: "'Sora',sans-serif" }}>{s.value}</div>
-                      <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{s.label}</div>
+                      <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -995,7 +995,7 @@ export default function AdminSettings() {
         >
           {walletLoading ? (
             <div className="space-y-3">
-              {[1,2,3,4].map(i => <div key={i} className="h-11 rounded-xl animate-pulse" style={{ background: "rgba(91,140,255,0.04)" }} />)}
+              {[1,2,3,4].map(i => <div key={i} className="h-11 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)" }} />)}
             </div>
           ) : (
             <form onSubmit={walletForm.handleSubmit(onWalletSubmit)} className="space-y-6">
@@ -1040,7 +1040,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => setShowGasKey(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
-                    style={{ color: "rgba(194,210,255,0.5)" }}
+                    style={{ color: "rgba(176,255,224,0.5)" }}
                     aria-label={showGasKey ? "Hide key" : "Show key"}
                   >
                     {showGasKey ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -1113,7 +1113,7 @@ export default function AdminSettings() {
         >
           {withdrawalLoading ? (
             <div className="space-y-3">
-              {[1,2].map(i => <div key={i} className="h-11 rounded-xl animate-pulse" style={{ background: "rgba(91,140,255,0.04)" }} />)}
+              {[1,2].map(i => <div key={i} className="h-11 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)" }} />)}
             </div>
           ) : (
             <form onSubmit={withdrawalForm.handleSubmit(onWithdrawalSubmit)} className="space-y-6">
@@ -1131,9 +1131,9 @@ export default function AdminSettings() {
                     key={mode}
                     className="flex flex-col items-center justify-center gap-2 p-5 rounded-xl cursor-pointer transition-all"
                     style={{
-                      background: withdrawalMode === mode ? "rgba(91,140,255,0.14)" : "rgba(0,15,30,0.5)",
-                      border: `1px solid ${withdrawalMode === mode ? "rgba(91,140,255,0.5)" : "rgba(91,140,255,0.10)"}`,
-                      boxShadow: withdrawalMode === mode ? "0 0 16px rgba(91,140,255,0.18)" : "none",
+                      background: withdrawalMode === mode ? "rgba(0,255,148,0.14)" : "rgba(0,15,30,0.5)",
+                      border: `1px solid ${withdrawalMode === mode ? "rgba(0,255,148,0.5)" : "rgba(0,255,148,0.10)"}`,
+                      boxShadow: withdrawalMode === mode ? "0 0 16px rgba(0,255,148,0.18)" : "none",
                     }}
                   >
                     <input
@@ -1142,10 +1142,10 @@ export default function AdminSettings() {
                       {...withdrawalForm.register("withdrawalMode")}
                       className="sr-only"
                     />
-                    <div className="text-base font-bold capitalize" style={{ color: withdrawalMode === mode ? TEAL : "rgba(194,210,255,0.6)" }}>
+                    <div className="text-base font-bold capitalize" style={{ color: withdrawalMode === mode ? TEAL : "rgba(176,255,224,0.6)" }}>
                       {mode}
                     </div>
-                    <div className="text-xs text-center" style={{ color: "rgba(194,210,255,0.4)" }}>
+                    <div className="text-xs text-center" style={{ color: "rgba(176,255,224,0.4)" }}>
                       {mode === "manual" ? "Admin approves each request" : "On-chain send on submit"}
                     </div>
                   </label>
@@ -1153,8 +1153,8 @@ export default function AdminSettings() {
               </div>
 
               {withdrawalMode === "auto" && (
-                <div className="flex gap-2 p-3 rounded-xl" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.18)" }}>
-                  <div className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.6)" }}>
+                <div className="flex gap-2 p-3 rounded-xl" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.18)" }}>
+                  <div className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.6)" }}>
                     In <strong style={{ color: TEAL }}>Auto</strong> mode, USDT is sent on-chain immediately when a user submits a withdrawal request. Make sure the withdrawal wallet has sufficient USDT balance.
                   </div>
                 </div>
@@ -1164,9 +1164,9 @@ export default function AdminSettings() {
               <SubHeader>Withdrawal Fee</SubHeader>
               <div
                 className="rounded-xl px-4 py-3 text-xs mb-1"
-                style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.09)", color: "rgba(194,210,255,0.5)" }}
+                style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.09)", color: "rgba(176,255,224,0.5)" }}
               >
-                Fee rates are shared with deposit fees — configure them at <strong style={{ color: "rgba(194,210,255,0.75)" }}>cert-edit</strong>. Select how the fee is deducted below.
+                Fee rates are shared with deposit fees — configure them at <strong style={{ color: "rgba(176,255,224,0.75)" }}>cert-edit</strong>. Select how the fee is deducted below.
               </div>
 
               {/* Fee deduction mode */}
@@ -1187,13 +1187,13 @@ export default function AdminSettings() {
                     key={opt.value}
                     className="flex flex-col gap-1.5 p-4 rounded-xl cursor-pointer transition-all"
                     style={{
-                      background: withdrawFeeMode === opt.value ? "rgba(91,140,255,0.12)" : "rgba(0,15,30,0.5)",
-                      border: `1px solid ${withdrawFeeMode === opt.value ? "rgba(91,140,255,0.45)" : "rgba(91,140,255,0.10)"}`,
+                      background: withdrawFeeMode === opt.value ? "rgba(0,255,148,0.12)" : "rgba(0,15,30,0.5)",
+                      border: `1px solid ${withdrawFeeMode === opt.value ? "rgba(0,255,148,0.45)" : "rgba(0,255,148,0.10)"}`,
                     }}
                   >
                     <input type="radio" value={opt.value} {...withdrawalForm.register("withdrawFeeMode")} className="sr-only" />
-                    <span className="text-sm font-bold" style={{ color: withdrawFeeMode === opt.value ? TEAL : "rgba(194,210,255,0.6)" }}>{opt.label}</span>
-                    <span className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>{opt.desc}</span>
+                    <span className="text-sm font-bold" style={{ color: withdrawFeeMode === opt.value ? TEAL : "rgba(176,255,224,0.6)" }}>{opt.label}</span>
+                    <span className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>{opt.desc}</span>
                   </label>
                 ))}
               </div>
@@ -1219,7 +1219,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => setShowWithdrawKey(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
-                    style={{ color: "rgba(194,210,255,0.5)" }}
+                    style={{ color: "rgba(176,255,224,0.5)" }}
                     aria-label={showWithdrawKey ? "Hide key" : "Show key"}
                   >
                     {showWithdrawKey ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -1244,7 +1244,7 @@ export default function AdminSettings() {
         >
           {incomeLoading ? (
             <div className="space-y-3">
-              {[1,2,3,4].map(i => <div key={i} className="h-11 rounded-xl animate-pulse" style={{ background: "rgba(91,140,255,0.04)" }} />)}
+              {[1,2,3,4].map(i => <div key={i} className="h-11 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)" }} />)}
             </div>
           ) : (
             <form onSubmit={incomeForm.handleSubmit(onIncomeSubmit)} className="space-y-7">
@@ -1305,11 +1305,11 @@ export default function AdminSettings() {
                 </SubHeader>
                 <div
                   className="flex items-center justify-between gap-4 rounded-xl px-4 py-3 mt-3"
-                  style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.20)" }}
+                  style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.20)" }}
                 >
                   <div>
-                    <div className="text-sm font-bold" style={{ color: "rgba(194,210,255,0.95)" }}>Enable Earnings Cap</div>
-                    <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.5)" }}>
+                    <div className="text-sm font-bold" style={{ color: "rgba(176,255,224,0.95)" }}>Enable Earnings Cap</div>
+                    <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.5)" }}>
                       When ON, ROI + level earnings stop once a user reaches their cap.
                     </div>
                   </div>
@@ -1318,8 +1318,8 @@ export default function AdminSettings() {
                     <div
                       className="w-11 h-6 rounded-full transition-colors"
                       style={{
-                        background: earningsCapEnabled ? TEAL : "rgba(91,140,255,0.15)",
-                        border: `1px solid ${earningsCapEnabled ? TEAL : "rgba(91,140,255,0.25)"}`,
+                        background: earningsCapEnabled ? TEAL : "rgba(0,255,148,0.15)",
+                        border: `1px solid ${earningsCapEnabled ? TEAL : "rgba(0,255,148,0.25)"}`,
                         position: "relative",
                       }}
                     >
@@ -1327,7 +1327,7 @@ export default function AdminSettings() {
                         className="absolute top-0.5 w-5 h-5 rounded-full transition-transform"
                         style={{
                           left: earningsCapEnabled ? "calc(100% - 22px)" : "2px",
-                          background: earningsCapEnabled ? "#060814" : "rgba(194,210,255,0.4)",
+                          background: earningsCapEnabled ? "#050C0A" : "rgba(176,255,224,0.4)",
                         }}
                       />
                     </div>
@@ -1371,17 +1371,17 @@ export default function AdminSettings() {
                       return (
                         <>
                           <div className="rounded-xl px-3 py-2.5 text-2xl font-black"
-                            style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.15)", color: "#5B8CFF" }}>
+                            style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.15)", color: "#00FF94" }}>
                             {fmt(pct)}%
                           </div>
                           <div className="mt-2.5">
-                            <div className="flex h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.1)" }}>
+                            <div className="flex h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(0,255,148,0.1)" }}>
                               <div style={{ width: `${invShare}%`, background: "rgb(52,211,153)", transition: "width 0.2s" }} />
-                              <div style={{ width: `${lvlShare}%`, background: "#5B8CFF", transition: "width 0.2s" }} />
+                              <div style={{ width: `${lvlShare}%`, background: "#00FF94", transition: "width 0.2s" }} />
                             </div>
                             <div className="flex justify-between mt-1.5 text-[11px] font-semibold">
                               <span style={{ color: "rgb(52,211,153)" }}>Investor ROI 100%</span>
-                              <span style={{ color: "#5B8CFF" }}>+ Levels {fmt(pct)}%</span>
+                              <span style={{ color: "#00FF94" }}>+ Levels {fmt(pct)}%</span>
                             </div>
                             <FieldHint>Auto-calculated as the sum of the 10 level rates below. Investors always get the full daily ROI; levels get an additional {fmt(pct)}% of it on top, so the platform distributes {fmt(total)}% of ROI in total.</FieldHint>
                           </div>
@@ -1389,12 +1389,12 @@ export default function AdminSettings() {
                       );
                     })()}
                   </div>
-                  <div className="col-span-2 rounded-xl p-4" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.12)" }}>
-                    <div className="text-xs font-semibold mb-2" style={{ color: "rgba(194,210,255,0.5)" }}>Reserve Wallet (unclaimed level tokens)</div>
+                  <div className="col-span-2 rounded-xl p-4" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.12)" }}>
+                    <div className="text-xs font-semibold mb-2" style={{ color: "rgba(176,255,224,0.5)" }}>Reserve Wallet (unclaimed level tokens)</div>
                     <div className="text-2xl font-black" style={{ color: "#c084fc" }}>
                       {reserveTokenBalance.toLocaleString(undefined, { maximumFractionDigits: 4 })} WTA
                     </div>
-                    <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>Tokens go here when an investor has no eligible upline for a given level</div>
+                    <div className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.35)" }}>Tokens go here when an investor has no eligible upline for a given level</div>
                   </div>
                 </div>
               </div>
@@ -1423,9 +1423,9 @@ export default function AdminSettings() {
                   <span className="inline-flex items-center gap-1.5"><Layers size={12} />Level Unlock Thresholds ($)</span>
                 </SubHeader>
                 <div className="grid grid-cols-4 lg:grid-cols-5 gap-3 mt-3">
-                  <div className="p-2.5 rounded-xl flex flex-col items-center justify-center" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.15)" }}>
+                  <div className="p-2.5 rounded-xl flex flex-col items-center justify-center" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.15)" }}>
                     <span className="text-xs font-bold" style={{ color: TEAL }}>L1</span>
-                    <span className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Always</span>
+                    <span className="text-[11px] mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>Always</span>
                   </div>
                   {([2,3,4,5,6,7,8,9,10] as const).map(lvl => (
                     <div key={lvl}>
@@ -1455,7 +1455,7 @@ export default function AdminSettings() {
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] mt-2" style={{ color: "rgba(194,210,255,0.35)" }}>
+                <p className="text-[11px] mt-2" style={{ color: "rgba(176,255,224,0.35)" }}>
                   Example: L1 = 180 means the direct upline receives Level 1 commission only for the first 180 days of each investment. After that, L1 commission stops for that investment.
                 </p>
               </div>
@@ -1476,7 +1476,7 @@ export default function AdminSettings() {
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] mt-2" style={{ color: "rgba(194,210,255,0.35)" }}>
+                <p className="text-[11px] mt-2" style={{ color: "rgba(176,255,224,0.35)" }}>
                   Example: L3 = 5 means an upline earns Level 3 commission only if they have at least 5 direct referrals who have invested. "Active" counts a direct only once they have a non-zero invested amount.
                 </p>
               </div>
@@ -1498,18 +1498,18 @@ export default function AdminSettings() {
         >
           {smtpLoading ? (
             <div className="space-y-3">
-              {[1,2,3].map(i => <div key={i} className="h-11 rounded-xl animate-pulse" style={{ background: "rgba(91,140,255,0.04)" }} />)}
+              {[1,2,3].map(i => <div key={i} className="h-11 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)" }} />)}
             </div>
           ) : (
             <form onSubmit={smtpForm.handleSubmit(onSmtpSubmit)} className="space-y-6">
               {/* Global SMTP Toggle */}
               <div
                 className="flex items-center justify-between gap-4 p-4 rounded-xl"
-                style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.20)" }}
+                style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.20)" }}
               >
                 <div>
-                  <div className="text-sm font-bold" style={{ color: "rgba(194,210,255,0.95)" }}>SMTP Enabled</div>
-                  <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.5)" }}>
+                  <div className="text-sm font-bold" style={{ color: "rgba(176,255,224,0.95)" }}>SMTP Enabled</div>
+                  <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.5)" }}>
                     Master switch — must be ON for any email to send
                   </div>
                 </div>
@@ -1518,8 +1518,8 @@ export default function AdminSettings() {
                   <div
                     className="w-11 h-6 rounded-full transition-colors"
                     style={{
-                      background: smtpEnabled ? TEAL : "rgba(91,140,255,0.15)",
-                      border: `1px solid ${smtpEnabled ? TEAL : "rgba(91,140,255,0.25)"}`,
+                      background: smtpEnabled ? TEAL : "rgba(0,255,148,0.15)",
+                      border: `1px solid ${smtpEnabled ? TEAL : "rgba(0,255,148,0.25)"}`,
                       position: "relative",
                     }}
                   >
@@ -1527,7 +1527,7 @@ export default function AdminSettings() {
                       className="absolute top-0.5 w-5 h-5 rounded-full transition-transform"
                       style={{
                         left: smtpEnabled ? "calc(100% - 22px)" : "2px",
-                        background: smtpEnabled ? "#060814" : "rgba(194,210,255,0.4)",
+                        background: smtpEnabled ? "#050C0A" : "rgba(176,255,224,0.4)",
                       }}
                     />
                   </div>
@@ -1580,7 +1580,7 @@ export default function AdminSettings() {
                       type="button"
                       onClick={() => setShowPassword(v => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2"
-                      style={{ color: "rgba(194,210,255,0.5)" }}
+                      style={{ color: "rgba(176,255,224,0.5)" }}
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -1622,19 +1622,19 @@ export default function AdminSettings() {
                     <div
                       key={item.key}
                       className="flex items-center justify-between gap-4 p-3.5 rounded-xl"
-                      style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(91,140,255,0.10)" }}
+                      style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(0,255,148,0.10)" }}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium" style={{ color: "rgba(194,210,255,0.85)" }}>{item.label}</div>
-                        <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{item.desc}</div>
+                        <div className="text-sm font-medium" style={{ color: "rgba(176,255,224,0.85)" }}>{item.label}</div>
+                        <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{item.desc}</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer shrink-0">
                         <input type="checkbox" className="sr-only" {...smtpForm.register(item.key)} />
                         <div
                           className="w-10 h-5 rounded-full transition-colors"
                           style={{
-                            background: val ? TEAL : "rgba(91,140,255,0.12)",
-                            border: `1px solid ${val ? TEAL : "rgba(91,140,255,0.20)"}`,
+                            background: val ? TEAL : "rgba(0,255,148,0.12)",
+                            border: `1px solid ${val ? TEAL : "rgba(0,255,148,0.20)"}`,
                             position: "relative",
                           }}
                         >
@@ -1642,7 +1642,7 @@ export default function AdminSettings() {
                             className="absolute top-0.5 w-4 h-4 rounded-full transition-transform"
                             style={{
                               left: val ? "calc(100% - 18px)" : "2px",
-                              background: val ? "#060814" : "rgba(194,210,255,0.35)",
+                              background: val ? "#050C0A" : "rgba(176,255,224,0.35)",
                             }}
                           />
                         </div>
@@ -1676,19 +1676,19 @@ export default function AdminSettings() {
               {/* Telegram backup */}
               <div
                 className="rounded-xl p-4 space-y-4"
-                style={{ background: "rgba(91,140,255,0.03)", border: "1px solid rgba(91,140,255,0.10)" }}
+                style={{ background: "rgba(0,255,148,0.03)", border: "1px solid rgba(0,255,148,0.10)" }}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(91,140,255,0.15)", border: "1px solid rgba(91,140,255,0.3)" }}>
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(0,255,148,0.15)", border: "1px solid rgba(0,255,148,0.3)" }}>
                     <span style={{ color: TEAL, fontSize: 13, fontWeight: 700 }}>✈</span>
                   </div>
-                  <span className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.85)" }}>Telegram Backup</span>
+                  <span className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.85)" }}>Telegram Backup</span>
                 </div>
                 <div
                   className="text-xs leading-relaxed p-3 rounded-lg"
-                  style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(91,140,255,0.08)", color: "rgba(194,210,255,0.5)" }}
+                  style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(0,255,148,0.08)", color: "rgba(176,255,224,0.5)" }}
                 >
-                  <strong style={{ color: "rgba(194,210,255,0.75)" }}>How to set up:</strong><br />
+                  <strong style={{ color: "rgba(176,255,224,0.75)" }}>How to set up:</strong><br />
                   1. Open Telegram and message <strong style={{ color: TEAL }}>@BotFather</strong> → /newbot → copy the bot token.<br />
                   2. Start a chat with your bot (or add it to a group/channel).<br />
                   3. Message <strong style={{ color: TEAL }}>@userinfobot</strong> to get your Chat ID (a number like <code>123456789</code>). For groups, the ID starts with <code>-</code>.
@@ -1722,11 +1722,11 @@ export default function AdminSettings() {
               {/* Manual trigger */}
               <div
                 className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-xl"
-                style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.12)" }}
+                style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.12)" }}
               >
                 <div className="flex-1">
-                  <div className="text-sm font-medium" style={{ color: "rgba(194,210,255,0.85)" }}>Send Backup Now</div>
-                  <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+                  <div className="text-sm font-medium" style={{ color: "rgba(176,255,224,0.85)" }}>Send Backup Now</div>
+                  <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
                     Immediately trigger a backup email to the address above (must be saved first).
                   </div>
                   {backupTriggerMsg && (
@@ -1744,9 +1744,9 @@ export default function AdminSettings() {
                   disabled={triggeringBackup}
                   className="shrink-0 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all hover:brightness-125 disabled:opacity-50"
                   style={{
-                    background: "rgba(91,140,255,0.10)",
-                    border: "1px solid rgba(91,140,255,0.28)",
-                    color: "#5B8CFF",
+                    background: "rgba(0,255,148,0.10)",
+                    border: "1px solid rgba(0,255,148,0.28)",
+                    color: "#00FF94",
                   }}
                 >
                   <Database size={13} />
@@ -1775,18 +1775,18 @@ export default function AdminSettings() {
             {/* Stats row */}
             {walletStats && (
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 rounded-xl text-center" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}>
+                <div className="p-4 rounded-xl text-center" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.14)" }}>
                   <div className="text-2xl font-bold" style={{ color: TEAL, fontFamily: "'Sora',sans-serif" }}>{walletStats.totalWithAddress}</div>
-                  <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.5)" }}>Users with wallets</div>
+                  <div className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.5)" }}>Users with wallets</div>
                 </div>
-                <div className="p-4 rounded-xl text-center" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}>
+                <div className="p-4 rounded-xl text-center" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.14)" }}>
                   <div className="text-2xl font-bold" style={{ color: TEAL, fontFamily: "'Sora',sans-serif" }}>{walletStats.backupCount}</div>
-                  <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.5)" }}>Backed-up old keys</div>
+                  <div className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.5)" }}>Backed-up old keys</div>
                 </div>
               </div>
             )}
 
-            <p className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.55)" }}>
+            <p className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.55)" }}>
               Generates a new independent BEP-20 wallet for every existing user. Each wallet is freshly created (not HD/seed-derived). All old private keys are archived to the backup table before being replaced.
             </p>
 
@@ -1829,7 +1829,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => setConfirmRegen(false)}
                     className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all"
-                    style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.2)", color: "rgba(194,210,255,0.7)" }}
+                    style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.7)" }}
                   >
                     Cancel
                   </button>
@@ -1846,17 +1846,17 @@ export default function AdminSettings() {
             )}
 
             {/* Old Key Backups Viewer */}
-            <div style={{ borderTop: "1px solid rgba(91,140,255,0.10)", paddingTop: "16px" }}>
+            <div style={{ borderTop: "1px solid rgba(0,255,148,0.10)", paddingTop: "16px" }}>
               <button
                 type="button"
                 onClick={() => { setShowBackups(v => !v); if (!showBackups) loadBackups(); }}
                 className="flex items-center gap-2 text-xs font-medium"
-                style={{ color: "rgba(194,210,255,0.6)" }}
+                style={{ color: "rgba(176,255,224,0.6)" }}
               >
                 <Database size={13} />
                 {showBackups ? "Hide" : "View"} Old Key Backups
                 {walletStats && walletStats.backupCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full text-xs" style={{ background: "rgba(91,140,255,0.15)", color: TEAL }}>
+                  <span className="px-1.5 py-0.5 rounded-full text-xs" style={{ background: "rgba(0,255,148,0.15)", color: TEAL }}>
                     {walletStats.backupCount}
                   </span>
                 )}
@@ -1866,16 +1866,16 @@ export default function AdminSettings() {
                   <div className="mt-4 space-y-3">
                     {/* Search */}
                     <div className="relative">
-                      <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(194,210,255,0.35)" }} />
+                      <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(176,255,224,0.35)" }} />
                       <input
                         value={backupSearch}
                         onChange={e => { setBackupSearch(e.target.value); setBackupPage(1); }}
                         placeholder="Search by name, email or address…"
                         className="w-full text-xs pl-8 pr-8 py-2 rounded-lg outline-none"
-                        style={{ background: "rgba(0,15,30,0.7)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" }}
+                        style={{ background: "rgba(0,15,30,0.7)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" }}
                       />
                       {backupSearch && (
-                        <button onClick={() => { setBackupSearch(""); setBackupPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: "rgba(194,210,255,0.4)" }}>
+                        <button onClick={() => { setBackupSearch(""); setBackupPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: "rgba(176,255,224,0.4)" }}>
                           <X size={12} />
                         </button>
                       )}
@@ -1883,9 +1883,9 @@ export default function AdminSettings() {
 
                     {/* List */}
                     {backupsLoading ? (
-                      <div className="h-16 rounded-xl animate-pulse" style={{ background: "rgba(91,140,255,0.04)" }} />
+                      <div className="h-16 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)" }} />
                     ) : _bPageRows.length === 0 ? (
-                      <p className="text-xs text-center py-4" style={{ color: "rgba(194,210,255,0.4)" }}>
+                      <p className="text-xs text-center py-4" style={{ color: "rgba(176,255,224,0.4)" }}>
                         {backupSearch ? "No backups match your search" : "No backups yet"}
                       </p>
                     ) : (
@@ -1893,17 +1893,17 @@ export default function AdminSettings() {
                         <div
                           key={b.id}
                           className="p-3 rounded-xl space-y-1.5"
-                          style={{ background: "rgba(0,15,30,0.6)", border: "1px solid rgba(91,140,255,0.10)" }}
+                          style={{ background: "rgba(0,15,30,0.6)", border: "1px solid rgba(0,255,148,0.10)" }}
                         >
                           <div className="flex justify-between items-center">
-                            <span className="text-xs font-medium" style={{ color: "rgba(194,210,255,0.7)" }}>{b.userName ?? `User #${b.userId}`}</span>
-                            <span className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>{new Date(b.replacedAt).toLocaleDateString()}</span>
+                            <span className="text-xs font-medium" style={{ color: "rgba(176,255,224,0.7)" }}>{b.userName ?? `User #${b.userId}`}</span>
+                            <span className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>{new Date(b.replacedAt).toLocaleDateString()}</span>
                           </div>
-                          <div className="text-xs font-mono break-all" style={{ color: "rgba(194,210,255,0.55)" }}>
-                            <span style={{ color: "rgba(194,210,255,0.4)" }}>Addr: </span>{b.oldAddress}
+                          <div className="text-xs font-mono break-all" style={{ color: "rgba(176,255,224,0.55)" }}>
+                            <span style={{ color: "rgba(176,255,224,0.4)" }}>Addr: </span>{b.oldAddress}
                           </div>
                           <div className="text-xs font-mono break-all" style={{ color: "rgba(248,113,113,0.55)" }}>
-                            <span style={{ color: "rgba(194,210,255,0.4)" }}>Key: </span>{b.oldPrivateKey}
+                            <span style={{ color: "rgba(176,255,224,0.4)" }}>Key: </span>{b.oldPrivateKey}
                           </div>
                         </div>
                       ))
@@ -1912,7 +1912,7 @@ export default function AdminSettings() {
                     {/* Pagination */}
                     {_bTotalPages > 1 && (
                       <div className="flex items-center justify-between pt-1">
-                        <span className="text-[11px]" style={{ color: "rgba(194,210,255,0.4)" }}>
+                        <span className="text-[11px]" style={{ color: "rgba(176,255,224,0.4)" }}>
                           {_bFiltered.length} result{_bFiltered.length !== 1 ? "s" : ""} — page {_bSafePage} / {_bTotalPages}
                         </span>
                         <div className="flex gap-1.5">
@@ -1920,7 +1920,7 @@ export default function AdminSettings() {
                             disabled={_bSafePage <= 1}
                             onClick={() => setBackupPage(p => Math.max(1, p - 1))}
                             className="p-1.5 rounded-md disabled:opacity-30 transition-all"
-                            style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: "#5B8CFF" }}
+                            style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: "#00FF94" }}
                           >
                             <ChevronLeft size={13} />
                           </button>
@@ -1928,7 +1928,7 @@ export default function AdminSettings() {
                             disabled={_bSafePage >= _bTotalPages}
                             onClick={() => setBackupPage(p => Math.min(_bTotalPages, p + 1))}
                             className="p-1.5 rounded-md disabled:opacity-30 transition-all"
-                            style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: "#5B8CFF" }}
+                            style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: "#00FF94" }}
                           >
                             <ChevronRight size={13} />
                           </button>
@@ -1968,12 +1968,12 @@ export default function AdminSettings() {
                   className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all"
                   style={{
                     background: restoreMode === opt.key ? "rgba(245,158,11,0.12)" : "rgba(0,15,30,0.5)",
-                    border: `1px solid ${restoreMode === opt.key ? "rgba(245,158,11,0.5)" : "rgba(91,140,255,0.10)"}`,
+                    border: `1px solid ${restoreMode === opt.key ? "rgba(245,158,11,0.5)" : "rgba(0,255,148,0.10)"}`,
                   }}
                 >
-                  <opt.icon size={18} style={{ color: restoreMode === opt.key ? "#f59e0b" : "rgba(194,210,255,0.4)" }} />
-                  <span className="text-sm font-bold" style={{ color: restoreMode === opt.key ? "#f59e0b" : "rgba(194,210,255,0.6)" }}>{opt.label}</span>
-                  <span className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>{opt.desc}</span>
+                  <opt.icon size={18} style={{ color: restoreMode === opt.key ? "#f59e0b" : "rgba(176,255,224,0.4)" }} />
+                  <span className="text-sm font-bold" style={{ color: restoreMode === opt.key ? "#f59e0b" : "rgba(176,255,224,0.6)" }}>{opt.label}</span>
+                  <span className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>{opt.desc}</span>
                 </button>
               ))}
             </div>
@@ -1985,10 +1985,10 @@ export default function AdminSettings() {
                 style={{ background: "rgba(0,15,30,0.5)", border: "2px dashed rgba(245,158,11,0.3)" }}
               >
                 <Upload size={20} style={{ color: "rgba(245,158,11,0.7)" }} />
-                <span className="text-sm font-medium" style={{ color: "rgba(194,210,255,0.7)" }}>
+                <span className="text-sm font-medium" style={{ color: "rgba(176,255,224,0.7)" }}>
                   {restoreMode === "single" ? "Click to select backup file" : "Click to select all part files"}
                 </span>
-                <span className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>
+                <span className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
                   {restoreMode === "single" ? "Accepts .sql or .sql.gz" : "Select all .partXofY.gz files at once"}
                 </span>
                 <input
@@ -2015,12 +2015,12 @@ export default function AdminSettings() {
                       <div key={i} className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)" }}>
                         <div className="flex items-center gap-2 min-w-0">
                           <FileArchive size={12} style={{ color: "rgba(245,158,11,0.7)", flexShrink: 0 }} />
-                          <span className="text-xs font-mono truncate" style={{ color: "rgba(194,210,255,0.8)" }}>{f.name}</span>
+                          <span className="text-xs font-mono truncate" style={{ color: "rgba(176,255,224,0.8)" }}>{f.name}</span>
                         </div>
-                        <span className="text-xs shrink-0" style={{ color: "rgba(194,210,255,0.4)" }}>{(f.size / 1024 / 1024).toFixed(1)} MB</span>
+                        <span className="text-xs shrink-0" style={{ color: "rgba(176,255,224,0.4)" }}>{(f.size / 1024 / 1024).toFixed(1)} MB</span>
                       </div>
                     ))}
-                  <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+                  <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.4)" }}>
                     {restoreFiles.length} file{restoreFiles.length > 1 ? "s" : ""} selected — {(restoreFiles.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(1)} MB total
                   </p>
                 </div>
@@ -2084,7 +2084,7 @@ export default function AdminSettings() {
                         }
                       }}
                       className="flex-1 py-2.5 rounded-xl text-sm font-bold"
-                      style={{ background: "rgba(245,158,11,0.85)", color: "#060814" }}
+                      style={{ background: "rgba(245,158,11,0.85)", color: "#050C0A" }}
                     >
                       Yes, Restore Now
                     </button>
@@ -2092,7 +2092,7 @@ export default function AdminSettings() {
                       type="button"
                       onClick={() => setConfirmRestore(false)}
                       className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-                      style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.2)", color: "rgba(194,210,255,0.7)" }}
+                      style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.7)" }}
                     >
                       Cancel
                     </button>
@@ -2160,7 +2160,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => setResetForLiveStep("idle")}
                     className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-                    style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.2)", color: "rgba(194,210,255,0.7)" }}
+                    style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.7)" }}
                   >
                     Cancel
                   </button>
@@ -2175,19 +2175,19 @@ export default function AdminSettings() {
                 </p>
                 {/* New admin email */}
                 <div>
-                  <label className="text-xs mb-1 block" style={{ color: "rgba(194,210,255,0.55)" }}>New Admin Email</label>
+                  <label className="text-xs mb-1 block" style={{ color: "rgba(176,255,224,0.55)" }}>New Admin Email</label>
                   <input
                     type="email"
                     value={resetNewEmail}
                     onChange={e => setResetNewEmail(e.target.value)}
                     placeholder="admin@example.com"
                     className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
-                    style={{ background: "rgba(0,15,30,0.7)", border: "1px solid rgba(91,140,255,0.2)", color: "rgba(194,210,255,0.9)" }}
+                    style={{ background: "rgba(0,15,30,0.7)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.9)" }}
                   />
                 </div>
                 {/* New password */}
                 <div>
-                  <label className="text-xs mb-1 block" style={{ color: "rgba(194,210,255,0.55)" }}>New Password</label>
+                  <label className="text-xs mb-1 block" style={{ color: "rgba(176,255,224,0.55)" }}>New Password</label>
                   <div className="relative">
                     <input
                       type={resetShowPass ? "text" : "password"}
@@ -2195,7 +2195,7 @@ export default function AdminSettings() {
                       onChange={e => setResetNewPassword(e.target.value)}
                       placeholder="Min 6 characters"
                       className="w-full rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none"
-                      style={{ background: "rgba(0,15,30,0.7)", border: "1px solid rgba(91,140,255,0.2)", color: "rgba(194,210,255,0.9)" }}
+                      style={{ background: "rgba(0,15,30,0.7)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.9)" }}
                     />
                     <button type="button" onClick={() => setResetShowPass(p => !p)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100 transition-opacity">
@@ -2205,7 +2205,7 @@ export default function AdminSettings() {
                 </div>
                 {/* Confirm password */}
                 <div>
-                  <label className="text-xs mb-1 block" style={{ color: "rgba(194,210,255,0.55)" }}>Confirm Password</label>
+                  <label className="text-xs mb-1 block" style={{ color: "rgba(176,255,224,0.55)" }}>Confirm Password</label>
                   <div className="relative">
                     <input
                       type={resetShowConfirmPass ? "text" : "password"}
@@ -2213,7 +2213,7 @@ export default function AdminSettings() {
                       onChange={e => setResetConfirmPassword(e.target.value)}
                       placeholder="Repeat password"
                       className="w-full rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none"
-                      style={{ background: "rgba(0,15,30,0.7)", border: "1px solid rgba(91,140,255,0.2)", color: "rgba(194,210,255,0.9)" }}
+                      style={{ background: "rgba(0,15,30,0.7)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.9)" }}
                     />
                     <button type="button" onClick={() => setResetShowConfirmPass(p => !p)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100 transition-opacity">
@@ -2252,7 +2252,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={resetForLiveClear}
                     className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-                    style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.2)", color: "rgba(194,210,255,0.7)" }}
+                    style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.7)" }}
                   >
                     Cancel
                   </button>
@@ -2270,7 +2270,7 @@ export default function AdminSettings() {
           <div className="space-y-5">
             {serverStatusLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {[1,2,3,4,5,6].map(i => <div key={i} className="h-24 rounded-xl animate-pulse" style={{ background: "rgba(91,140,255,0.04)" }} />)}
+                {[1,2,3,4,5,6].map(i => <div key={i} className="h-24 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)" }} />)}
               </div>
             ) : serverStatus ? (
               <>
@@ -2289,21 +2289,21 @@ export default function AdminSettings() {
                   const barColor = (pct: number) =>
                     pct > 85 ? "linear-gradient(90deg,#f87171,#ef4444)"
                     : pct > 60 ? "linear-gradient(90deg,#fbbf24,#d97706)"
-                    : "linear-gradient(90deg,#5B8CFF,#3D5CE0)";
+                    : "linear-gradient(90deg,#00FF94,#00CC77)";
 
                   const StatBar = ({ label, value, sub, pct, note }: { label: string; value: string; sub?: string; pct: number; note?: string }) => (
-                    <div className="p-4 rounded-xl space-y-2.5" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
+                    <div className="p-4 rounded-xl space-y-2.5" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.10)" }}>
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="text-base font-bold" style={{ color: TEAL, fontFamily: "'Sora',sans-serif" }}>{value}</div>
-                          <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>{label}</div>
+                          <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.45)" }}>{label}</div>
                         </div>
                         <div className="text-sm font-bold shrink-0" style={{ color: pct > 85 ? "rgba(248,113,113,0.9)" : pct > 60 ? "rgba(251,191,36,0.9)" : "rgba(52,211,153,0.85)" }}>{pct}%</div>
                       </div>
-                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.08)" }}>
+                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(0,255,148,0.08)" }}>
                         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: barColor(pct) }} />
                       </div>
-                      {sub && <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>{sub}</div>}
+                      {sub && <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>{sub}</div>}
                     </div>
                   );
 
@@ -2342,15 +2342,15 @@ export default function AdminSettings() {
                           { label: "API RSS",        value: `${serverStatus.rss} MB` },
                           { label: "API Uptime",     value: fmt(serverStatus.processUptimeSeconds) },
                         ].map(s => (
-                          <div key={s.label} className="p-3 rounded-xl text-center" style={{ background: "rgba(91,140,255,0.03)", border: "1px solid rgba(91,140,255,0.08)" }}>
-                            <div className="text-sm font-bold" style={{ color: "rgba(194,210,255,0.75)", fontFamily: "'Sora',sans-serif" }}>{s.value}</div>
-                            <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>{s.label}</div>
+                          <div key={s.label} className="p-3 rounded-xl text-center" style={{ background: "rgba(0,255,148,0.03)", border: "1px solid rgba(0,255,148,0.08)" }}>
+                            <div className="text-sm font-bold" style={{ color: "rgba(176,255,224,0.75)", fontFamily: "'Sora',sans-serif" }}>{s.value}</div>
+                            <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.35)" }}>{s.label}</div>
                           </div>
                         ))}
                       </div>
 
                       {/* System uptime */}
-                      <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
+                      <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
                         <span>System uptime:</span>
                         <span style={{ color: "rgba(52,211,153,0.8)" }}>{fmt(serverStatus.sysUptimeSeconds)}</span>
                       </div>
@@ -2359,7 +2359,7 @@ export default function AdminSettings() {
                 })()}
               </>
             ) : (
-              <p className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Could not load server status.</p>
+              <p className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Could not load server status.</p>
             )}
 
             {restartDone && !restarting && (
@@ -2375,7 +2375,7 @@ export default function AdminSettings() {
                 onClick={loadServerStatus}
                 disabled={serverStatusLoading}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-60"
-                style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.22)", color: TEAL }}
+                style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.22)", color: TEAL }}
               >
                 <RefreshCw size={13} className={serverStatusLoading ? "animate-spin" : ""} />
                 Refresh Stats
@@ -2413,7 +2413,7 @@ export default function AdminSettings() {
                       type="button"
                       onClick={() => setConfirmRestart(false)}
                       className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-                      style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.2)", color: "rgba(194,210,255,0.7)" }}
+                      style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.7)" }}
                     >
                       Cancel
                     </button>

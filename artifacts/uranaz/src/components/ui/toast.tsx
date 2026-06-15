@@ -36,8 +36,8 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: [
-          "bg-[rgba(10,14,30,0.88)] border-[rgba(91,140,255,0.22)]",
-          "shadow-[0_0_40px_rgba(91,140,255,0.08)]",
+          "bg-[rgba(10,14,30,0.88)] border-[rgba(0,255,148,0.22)]",
+          "shadow-[0_0_40px_rgba(0,255,148,0.08)]",
         ].join(" "),
         destructive: [
           "bg-[rgba(10,14,30,0.88)] border-[rgba(248,113,113,0.28)]",
@@ -77,7 +77,7 @@ const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      "inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-[rgba(91,140,255,0.25)] bg-transparent px-3 text-xs font-medium text-[rgba(194,210,255,0.8)] transition-colors hover:bg-[rgba(91,140,255,0.12)] focus:outline-none focus:ring-1 focus:ring-[rgba(91,140,255,0.5)] disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-[rgba(0,255,148,0.25)] bg-transparent px-3 text-xs font-medium text-[rgba(176,255,224,0.8)] transition-colors hover:bg-[rgba(0,255,148,0.12)] focus:outline-none focus:ring-1 focus:ring-[rgba(0,255,148,0.5)] disabled:pointer-events-none disabled:opacity-50",
       className
     )}
     {...props}
@@ -92,7 +92,7 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      "absolute right-2.5 top-2.5 rounded-md p-0.5 text-[rgba(194,210,255,0.3)] opacity-0 transition-all hover:text-[rgba(194,210,255,0.7)] focus:opacity-100 focus:outline-none group-hover:opacity-100",
+      "absolute right-2.5 top-2.5 rounded-md p-0.5 text-[rgba(176,255,224,0.3)] opacity-0 transition-all hover:text-[rgba(176,255,224,0.7)] focus:opacity-100 focus:outline-none group-hover:opacity-100",
       className
     )}
     toast-close=""
@@ -121,7 +121,7 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Description
     ref={ref}
-    className={cn("text-xs leading-relaxed text-[rgba(194,210,255,0.6)] mt-0.5", className)}
+    className={cn("text-xs leading-relaxed text-[rgba(176,255,224,0.6)] mt-0.5", className)}
     {...props}
   />
 ))

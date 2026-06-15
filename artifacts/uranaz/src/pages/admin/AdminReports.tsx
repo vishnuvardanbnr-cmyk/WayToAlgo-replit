@@ -6,9 +6,9 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
-const INPUT_STYLE = { background: "rgba(0,15,30,0.7)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" };
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
+const INPUT_STYLE = { background: "rgba(0,15,30,0.7)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" };
 
 type TabKey = "deposits" | "withdrawals" | "wallet-changes" | "p2p" | "income" | "balance-adjustments";
 
@@ -25,15 +25,15 @@ const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
   credited:   { color: "#34d399", bg: "rgba(52,211,153,0.10)" },
   approved:   { color: "#34d399", bg: "rgba(52,211,153,0.10)" },
   pending:    { color: "#fbbf24", bg: "rgba(251,191,36,0.10)" },
-  sweeping:   { color: TEAL,      bg: "rgba(91,140,255,0.10)" },
-  processing: { color: TEAL,      bg: "rgba(91,140,255,0.10)" },
+  sweeping:   { color: TEAL,      bg: "rgba(0,255,148,0.10)" },
+  processing: { color: TEAL,      bg: "rgba(0,255,148,0.10)" },
   rejected:   { color: "#f87171", bg: "rgba(248,113,113,0.10)" },
   failed:     { color: "#f87171", bg: "rgba(248,113,113,0.10)" },
 };
 
 const INCOME_TYPE_COLORS: Record<string, { color: string; bg: string; label: string }> = {
   daily_return:      { color: "#34d399", bg: "rgba(52,211,153,0.10)",  label: "Daily Return" },
-  level_commission:  { color: TEAL,      bg: "rgba(91,140,255,0.10)",  label: "Level Comm." },
+  level_commission:  { color: TEAL,      bg: "rgba(0,255,148,0.10)",  label: "Level Comm." },
   spot_referral:     { color: "#fbbf24", bg: "rgba(251,191,36,0.10)",  label: "Spot Referral" },
   rank_bonus:        { color: "#a78bfa", bg: "rgba(167,139,250,0.10)", label: "Rank Bonus" },
 };
@@ -55,9 +55,9 @@ function shortAddr(addr: string | null | undefined) {
 function StatCard({ label, value, sub, color = TEAL }: any) {
   return (
     <div className="rounded-xl p-3 sm:p-4" style={GLASS}>
-      <div className="text-[11px] uppercase tracking-wider" style={{ color: "rgba(194,210,255,0.40)", letterSpacing: "0.08em" }}>{label}</div>
+      <div className="text-[11px] uppercase tracking-wider" style={{ color: "rgba(176,255,224,0.40)", letterSpacing: "0.08em" }}>{label}</div>
       <div className="font-bold text-base sm:text-lg mt-1" style={{ color }}>{value ?? "—"}</div>
-      {sub && <div className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>{sub}</div>}
+      {sub && <div className="text-[11px] mt-0.5" style={{ color: "rgba(176,255,224,0.45)" }}>{sub}</div>}
     </div>
   );
 }
@@ -99,8 +99,8 @@ function TxLink({ hash }: { hash: string }) {
 function UserCell({ name, email, id }: { name: string; email: string; id: number }) {
   return (
     <div>
-      <div className="font-medium text-xs sm:text-sm" style={{ color: "rgba(194,210,255,0.9)" }}>{name}</div>
-      <div className="text-[11px]" style={{ color: "rgba(194,210,255,0.45)" }}>{email} <span style={{ color: "rgba(194,210,255,0.25)" }}>#{id}</span></div>
+      <div className="font-medium text-xs sm:text-sm" style={{ color: "rgba(176,255,224,0.9)" }}>{name}</div>
+      <div className="text-[11px]" style={{ color: "rgba(176,255,224,0.45)" }}>{email} <span style={{ color: "rgba(176,255,224,0.25)" }}>#{id}</span></div>
     </div>
   );
 }
@@ -109,7 +109,7 @@ function Th({ children, className = "" }: any) {
   return <th className={`text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-wider whitespace-nowrap ${className}`}>{children}</th>;
 }
 function Tr({ children, testId }: any) {
-  return <tr data-testid={testId} className="border-t transition-colors hover:bg-white/[0.02]" style={{ borderColor: "rgba(91,140,255,0.06)" }}>{children}</tr>;
+  return <tr data-testid={testId} className="border-t transition-colors hover:bg-white/[0.02]" style={{ borderColor: "rgba(0,255,148,0.06)" }}>{children}</tr>;
 }
 function Td({ children, className = "" }: any) {
   return <td className={`px-3 py-2.5 align-middle ${className}`}>{children}</td>;
@@ -204,16 +204,16 @@ export default function AdminReports() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-bold" style={{ fontFamily: "'Sora', sans-serif", background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+          <h1 className="text-xl font-bold" style={{ fontFamily: "'Sora', sans-serif", background: "linear-gradient(135deg, #B0FFE0, #00FF94)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
             Reports
           </h1>
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>Transaction history, income records & balance adjustments</p>
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>Transaction history, income records & balance adjustments</p>
         </div>
         <button
           onClick={handleExport}
           data-testid="button-export-csv"
           className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg transition-all"
-          style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.25)", color: TEAL }}
+          style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.25)", color: TEAL }}
         >
           <Download size={13} /> Export CSV
         </button>
@@ -230,10 +230,10 @@ export default function AdminReports() {
               onClick={() => setTab(t.key)}
               className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all"
               style={active ? {
-                background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                color: "#060814",
-                boxShadow: "0 0 14px rgba(91,140,255,0.25)",
-              } : { ...GLASS, color: "rgba(194,210,255,0.55)" }}
+                background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                color: "#050C0A",
+                boxShadow: "0 0 14px rgba(0,255,148,0.25)",
+              } : { ...GLASS, color: "rgba(176,255,224,0.55)" }}
             >
               <t.icon size={14} /> {t.label}
             </button>
@@ -254,7 +254,7 @@ export default function AdminReports() {
             <StatCard label="Total Requests"  value={summary.totalCount}       sub={fmtMoney(summary.totalRequested)}  color={TEAL} />
             <StatCard label="Approved"        value={summary.approvedCount}    sub={fmtMoney(summary.approvedAmount)}  color="#34d399" />
             <StatCard label="Pending"         value={summary.pendingCount}     sub={fmtMoney(summary.pendingAmount)}   color="#fbbf24" />
-            <StatCard label="Processing/Rej." value={`${summary.processingCount}/${summary.rejectedCount}`}           color="rgba(194,210,255,0.7)" />
+            <StatCard label="Processing/Rej." value={`${summary.processingCount}/${summary.rejectedCount}`}           color="rgba(176,255,224,0.7)" />
           </>)}
           {tab === "wallet-changes" && (<>
             <StatCard label="Total Events"    value={summary.totalCount}       color={TEAL} />
@@ -285,7 +285,7 @@ export default function AdminReports() {
       <div className="rounded-xl p-3 sm:p-4 space-y-3" style={GLASS}>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex-1 min-w-[180px] relative">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(194,210,255,0.35)" }} />
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(176,255,224,0.35)" }} />
             <input
               data-testid="input-search"
               value={search}
@@ -295,7 +295,7 @@ export default function AdminReports() {
               style={INPUT_STYLE}
             />
             {search && (
-              <button onClick={() => { setSearch(""); setPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: "rgba(194,210,255,0.4)" }}>
+              <button onClick={() => { setSearch(""); setPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: "rgba(176,255,224,0.4)" }}>
                 <X size={13} />
               </button>
             )}
@@ -314,7 +314,7 @@ export default function AdminReports() {
           )}
 
           {tab === "wallet-changes" && (
-            <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: "rgba(194,210,255,0.65)" }}>
+            <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: "rgba(176,255,224,0.65)" }}>
               <input type="checkbox" checked={otpOnly} onChange={e => { setOtpOnly(e.target.checked); setPage(1); }} style={{ accentColor: TEAL }} />
               OTP-verified only
             </label>
@@ -348,14 +348,14 @@ export default function AdminReports() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5" style={{ color: "rgba(194,210,255,0.5)" }}>
+          <div className="flex items-center gap-1.5" style={{ color: "rgba(176,255,224,0.5)" }}>
             <Calendar size={12} /> <span className="text-[11px]">From</span>
           </div>
           <input type="date" value={from} onChange={e => { setFrom(e.target.value); setPage(1); }} className="text-xs px-2 py-1.5 rounded-lg outline-none" style={INPUT_STYLE} />
-          <span className="text-[11px]" style={{ color: "rgba(194,210,255,0.4)" }}>To</span>
+          <span className="text-[11px]" style={{ color: "rgba(176,255,224,0.4)" }}>To</span>
           <input type="date" value={to} onChange={e => { setTo(e.target.value); setPage(1); }} className="text-xs px-2 py-1.5 rounded-lg outline-none" style={INPUT_STYLE} />
           {(from || to) && (
-            <button onClick={() => { setFrom(""); setTo(""); setPage(1); }} className="text-[11px] underline" style={{ color: "rgba(194,210,255,0.45)" }}>Clear dates</button>
+            <button onClick={() => { setFrom(""); setTo(""); setPage(1); }} className="text-[11px] underline" style={{ color: "rgba(176,255,224,0.45)" }}>Clear dates</button>
           )}
         </div>
       </div>
@@ -364,20 +364,20 @@ export default function AdminReports() {
       {loading ? (
         <div className="space-y-2">
           {[1,2,3,4,5].map(i => (
-            <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.06)" }} />
+            <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.06)" }} />
           ))}
         </div>
       ) : !rows.length ? (
         <div className="rounded-xl p-10 text-center" style={GLASS}>
-          <tabConfig.icon size={36} className="mx-auto mb-3" style={{ color: "rgba(194,210,255,0.18)" }} />
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>No records found for the current filters</p>
+          <tabConfig.icon size={36} className="mx-auto mb-3" style={{ color: "rgba(176,255,224,0.18)" }} />
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>No records found for the current filters</p>
         </div>
       ) : (
         <div className="rounded-xl overflow-hidden" style={GLASS}>
           <div className="overflow-x-auto">
             <table className="w-full text-xs sm:text-sm">
               <thead>
-                <tr style={{ background: "rgba(91,140,255,0.05)", color: "rgba(194,210,255,0.55)" }}>
+                <tr style={{ background: "rgba(0,255,148,0.05)", color: "rgba(176,255,224,0.55)" }}>
                   {tab === "deposits" && (<><Th>User</Th><Th>Amount</Th><Th>Status</Th><Th className="hidden sm:table-cell">TX Hash</Th><Th>Created</Th></>)}
                   {tab === "withdrawals" && (<><Th>User</Th><Th>Amount</Th><Th>Wallet</Th><Th>Status</Th><Th className="hidden sm:table-cell">TX Hash</Th><Th>Requested</Th></>)}
                   {tab === "wallet-changes" && (<><Th>User</Th><Th>Old → New</Th><Th>Type</Th><Th>OTP</Th><Th className="hidden sm:table-cell">IP</Th><Th>When</Th></>)}
@@ -389,27 +389,27 @@ export default function AdminReports() {
               <tbody>
                 {rows.map((r) => {
                   if (tab === "deposits") {
-                    const cfg = STATUS_COLORS[r.status] || { color: "rgba(194,210,255,0.6)", bg: "rgba(194,210,255,0.05)" };
+                    const cfg = STATUS_COLORS[r.status] || { color: "rgba(176,255,224,0.6)", bg: "rgba(176,255,224,0.05)" };
                     return (
                       <Tr key={r.id} testId={`row-deposit-${r.id}`}>
                         <Td><UserCell name={r.userName} email={r.userEmail} id={r.userId} /></Td>
                         <Td><span className="font-bold" style={{ color: TEAL }}>{fmtMoney(r.amount)}</span></Td>
                         <Td><Pill label={r.status} color={cfg.color} bg={cfg.bg} /></Td>
-                        <Td className="hidden sm:table-cell">{r.txHash ? <TxLink hash={r.txHash} /> : <span style={{ color: "rgba(194,210,255,0.3)" }}>—</span>}</Td>
-                        <Td><span style={{ color: "rgba(194,210,255,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
+                        <Td className="hidden sm:table-cell">{r.txHash ? <TxLink hash={r.txHash} /> : <span style={{ color: "rgba(176,255,224,0.3)" }}>—</span>}</Td>
+                        <Td><span style={{ color: "rgba(176,255,224,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
                       </Tr>
                     );
                   }
                   if (tab === "withdrawals") {
-                    const cfg = STATUS_COLORS[r.status] || { color: "rgba(194,210,255,0.6)", bg: "rgba(194,210,255,0.05)" };
+                    const cfg = STATUS_COLORS[r.status] || { color: "rgba(176,255,224,0.6)", bg: "rgba(176,255,224,0.05)" };
                     return (
                       <Tr key={r.id} testId={`row-withdrawal-${r.id}`}>
                         <Td><UserCell name={r.userName} email={r.userEmail} id={r.userId} /></Td>
                         <Td><span className="font-bold" style={{ color: TEAL }}>{fmtMoney(r.amount)}</span></Td>
-                        <Td><span className="font-mono text-[11px]" style={{ color: "rgba(194,210,255,0.7)" }}>{shortAddr(r.walletAddress)}</span></Td>
+                        <Td><span className="font-mono text-[11px]" style={{ color: "rgba(176,255,224,0.7)" }}>{shortAddr(r.walletAddress)}</span></Td>
                         <Td><Pill label={r.status} color={cfg.color} bg={cfg.bg} /></Td>
-                        <Td className="hidden sm:table-cell">{r.txHash ? <TxLink hash={r.txHash} /> : <span style={{ color: "rgba(194,210,255,0.3)" }}>—</span>}</Td>
-                        <Td><span style={{ color: "rgba(194,210,255,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
+                        <Td className="hidden sm:table-cell">{r.txHash ? <TxLink hash={r.txHash} /> : <span style={{ color: "rgba(176,255,224,0.3)" }}>—</span>}</Td>
+                        <Td><span style={{ color: "rgba(176,255,224,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
                       </Tr>
                     );
                   }
@@ -421,23 +421,23 @@ export default function AdminReports() {
                         <Td><UserCell name={r.recipientName} email={r.recipientEmail} id={r.recipientId} /></Td>
                         <Td><span className="font-bold" style={{ color: TEAL }}>{fmtMoney(r.amount)}</span></Td>
                         <Td><Pill label={isUsdt ? "USDT" : "WTA"} color={isUsdt ? "#34d399" : "#a78bfa"} bg={isUsdt ? "rgba(52,211,153,0.10)" : "rgba(167,139,250,0.10)"} /></Td>
-                        <Td><span style={{ color: "rgba(194,210,255,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
+                        <Td><span style={{ color: "rgba(176,255,224,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
                       </Tr>
                     );
                   }
                   if (tab === "income") {
-                    const tc = INCOME_TYPE_COLORS[r.type] || { color: "rgba(194,210,255,0.6)", bg: "rgba(194,210,255,0.05)", label: r.type };
+                    const tc = INCOME_TYPE_COLORS[r.type] || { color: "rgba(176,255,224,0.6)", bg: "rgba(176,255,224,0.05)", label: r.type };
                     return (
                       <Tr key={r.id} testId={`row-income-${r.id}`}>
                         <Td><UserCell name={r.userName} email={r.userEmail} id={r.userId} /></Td>
                         <Td><Pill label={tc.label} color={tc.color} bg={tc.bg} /></Td>
                         <Td><span className="font-bold" style={{ color: "#34d399" }}>+{fmtMoney(r.amount)}</span></Td>
-                        <Td className="hidden sm:table-cell"><span className="text-[11px]" style={{ color: "rgba(194,210,255,0.5)" }}>{r.description}</span></Td>
+                        <Td className="hidden sm:table-cell"><span className="text-[11px]" style={{ color: "rgba(176,255,224,0.5)" }}>{r.description}</span></Td>
                         <Td className="hidden sm:table-cell">
-                          {r.fromUserName ? <span className="text-[11px]" style={{ color: "rgba(194,210,255,0.6)" }}>{r.fromUserName}</span> : <span style={{ color: "rgba(194,210,255,0.25)" }}>—</span>}
-                          {r.level != null && <span className="ml-1 text-[10px]" style={{ color: "rgba(194,210,255,0.35)" }}>(L{r.level})</span>}
+                          {r.fromUserName ? <span className="text-[11px]" style={{ color: "rgba(176,255,224,0.6)" }}>{r.fromUserName}</span> : <span style={{ color: "rgba(176,255,224,0.25)" }}>—</span>}
+                          {r.level != null && <span className="ml-1 text-[10px]" style={{ color: "rgba(176,255,224,0.35)" }}>(L{r.level})</span>}
                         </Td>
-                        <Td><span style={{ color: "rgba(194,210,255,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
+                        <Td><span style={{ color: "rgba(176,255,224,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
                       </Tr>
                     );
                   }
@@ -448,9 +448,9 @@ export default function AdminReports() {
                         <Td><UserCell name={r.userName} email={r.userEmail} id={r.userId} /></Td>
                         <Td><Pill label={isUsdt ? "USDT" : "WTA"} color={isUsdt ? "#34d399" : "#a78bfa"} bg={isUsdt ? "rgba(52,211,153,0.10)" : "rgba(167,139,250,0.10)"} /></Td>
                         <Td><span className="font-bold" style={{ color: "#34d399" }}>+{isUsdt ? fmtMoney(r.amount) : `${r.amount} WTA`}</span></Td>
-                        <Td><span className="text-[11px]" style={{ color: "rgba(194,210,255,0.65)" }}>{r.adminName}</span></Td>
-                        <Td className="hidden sm:table-cell"><span className="text-[11px]" style={{ color: "rgba(194,210,255,0.45)" }}>{r.note || "—"}</span></Td>
-                        <Td><span style={{ color: "rgba(194,210,255,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
+                        <Td><span className="text-[11px]" style={{ color: "rgba(176,255,224,0.65)" }}>{r.adminName}</span></Td>
+                        <Td className="hidden sm:table-cell"><span className="text-[11px]" style={{ color: "rgba(176,255,224,0.45)" }}>{r.note || "—"}</span></Td>
+                        <Td><span style={{ color: "rgba(176,255,224,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
                       </Tr>
                     );
                   }
@@ -459,19 +459,19 @@ export default function AdminReports() {
                     <Tr key={r.id} testId={`row-walletchange-${r.id}`}>
                       <Td><UserCell name={r.userName} email={r.userEmail} id={r.userId} /></Td>
                       <Td>
-                        <div className="font-mono text-[11px] leading-snug" style={{ color: "rgba(194,210,255,0.65)" }}>
-                          {r.isInitialSetup ? <span style={{ color: "rgba(194,210,255,0.4)" }}>(initial setup)</span> : <span>{shortAddr(r.oldAddress)}</span>}
+                        <div className="font-mono text-[11px] leading-snug" style={{ color: "rgba(176,255,224,0.65)" }}>
+                          {r.isInitialSetup ? <span style={{ color: "rgba(176,255,224,0.4)" }}>(initial setup)</span> : <span>{shortAddr(r.oldAddress)}</span>}
                           <div style={{ color: TEAL }}>→ {shortAddr(r.newAddress)}</div>
                         </div>
                       </Td>
-                      <Td>{r.isInitialSetup ? <Pill label="initial" color="rgba(194,210,255,0.55)" bg="rgba(194,210,255,0.05)" /> : <Pill label="updated" color="#fbbf24" bg="rgba(251,191,36,0.10)" />}</Td>
+                      <Td>{r.isInitialSetup ? <Pill label="initial" color="rgba(176,255,224,0.55)" bg="rgba(176,255,224,0.05)" /> : <Pill label="updated" color="#fbbf24" bg="rgba(251,191,36,0.10)" />}</Td>
                       <Td>
                         {r.otpVerified
                           ? <span className="inline-flex items-center gap-1 text-[11px] font-semibold" style={{ color: "#34d399" }}><ShieldCheck size={11} /> verified</span>
-                          : <span className="text-[11px]" style={{ color: "rgba(194,210,255,0.35)" }}>—</span>}
+                          : <span className="text-[11px]" style={{ color: "rgba(176,255,224,0.35)" }}>—</span>}
                       </Td>
-                      <Td className="hidden sm:table-cell"><span className="font-mono text-[11px]" style={{ color: "rgba(194,210,255,0.5)" }}>{r.ipAddress || "—"}</span></Td>
-                      <Td><span style={{ color: "rgba(194,210,255,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
+                      <Td className="hidden sm:table-cell"><span className="font-mono text-[11px]" style={{ color: "rgba(176,255,224,0.5)" }}>{r.ipAddress || "—"}</span></Td>
+                      <Td><span style={{ color: "rgba(176,255,224,0.55)" }}>{fmtDate(r.createdAt)}</span></Td>
                     </Tr>
                   );
                 })}
@@ -480,8 +480,8 @@ export default function AdminReports() {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-3 py-2.5" style={{ borderTop: "1px solid rgba(91,140,255,0.08)" }}>
-            <div className="text-[11px]" style={{ color: "rgba(194,210,255,0.45)" }}>
+          <div className="flex items-center justify-between px-3 py-2.5" style={{ borderTop: "1px solid rgba(0,255,148,0.08)" }}>
+            <div className="text-[11px]" style={{ color: "rgba(176,255,224,0.45)" }}>
               {data ? `Page ${page} / ${totalPages} — ${data.total} total` : "—"}
             </div>
             <div className="flex items-center gap-1.5">
@@ -489,7 +489,7 @@ export default function AdminReports() {
                 disabled={page <= 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 className="p-1.5 rounded-md disabled:opacity-30 transition-all"
-                style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }}
+                style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }}
               >
                 <ChevronLeft size={14} />
               </button>
@@ -506,12 +506,12 @@ export default function AdminReports() {
                     onClick={() => setPage(p)}
                     className="w-7 h-7 rounded-md text-[11px] font-semibold transition-all"
                     style={page === p ? {
-                      background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                      color: "#060814",
+                      background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                      color: "#050C0A",
                     } : {
-                      background: "rgba(91,140,255,0.06)",
-                      border: "1px solid rgba(91,140,255,0.15)",
-                      color: "rgba(194,210,255,0.6)",
+                      background: "rgba(0,255,148,0.06)",
+                      border: "1px solid rgba(0,255,148,0.15)",
+                      color: "rgba(176,255,224,0.6)",
                     }}
                   >
                     {p}
@@ -522,7 +522,7 @@ export default function AdminReports() {
                 disabled={page >= totalPages}
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 className="p-1.5 rounded-md disabled:opacity-30 transition-all"
-                style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }}
+                style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }}
               >
                 <ChevronRight size={14} />
               </button>

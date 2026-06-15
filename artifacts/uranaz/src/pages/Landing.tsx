@@ -27,7 +27,7 @@ function FeatureCard({
       </div>
       <div>
         <div className="font-bold text-sm mb-1" style={{ color: "rgba(200,240,255,0.90)" }}>{title}</div>
-        <div className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.45)" }}>{desc}</div>
+        <div className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.45)" }}>{desc}</div>
       </div>
     </div>
   );
@@ -41,19 +41,19 @@ function Step({ n, title, desc }: { n: number; title: string; desc: string }) {
         <div
           className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black"
           style={{
-            background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-            color: "#060814",
+            background: "linear-gradient(135deg, #00FF94, #00CC77)",
+            color: "#050C0A",
             fontFamily: "'Sora', sans-serif",
-            boxShadow: "0 0 20px rgba(91,140,255,0.35)",
+            boxShadow: "0 0 20px rgba(0,255,148,0.35)",
           }}
         >
           {n}
         </div>
-        {n < 3 && <div className="w-px flex-1 mt-2" style={{ background: "rgba(91,140,255,0.18)", minHeight: 32 }} />}
+        {n < 3 && <div className="w-px flex-1 mt-2" style={{ background: "rgba(0,255,148,0.18)", minHeight: 32 }} />}
       </div>
       <div className="pb-8">
         <div className="font-bold text-sm mb-1" style={{ color: "rgba(200,240,255,0.90)" }}>{title}</div>
-        <div className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.45)" }}>{desc}</div>
+        <div className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.45)" }}>{desc}</div>
       </div>
     </div>
   );
@@ -62,7 +62,7 @@ function Step({ n, title, desc }: { n: number; title: string; desc: string }) {
 /* ─── Main ──────────────────────────────────────────────────── */
 export default function Landing() {
   return (
-    <div className="min-h-screen relative overflow-x-hidden" style={{ background: "#060814" }}>
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: "#050C0A" }}>
       <SpaceBackground />
 
       {/* ── Nav bar ───────────────────────────────────────────── */}
@@ -71,7 +71,7 @@ export default function Landing() {
           className="text-lg font-black tracking-wider"
           style={{
             fontFamily: "'Sora', sans-serif",
-            background: "linear-gradient(135deg, #C2D2FF, #5B8CFF, #C2D2FF)",
+            background: "linear-gradient(135deg, #B0FFE0, #00FF94, #B0FFE0)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -83,7 +83,7 @@ export default function Landing() {
           <Link href="/login">
             <button
               className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:brightness-125"
-              style={{ color: "rgba(194,210,255,0.7)", border: "1px solid rgba(91,140,255,0.18)", background: "rgba(91,140,255,0.05)" }}
+              style={{ color: "rgba(176,255,224,0.7)", border: "1px solid rgba(0,255,148,0.18)", background: "rgba(0,255,148,0.05)" }}
             >
               Sign In
             </button>
@@ -91,7 +91,7 @@ export default function Landing() {
           <Link href="/register">
             <button
               className="px-4 py-2 rounded-xl text-sm font-bold transition-all hover:brightness-110"
-              style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814" }}
+              style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A" }}
             >
               Get Started
             </button>
@@ -105,15 +105,15 @@ export default function Landing() {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8"
           style={{
-            background: "rgba(91,140,255,0.08)",
-            border: "1px solid rgba(91,140,255,0.25)",
+            background: "rgba(0,255,148,0.08)",
+            border: "1px solid rgba(0,255,148,0.25)",
           }}
         >
-          <Star size={12} style={{ color: "#5B8CFF" }} fill="#5B8CFF" />
-          <span className="text-xs font-semibold tracking-wide" style={{ color: "#5B8CFF" }}>
+          <Star size={12} style={{ color: "#00FF94" }} fill="#00FF94" />
+          <span className="text-xs font-semibold tracking-wide" style={{ color: "#00FF94" }}>
             Now Live — Automated Strategies Open to Everyone
           </span>
-          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#5B8CFF" }} />
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#00FF94" }} />
         </div>
 
         {/* Headline */}
@@ -121,20 +121,20 @@ export default function Landing() {
           <span style={{ color: "rgba(200,240,255,0.92)" }}>Put Your Capital</span>
           <br />
           <span style={{
-            background: "linear-gradient(135deg, #C2D2FF 0%, #5B8CFF 40%, #C2D2FF 100%)",
+            background: "linear-gradient(135deg, #B0FFE0 0%, #00FF94 40%, #B0FFE0 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
-            filter: "drop-shadow(0 0 30px rgba(91,140,255,0.35))",
+            filter: "drop-shadow(0 0 30px rgba(0,255,148,0.35))",
           }}>
             on Autopilot
           </span>
         </h1>
 
         {/* Subtext */}
-        <p className="text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed" style={{ color: "rgba(194,210,255,0.55)" }}>
+        <p className="text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed" style={{ color: "rgba(176,255,224,0.55)" }}>
           WaytoAlgo runs data-driven, risk-managed trading strategies across global markets — so your portfolio keeps working every trading day.
-          Earn up to <strong style={{ color: "#5B8CFF" }}>0.8% in daily returns</strong>, track every payout in real time, and withdraw whenever you choose.
+          Earn up to <strong style={{ color: "#00FF94" }}>0.8% in daily returns</strong>, track every payout in real time, and withdraw whenever you choose.
         </p>
 
         {/* CTA buttons */}
@@ -143,9 +143,9 @@ export default function Landing() {
             <button
               className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-base transition-all hover:brightness-110 hover:scale-[1.02] w-full sm:w-auto"
               style={{
-                background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                color: "#060814",
-                boxShadow: "0 0 30px rgba(91,140,255,0.30), 0 4px 16px rgba(0,0,0,0.4)",
+                background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                color: "#050C0A",
+                boxShadow: "0 0 30px rgba(0,255,148,0.30), 0 4px 16px rgba(0,0,0,0.4)",
               }}
             >
               Start Investing Now
@@ -157,9 +157,9 @@ export default function Landing() {
               data-testid="button-login-hero"
               className="px-8 py-3.5 rounded-xl font-semibold text-base transition-all hover:brightness-125 w-full sm:w-auto"
               style={{
-                background: "rgba(91,140,255,0.06)",
-                border: "1px solid rgba(91,140,255,0.22)",
-                color: "rgba(194,210,255,0.80)",
+                background: "rgba(0,255,148,0.06)",
+                border: "1px solid rgba(0,255,148,0.22)",
+                color: "rgba(176,255,224,0.80)",
               }}
             >
               Sign In
@@ -171,7 +171,7 @@ export default function Landing() {
       {/* ── Markets ───────────────────────────────────────────── */}
       <section className="relative z-10 px-4 pb-20 max-w-6xl mx-auto">
         <div className="text-center mb-10">
-          <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "rgba(91,140,255,0.5)" }}>
+          <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "rgba(0,255,148,0.5)" }}>
             How We Generate Returns
           </div>
           <h2 className="text-2xl sm:text-3xl font-black" style={{ fontFamily: "'Sora', sans-serif", color: "rgba(200,240,255,0.90)" }}>
@@ -179,8 +179,8 @@ export default function Landing() {
           </h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <FeatureCard icon={Building2} title="Real Estate" desc="Income-generating property positions selected for stable, long-horizon yield." color="#5B8CFF" />
-          <FeatureCard icon={BarChart2} title="Stocks" desc="Data-driven equity allocations rebalanced to capture momentum and limit drawdown." color="#C2D2FF" />
+          <FeatureCard icon={Building2} title="Real Estate" desc="Income-generating property positions selected for stable, long-horizon yield." color="#00FF94" />
+          <FeatureCard icon={BarChart2} title="Stocks" desc="Data-driven equity allocations rebalanced to capture momentum and limit drawdown." color="#B0FFE0" />
           <FeatureCard icon={TrendingUp} title="Forex" desc="Round-the-clock currency strategies governed by strict, rules-based risk controls." color="#34d399" />
           <FeatureCard icon={Coins} title="Crypto" desc="Systematic digital-asset trading that turns volatility into disciplined entries and exits." color="#b87fff" />
         </div>
@@ -189,13 +189,13 @@ export default function Landing() {
       {/* ── Native Token ──────────────────────────────────────── */}
       <section className="relative z-10 px-4 pb-20 max-w-6xl mx-auto">
         <div className="text-center mb-10">
-          <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "rgba(91,140,255,0.5)" }}>
+          <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "rgba(0,255,148,0.5)" }}>
             Native Token
           </div>
           <h2 className="text-2xl sm:text-3xl font-black" style={{ fontFamily: "'Sora', sans-serif", color: "rgba(200,240,255,0.90)" }}>
             A Token Engineered to Only Climb
           </h2>
-          <p className="text-sm sm:text-base max-w-2xl mx-auto mt-3 leading-relaxed" style={{ color: "rgba(194,210,255,0.55)" }}>
+          <p className="text-sm sm:text-base max-w-2xl mx-auto mt-3 leading-relaxed" style={{ color: "rgba(176,255,224,0.55)" }}>
             Our BEP-20 token runs on a reserve-backed floor price that ratchets upward with demand.
             By design, the floor <strong style={{ color: "#34d399" }}>can only rise — it never drops.</strong>
           </p>
@@ -203,22 +203,22 @@ export default function Landing() {
 
         <div className="grid lg:grid-cols-2 gap-6 items-stretch">
           {/* Mechanism */}
-          <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.13)" }}>
+          <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.13)" }}>
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.30)" }}>
-                <Coins size={20} style={{ color: "#5B8CFF" }} />
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.30)" }}>
+                <Coins size={20} style={{ color: "#00FF94" }} />
               </div>
               <div>
                 <div className="font-bold text-sm" style={{ color: "rgba(200,240,255,0.92)" }}>WaytoAlgo Token</div>
-                <div className="text-xs" style={{ color: "rgba(194,210,255,0.45)" }}>BEP-20 · On-chain · Reserve-backed</div>
+                <div className="text-xs" style={{ color: "rgba(176,255,224,0.45)" }}>BEP-20 · On-chain · Reserve-backed</div>
               </div>
             </div>
             <div className="flex flex-col gap-4">
               {[
                 { icon: TrendingUp, color: "#34d399", title: "Floor price only moves up", desc: "Every purchase lifts the floor. The contract has no mechanism to lower it — so the price never drops below its previous floor." },
-                { icon: Shield, color: "#5B8CFF", title: "Backed by a growing reserve", desc: "Each buy adds USDT to an on-chain reserve, increasing the real backing behind every token in circulation." },
+                { icon: Shield, color: "#00FF94", title: "Backed by a growing reserve", desc: "Each buy adds USDT to an on-chain reserve, increasing the real backing behind every token in circulation." },
                 { icon: Flame, color: "#b87fff", title: "Revenue-funded buybacks", desc: "A share of platform profits automatically buys back tokens, adding constant demand that pushes the floor higher." },
-                { icon: Lock, color: "#C2D2FF", title: "Transparent & verifiable", desc: "Supply, reserve and price live fully on-chain on BSC — anyone can verify them at any time." },
+                { icon: Lock, color: "#B0FFE0", title: "Transparent & verifiable", desc: "Supply, reserve and price live fully on-chain on BSC — anyone can verify them at any time." },
               ].map(row => {
                 const Icon = row.icon;
                 return (
@@ -228,7 +228,7 @@ export default function Landing() {
                     </div>
                     <div>
                       <div className="font-semibold text-sm" style={{ color: "rgba(200,240,255,0.88)" }}>{row.title}</div>
-                      <div className="text-xs leading-relaxed mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>{row.desc}</div>
+                      <div className="text-xs leading-relaxed mt-0.5" style={{ color: "rgba(176,255,224,0.45)" }}>{row.desc}</div>
                     </div>
                   </div>
                 );
@@ -239,7 +239,7 @@ export default function Landing() {
           {/* Upward chart */}
           <div className="rounded-2xl p-6 sm:p-8 flex flex-col" style={{ background: "linear-gradient(170deg, rgba(52,211,153,0.06) 0%, rgba(10,14,30,0.80) 100%)", border: "1px solid rgba(52,211,153,0.18)" }}>
             <div className="flex items-center justify-between mb-4">
-              <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: "rgba(194,210,255,0.5)" }}>
+              <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: "rgba(176,255,224,0.5)" }}>
                 Floor Price
               </div>
               <div className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold" style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.30)", color: "#34d399" }}>
@@ -255,14 +255,14 @@ export default function Landing() {
                 </linearGradient>
               </defs>
               {[40, 75, 110, 145].map(y => (
-                <line key={y} x1="0" y1={y} x2="300" y2={y} stroke="rgba(91,140,255,0.08)" strokeWidth="1" />
+                <line key={y} x1="0" y1={y} x2="300" y2={y} stroke="rgba(0,255,148,0.08)" strokeWidth="1" />
               ))}
               <path d="M5,155 L5,150 L55,150 L55,125 L100,125 L100,100 L145,100 L145,78 L190,78 L190,55 L240,55 L240,35 L295,35 L295,155 Z" fill="url(#tokenFill)" />
               <path d="M5,150 L55,150 L55,125 L100,125 L100,100 L145,100 L145,78 L190,78 L190,55 L240,55 L240,35 L295,35" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
               <circle cx="295" cy="35" r="4" fill="#34d399" />
             </svg>
 
-            <p className="text-xs leading-relaxed mt-4" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <p className="text-xs leading-relaxed mt-4" style={{ color: "rgba(176,255,224,0.4)" }}>
               Illustrative of the mechanism. The contract floor is monotonic — it ratchets up with demand and buybacks, and is engineered never to fall.
             </p>
           </div>
@@ -271,9 +271,9 @@ export default function Landing() {
         {/* Token highlights */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
           <FeatureCard icon={TrendingUp} title="Price Only Goes Up" desc="A monotonic floor that ratchets higher with demand — and never drops." color="#34d399" />
-          <FeatureCard icon={Shield} title="Reserve-Backed" desc="Every token is backed by a growing on-chain USDT reserve." color="#5B8CFF" />
+          <FeatureCard icon={Shield} title="Reserve-Backed" desc="Every token is backed by a growing on-chain USDT reserve." color="#00FF94" />
           <FeatureCard icon={Flame} title="Revenue Buybacks" desc="Platform profits fund continuous buybacks that lift the floor." color="#b87fff" />
-          <FeatureCard icon={Coins} title="Buy & Sell Anytime" desc="Trade directly from your wallet — fully on-chain, no lock-in." color="#C2D2FF" />
+          <FeatureCard icon={Coins} title="Buy & Sell Anytime" desc="Trade directly from your wallet — fully on-chain, no lock-in." color="#B0FFE0" />
         </div>
       </section>
 
@@ -281,7 +281,7 @@ export default function Landing() {
       <section className="relative z-10 px-4 pb-20 max-w-6xl mx-auto">
         <div className="grid sm:grid-cols-3 gap-4">
           {[
-            { icon: Shield, title: "Secured Platform", desc: "Bank-grade encryption, layered authentication, and continuous monitoring protect every account and wallet.", color: "#5B8CFF" },
+            { icon: Shield, title: "Secured Platform", desc: "Bank-grade encryption, layered authentication, and continuous monitoring protect every account and wallet.", color: "#00FF94" },
             { icon: Users, title: "Team Rewards", desc: "Grow your network and earn across 8 levels — a 5% direct bonus plus tiered rewards as your team expands.", color: "#34d399" },
             { icon: Zap, title: "Daily Payouts", desc: "Returns are credited every trading day. Request a withdrawal anytime, processed within 24–48 hours.", color: "#b87fff" },
           ].map(c => (
@@ -293,7 +293,7 @@ export default function Landing() {
       {/* ── How it works ──────────────────────────────────────── */}
       <section className="relative z-10 px-4 pb-24 max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "rgba(91,140,255,0.5)" }}>
+          <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "rgba(0,255,148,0.5)" }}>
             Get Started
           </div>
           <h2 className="text-2xl sm:text-3xl font-black" style={{ fontFamily: "'Sora', sans-serif", color: "rgba(200,240,255,0.90)" }}>
@@ -306,7 +306,7 @@ export default function Landing() {
           style={{
             background: "rgba(10,14,30,0.65)",
             backdropFilter: "blur(14px)",
-            border: "1px solid rgba(91,140,255,0.13)",
+            border: "1px solid rgba(0,255,148,0.13)",
           }}
         >
           <div className="max-w-md mx-auto">
@@ -316,7 +316,7 @@ export default function Landing() {
           </div>
 
           {/* Investment highlights */}
-          <div className="mt-6 pt-6 border-t border-[rgba(91,140,255,0.10)] grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="mt-6 pt-6 border-t border-[rgba(0,255,148,0.10)] grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
               "From $100 to start",
               "5% direct referral bonus",
@@ -327,7 +327,7 @@ export default function Landing() {
             ].map(item => (
               <div key={item} className="flex items-center gap-2">
                 <CheckCircle size={13} style={{ color: "#34d399", shrink: 0 }} />
-                <span className="text-xs" style={{ color: "rgba(194,210,255,0.55)" }}>{item}</span>
+                <span className="text-xs" style={{ color: "rgba(176,255,224,0.55)" }}>{item}</span>
               </div>
             ))}
           </div>
@@ -339,16 +339,16 @@ export default function Landing() {
         <div
           className="rounded-3xl px-6 py-12"
           style={{
-            background: "linear-gradient(170deg, rgba(91,140,255,0.07) 0%, rgba(10,14,30,0.80) 100%)",
-            border: "1px solid rgba(91,140,255,0.20)",
-            boxShadow: "0 0 80px rgba(91,140,255,0.06)",
+            background: "linear-gradient(170deg, rgba(0,255,148,0.07) 0%, rgba(10,14,30,0.80) 100%)",
+            border: "1px solid rgba(0,255,148,0.20)",
+            boxShadow: "0 0 80px rgba(0,255,148,0.06)",
           }}
         >
           <h2
             className="text-2xl sm:text-3xl font-black mb-4"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -356,16 +356,16 @@ export default function Landing() {
           >
             Start Growing Your Portfolio Today
           </h2>
-          <p className="text-sm mb-8 max-w-md mx-auto" style={{ color: "rgba(194,210,255,0.50)" }}>
+          <p className="text-sm mb-8 max-w-md mx-auto" style={{ color: "rgba(176,255,224,0.50)" }}>
             Create your free WaytoAlgo account and let disciplined, automated strategies do the work.
           </p>
           <Link href="/register">
             <button
               className="inline-flex items-center gap-2 px-10 py-3.5 rounded-xl font-bold text-base transition-all hover:brightness-110 hover:scale-[1.02]"
               style={{
-                background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                color: "#060814",
-                boxShadow: "0 0 30px rgba(91,140,255,0.30), 0 4px 16px rgba(0,0,0,0.4)",
+                background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                color: "#050C0A",
+                boxShadow: "0 0 30px rgba(0,255,148,0.30), 0 4px 16px rgba(0,0,0,0.4)",
               }}
             >
               Create Free Account
@@ -378,13 +378,13 @@ export default function Landing() {
       {/* ── Footer ────────────────────────────────────────────── */}
       <footer
         className="relative z-10 px-6 py-8 max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4"
-        style={{ borderTop: "1px solid rgba(91,140,255,0.08)" }}
+        style={{ borderTop: "1px solid rgba(0,255,148,0.08)" }}
       >
         <div
           className="text-sm font-black tracking-wider"
           style={{
             fontFamily: "'Sora', sans-serif",
-            background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+            background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -392,12 +392,12 @@ export default function Landing() {
         >
           WaytoAlgo
         </div>
-        <div className="flex items-center gap-5 text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>
+        <div className="flex items-center gap-5 text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
           <Link href="/about"><span className="hover:text-teal-300 transition-colors cursor-pointer">About</span></Link>
           <Link href="/terms"><span className="hover:text-teal-300 transition-colors cursor-pointer">Terms & Conditions</span></Link>
           <Link href="/privacy"><span className="hover:text-teal-300 transition-colors cursor-pointer">Privacy Policy</span></Link>
         </div>
-        <div className="text-xs" style={{ color: "rgba(194,210,255,0.25)" }}>
+        <div className="text-xs" style={{ color: "rgba(176,255,224,0.25)" }}>
           © {new Date().getFullYear()} WaytoAlgo. All rights reserved.
         </div>
       </footer>

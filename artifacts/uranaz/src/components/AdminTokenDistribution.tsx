@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { ethers } from "ethers";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const GREEN = "rgb(52,211,153)";
 const RED = "rgb(248,113,113)";
 const AMBER = "rgb(251,191,36)";
@@ -13,7 +13,7 @@ const AMBER = "rgb(251,191,36)";
 const INPUT_CLS = "w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all";
 const INPUT_STYLE = {
   background: "rgba(10,14,30,0.6)",
-  border: "1px solid rgba(91,140,255,0.18)",
+  border: "1px solid rgba(0,255,148,0.18)",
   color: "rgba(200,240,255,0.95)",
 } as const;
 
@@ -344,16 +344,16 @@ export default function AdminTokenDistribution() {
   }, [dayGroups, todayKey]);
 
   const StatChip = ({ label, value, sub, color = TEAL }: { label: string; value: string; sub?: string; color?: string }) => (
-    <div className="rounded-xl p-3.5" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.12)" }}>
-      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: "rgba(194,210,255,0.5)" }}>{label}</div>
+    <div className="rounded-xl p-3.5" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.12)" }}>
+      <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: "rgba(176,255,224,0.5)" }}>{label}</div>
       <div className="text-xl font-black leading-tight" style={{ color }}>{value}</div>
-      {sub && <div className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{sub}</div>}
+      {sub && <div className="text-[11px] mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{sub}</div>}
     </div>
   );
 
   const SourceChip = ({ source }: { source: "buy" | "held" }) => (
     <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold" style={{
-      background: source === "held" ? "rgba(192,132,252,0.12)" : "rgba(91,140,255,0.12)",
+      background: source === "held" ? "rgba(192,132,252,0.12)" : "rgba(0,255,148,0.12)",
       color: source === "held" ? "#c084fc" : TEAL,
     }}>{source === "held" ? "HELD" : "BUY"}</span>
   );
@@ -365,7 +365,7 @@ export default function AdminTokenDistribution() {
     <div className="space-y-5">
       {/* Mode toggle */}
       <div>
-        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] mb-2" style={{ color: "rgba(194,210,255,0.55)" }}>Distribution Source</div>
+        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] mb-2" style={{ color: "rgba(176,255,224,0.55)" }}>Distribution Source</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {([
             { key: "buy" as Mode, icon: TrendingUp, title: "Buy via MetaMask", desc: "Connect your MetaMask wallet to buy WTA on-chain yourself — no server private key needed." },
@@ -379,16 +379,16 @@ export default function AdminTokenDistribution() {
                 onClick={() => { setMode(key); setResult(null); setConfirming(false); setBuyStep("idle"); }}
                 className="text-left rounded-xl p-4 transition-all"
                 style={{
-                  background: active ? "rgba(91,140,255,0.10)" : "rgba(10,14,30,0.5)",
-                  border: active ? `1px solid ${TEAL}` : "1px solid rgba(91,140,255,0.14)",
+                  background: active ? "rgba(0,255,148,0.10)" : "rgba(10,14,30,0.5)",
+                  border: active ? `1px solid ${TEAL}` : "1px solid rgba(0,255,148,0.14)",
                 }}
               >
                 <div className="flex items-center gap-2 mb-1.5">
-                  <Icon size={15} style={{ color: active ? TEAL : "rgba(194,210,255,0.6)" }} />
-                  <span className="text-sm font-bold" style={{ color: active ? "rgba(200,240,255,0.95)" : "rgba(194,210,255,0.7)" }}>{title}</span>
+                  <Icon size={15} style={{ color: active ? TEAL : "rgba(176,255,224,0.6)" }} />
+                  <span className="text-sm font-bold" style={{ color: active ? "rgba(200,240,255,0.95)" : "rgba(176,255,224,0.7)" }}>{title}</span>
                   {active && <CheckCircle2 size={13} style={{ color: TEAL }} className="ml-auto" />}
                 </div>
-                <div className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.45)" }}>{desc}</div>
+                <div className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.45)" }}>{desc}</div>
               </button>
             );
           })}
@@ -397,11 +397,11 @@ export default function AdminTokenDistribution() {
 
       {/* Amount */}
       <div>
-        <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(194,210,255,0.6)" }}>
+        <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(176,255,224,0.6)" }}>
           ROI value to distribute (USDT)
         </label>
         <div className="relative max-w-xs">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "rgba(194,210,255,0.5)" }}>$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "rgba(176,255,224,0.5)" }}>$</span>
           <input
             type="number" min="0" step="0.01" placeholder="0.00"
             value={amount}
@@ -410,19 +410,19 @@ export default function AdminTokenDistribution() {
             style={INPUT_STYLE}
           />
         </div>
-        <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>
+        <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.35)" }}>
           Converted to a WTA quantity at the current buy price. {mode === "buy" ? "This USDT is spent buying tokens on-chain." : "Tokens are taken from those you've sent to the withdraw wallet."}
         </p>
         {requiredUsd > 0 && (
           <div className="mt-3 rounded-xl p-3" style={{
-            background: belowMinimum ? "rgba(248,113,113,0.06)" : "rgba(91,140,255,0.05)",
-            border: `1px solid ${belowMinimum ? "rgba(248,113,113,0.25)" : "rgba(91,140,255,0.15)"}`,
+            background: belowMinimum ? "rgba(248,113,113,0.06)" : "rgba(0,255,148,0.05)",
+            border: `1px solid ${belowMinimum ? "rgba(248,113,113,0.25)" : "rgba(0,255,148,0.15)"}`,
           }}>
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(194,210,255,0.5)" }}>Total required today (minimum)</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "rgba(176,255,224,0.5)" }}>Total required today (minimum)</div>
                 <div className="text-lg font-black" style={{ color: belowMinimum ? RED : TEAL }}>${fmt(requiredUsd, 2)}</div>
-                <div className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+                <div className="text-[11px] mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
                   investor ROI ${fmt(preview?.expectedInvestorUsd, 2)} (principal × {fmt((preview?.dailyRoiRate ?? 0) * 100, 3)}%/day) + level commission ${fmt(preview?.expectedLevelUsd, 2)} ({fmt((preview?.levelCommissionPct ?? 0) * 100, 0)}% of ROI) — you may distribute more, never less.
                 </div>
               </div>
@@ -430,7 +430,7 @@ export default function AdminTokenDistribution() {
                 type="button"
                 onClick={() => { setAmount((Math.ceil(requiredUsd * 100) / 100).toFixed(2)); setResult(null); setConfirming(false); }}
                 className="text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0"
-                style={{ color: TEAL, background: "rgba(91,140,255,0.12)" }}
+                style={{ color: TEAL, background: "rgba(0,255,148,0.12)" }}
               >
                 Use minimum
               </button>
@@ -445,14 +445,14 @@ export default function AdminTokenDistribution() {
       </div>
 
       {/* Preview */}
-      <div className="rounded-2xl p-4" style={{ background: "rgba(10,14,30,0.45)", border: "1px solid rgba(91,140,255,0.14)" }}>
+      <div className="rounded-2xl p-4" style={{ background: "rgba(10,14,30,0.45)", border: "1px solid rgba(0,255,148,0.14)" }}>
         <div className="flex items-center gap-2 mb-3">
           <Users size={14} style={{ color: TEAL }} />
-          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(194,210,255,0.7)" }}>Preview — who gets paid</span>
+          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(176,255,224,0.7)" }}>Preview — who gets paid</span>
           {previewLoading && <Loader2 size={13} className="animate-spin ml-1" style={{ color: TEAL }} />}
         </div>
 
-        <p className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(194,210,255,0.45)" }}>
+        <p className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(176,255,224,0.45)" }}>
           Only investments past the {preview?.coolingHours ?? 24}h cooling window are eligible — so today's run pays the previous day's accrued ROI.
         </p>
 
@@ -521,7 +521,7 @@ export default function AdminTokenDistribution() {
               type="button"
               onClick={connectWallet}
               className="w-full sm:w-auto sm:px-8 py-3 rounded-xl font-bold transition-all inline-flex items-center justify-center gap-2"
-              style={{ background: "rgba(91,140,255,0.15)", border: `1px solid ${TEAL}`, color: TEAL }}
+              style={{ background: "rgba(0,255,148,0.15)", border: `1px solid ${TEAL}`, color: TEAL }}
             >
               <Wallet size={16} /> Connect MetaMask
             </button>
@@ -529,13 +529,13 @@ export default function AdminTokenDistribution() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.2)" }}>
               <CheckCircle2 size={13} style={{ color: GREEN }} />
               <span style={{ color: GREEN }}>Connected: {connectedAddr.slice(0, 8)}…{connectedAddr.slice(-6)}</span>
-              <button type="button" onClick={() => setConnectedAddr(null)} className="ml-auto text-[10px]" style={{ color: "rgba(194,210,255,0.4)" }}>Disconnect</button>
+              <button type="button" onClick={() => setConnectedAddr(null)} className="ml-auto text-[10px]" style={{ color: "rgba(176,255,224,0.4)" }}>Disconnect</button>
             </div>
           )}
 
           {/* Buy step progress (only during active MetaMask flow) */}
           {distributing && (
-            <div className="rounded-xl p-3 space-y-2" style={{ background: "rgba(91,140,255,0.06)", border: `1px solid ${TEAL}44` }}>
+            <div className="rounded-xl p-3 space-y-2" style={{ background: "rgba(0,255,148,0.06)", border: `1px solid ${TEAL}44` }}>
               {(["approving", "buying", "transferring", "distributing"] as BuyStep[]).map((step, i) => {
                 const labels: Record<string, string> = {
                   approving: "Approve USDT spend (MetaMask)",
@@ -548,8 +548,8 @@ export default function AdminTokenDistribution() {
                 const active = buyStep === step;
                 return (
                   <div key={step} className="flex items-center gap-2 text-xs">
-                    {past ? <CheckCircle2 size={13} style={{ color: GREEN }} /> : active ? <Loader2 size={13} className="animate-spin" style={{ color: TEAL }} /> : <div className="w-3.5 h-3.5 rounded-full border" style={{ borderColor: "rgba(91,140,255,0.3)" }} />}
-                    <span style={{ color: past ? GREEN : active ? "rgba(200,240,255,0.95)" : "rgba(194,210,255,0.4)" }}>{labels[step]}</span>
+                    {past ? <CheckCircle2 size={13} style={{ color: GREEN }} /> : active ? <Loader2 size={13} className="animate-spin" style={{ color: TEAL }} /> : <div className="w-3.5 h-3.5 rounded-full border" style={{ borderColor: "rgba(0,255,148,0.3)" }} />}
+                    <span style={{ color: past ? GREEN : active ? "rgba(200,240,255,0.95)" : "rgba(176,255,224,0.4)" }}>{labels[step]}</span>
                   </div>
                 );
               })}
@@ -562,14 +562,14 @@ export default function AdminTokenDistribution() {
               disabled={!canDistribute}
               onClick={() => setConfirming(true)}
               className="w-full sm:w-auto sm:px-8 py-3 rounded-xl font-bold transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
-              style={{ background: `linear-gradient(135deg, ${TEAL}, #3D5CE0)`, color: "#fff" }}
+              style={{ background: `linear-gradient(135deg, ${TEAL}, #00CC77)`, color: "#fff" }}
             >
               <Coins size={16} /> Buy & Distribute via MetaMask
             </button>
           ) : (
-            <div className="rounded-xl p-4" style={{ background: "rgba(91,140,255,0.06)", border: `1px solid ${TEAL}55` }}>
+            <div className="rounded-xl p-4" style={{ background: "rgba(0,255,148,0.06)", border: `1px solid ${TEAL}55` }}>
               <div className="text-sm font-semibold mb-1" style={{ color: "rgba(200,240,255,0.95)" }}>Confirm MetaMask distribution</div>
-              <div className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(194,210,255,0.6)" }}>
+              <div className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(176,255,224,0.6)" }}>
                 Your MetaMask wallet will show <strong>3 confirmations</strong>:<br />
                 1. Approve ${fmt(amt, 2)} USDT to the token contract<br />
                 2. Buy ≈{fmt(preview?.estTokens)} WTA on-chain (raises the live price)<br />
@@ -582,7 +582,7 @@ export default function AdminTokenDistribution() {
                   disabled={distributing}
                   onClick={doDistribute}
                   className="px-5 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 inline-flex items-center gap-2"
-                  style={{ background: `linear-gradient(135deg, ${TEAL}, #3D5CE0)`, color: "#fff" }}
+                  style={{ background: `linear-gradient(135deg, ${TEAL}, #00CC77)`, color: "#fff" }}
                 >
                   {distributing ? <><Loader2 size={14} className="animate-spin" /> {buyStep === "approving" ? "Approving…" : buyStep === "buying" ? "Buying…" : "Distributing…"}</> : <><ArrowRight size={14} /> Open MetaMask</>}
                 </button>
@@ -591,7 +591,7 @@ export default function AdminTokenDistribution() {
                   disabled={distributing}
                   onClick={() => setConfirming(false)}
                   className="px-5 py-2.5 rounded-xl font-medium text-sm transition-all disabled:opacity-50"
-                  style={{ background: "rgba(10,14,30,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}
+                  style={{ background: "rgba(10,14,30,0.6)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.7)" }}
                 >
                   Cancel
                 </button>
@@ -610,14 +610,14 @@ export default function AdminTokenDistribution() {
               disabled={!canDistribute}
               onClick={() => setConfirming(true)}
               className="w-full sm:w-auto sm:px-8 py-3 rounded-xl font-bold transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
-              style={{ background: `linear-gradient(135deg, ${TEAL}, #3D5CE0)`, color: "#fff" }}
+              style={{ background: `linear-gradient(135deg, ${TEAL}, #00CC77)`, color: "#fff" }}
             >
               <Coins size={16} /> Distribute Held Tokens
             </button>
           ) : (
-            <div className="rounded-xl p-4" style={{ background: "rgba(91,140,255,0.06)", border: `1px solid ${TEAL}55` }}>
+            <div className="rounded-xl p-4" style={{ background: "rgba(0,255,148,0.06)", border: `1px solid ${TEAL}55` }}>
               <div className="text-sm font-semibold mb-1" style={{ color: "rgba(200,240,255,0.95)" }}>Confirm distribution</div>
-              <div className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(194,210,255,0.6)" }}>
+              <div className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(176,255,224,0.6)" }}>
                 Distribute <strong>{fmt(preview?.estTokens)} WTA</strong> (${fmt(amt, 2)} worth) from the withdraw wallet to <strong>{fmt(preview?.recipientCount, 0)}</strong> user(s) across <strong>{fmt(preview?.eligibleInvestments, 0)}</strong> investment(s). This advances each eligible investment by one day.
               </div>
               <div className="flex gap-2">
@@ -626,7 +626,7 @@ export default function AdminTokenDistribution() {
                   disabled={distributing}
                   onClick={doDistribute}
                   className="px-5 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 inline-flex items-center gap-2"
-                  style={{ background: `linear-gradient(135deg, ${TEAL}, #3D5CE0)`, color: "#fff" }}
+                  style={{ background: `linear-gradient(135deg, ${TEAL}, #00CC77)`, color: "#fff" }}
                 >
                   {distributing ? <><Loader2 size={14} className="animate-spin" /> Processing…</> : <><ArrowRight size={14} /> Confirm & Distribute</>}
                 </button>
@@ -635,7 +635,7 @@ export default function AdminTokenDistribution() {
                   disabled={distributing}
                   onClick={() => setConfirming(false)}
                   className="px-5 py-2.5 rounded-xl font-medium text-sm transition-all disabled:opacity-50"
-                  style={{ background: "rgba(10,14,30,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}
+                  style={{ background: "rgba(10,14,30,0.6)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.7)" }}
                 >
                   Cancel
                 </button>
@@ -649,17 +649,17 @@ export default function AdminTokenDistribution() {
 
   // ── A single completed/failed distribution's detail card (render helper) ──
   const renderBatchCard = (b: Batch) => (
-    <div key={b.id} className="rounded-xl p-3.5" style={{ background: "rgba(10,14,30,0.5)", border: "1px solid rgba(91,140,255,0.12)" }}>
+    <div key={b.id} className="rounded-xl p-3.5" style={{ background: "rgba(10,14,30,0.5)", border: "1px solid rgba(0,255,148,0.12)" }}>
       <div className="flex items-center gap-2 flex-wrap">
         <SourceChip source={b.source} />
         <span className="text-sm font-bold" style={{ color: "rgba(200,240,255,0.95)" }}>${fmt(b.usdtSpent, 2)}</span>
-        <span className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>{fmt(b.tokensBought)} WTA</span>
+        <span className="text-xs" style={{ color: "rgba(176,255,224,0.5)" }}>{fmt(b.tokensBought)} WTA</span>
         {b.status === "completed" && b.expectedUsdt > 0 && b.usdtSpent - b.expectedUsdt > 0.01 && (
           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md" style={{ color: AMBER, background: "rgba(251,191,36,0.12)" }}>
             +${fmt(b.usdtSpent - b.expectedUsdt, 2)} extra
           </span>
         )}
-        <span className="ml-auto inline-flex items-center gap-1 text-[11px]" style={{ color: "rgba(194,210,255,0.4)" }}>
+        <span className="ml-auto inline-flex items-center gap-1 text-[11px]" style={{ color: "rgba(176,255,224,0.4)" }}>
           <Clock size={11} />{new Date(b.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
         </span>
         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md" style={{
@@ -673,10 +673,10 @@ export default function AdminTokenDistribution() {
         )}
       </div>
       <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-        <div><span style={{ color: "rgba(194,210,255,0.4)" }}>Recipients </span><span style={{ color: "rgba(200,240,255,0.85)" }}>{b.recipientCount}</span></div>
-        <div><span style={{ color: "rgba(194,210,255,0.4)" }}>Investor </span><span style={{ color: GREEN }}>{fmt(b.roiTokenTotal)} WTA</span></div>
-        <div><span style={{ color: "rgba(194,210,255,0.4)" }}>Levels </span><span style={{ color: TEAL }}>{fmt(b.levelTokenTotal)} WTA</span></div>
-        <div><span style={{ color: "rgba(194,210,255,0.4)" }}>Price </span><span style={{ color: "rgba(200,240,255,0.85)" }}>${fmt(b.buyPrice, 6)}</span></div>
+        <div><span style={{ color: "rgba(176,255,224,0.4)" }}>Recipients </span><span style={{ color: "rgba(200,240,255,0.85)" }}>{b.recipientCount}</span></div>
+        <div><span style={{ color: "rgba(176,255,224,0.4)" }}>Investor </span><span style={{ color: GREEN }}>{fmt(b.roiTokenTotal)} WTA</span></div>
+        <div><span style={{ color: "rgba(176,255,224,0.4)" }}>Levels </span><span style={{ color: TEAL }}>{fmt(b.levelTokenTotal)} WTA</span></div>
+        <div><span style={{ color: "rgba(176,255,224,0.4)" }}>Price </span><span style={{ color: "rgba(200,240,255,0.85)" }}>${fmt(b.buyPrice, 6)}</span></div>
       </div>
       {b.status === "completed" && b.expectedUsdt > 0 && b.usdtSpent - b.expectedUsdt > 0.01 && (
         <div className="mt-2 text-[11px]" style={{ color: "rgba(251,191,36,0.8)" }}>
@@ -691,7 +691,7 @@ export default function AdminTokenDistribution() {
     <div className="space-y-6">
       {/* ── Live status ── */}
       <div className="flex items-center justify-between">
-        <div className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>
+        <div className="text-xs" style={{ color: "rgba(176,255,224,0.5)" }}>
           {status?.contractAddress ? (
             <span className="font-mono">Contract {status.contractAddress.slice(0, 8)}…{status.contractAddress.slice(-6)}</span>
           ) : "Token contract not configured"}
@@ -700,7 +700,7 @@ export default function AdminTokenDistribution() {
           type="button"
           onClick={() => { loadStatus(); loadBatches(); }}
           className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors"
-          style={{ color: TEAL, background: "rgba(91,140,255,0.08)" }}
+          style={{ color: TEAL, background: "rgba(0,255,148,0.08)" }}
         >
           <RefreshCw size={12} className={statusLoading ? "animate-spin" : ""} /> Refresh
         </button>
@@ -724,9 +724,9 @@ export default function AdminTokenDistribution() {
 
       {/* ── Date-wise distribution ledger ── */}
       <div>
-        <div className="flex items-center gap-2 mb-3 pt-2" style={{ borderTop: "1px solid rgba(91,140,255,0.1)" }}>
+        <div className="flex items-center gap-2 mb-3 pt-2" style={{ borderTop: "1px solid rgba(0,255,148,0.1)" }}>
           <Calendar size={14} style={{ color: TEAL }} />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "rgba(194,210,255,0.55)" }}>Daily Distributions</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "rgba(176,255,224,0.55)" }}>Daily Distributions</span>
         </div>
 
         <div className="space-y-2.5">
@@ -752,7 +752,7 @@ export default function AdminTokenDistribution() {
             return (
               <div key={key} className="rounded-2xl overflow-hidden" style={{
                 background: "rgba(10,14,30,0.45)",
-                border: isPending ? "1px solid rgba(251,191,36,0.3)" : "1px solid rgba(91,140,255,0.12)",
+                border: isPending ? "1px solid rgba(251,191,36,0.3)" : "1px solid rgba(0,255,148,0.12)",
               }}>
                 {/* Header row — click to expand */}
                 <button
@@ -762,10 +762,10 @@ export default function AdminTokenDistribution() {
                 >
                   <div className="flex flex-col">
                     <span className="text-sm font-bold" style={{ color: "rgba(200,240,255,0.95)" }}>
-                      {dayLabel(key)}{isToday && <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ color: TEAL, background: "rgba(91,140,255,0.12)" }}>TODAY</span>}
+                      {dayLabel(key)}{isToday && <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ color: TEAL, background: "rgba(0,255,148,0.12)" }}>TODAY</span>}
                     </span>
                     {completed.length > 0 && (
-                      <span className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>
+                      <span className="text-[11px] mt-0.5" style={{ color: "rgba(176,255,224,0.45)" }}>
                         ${fmt(totalUsdt, 2)} · {totalRecipients} recipient(s) · {completed.length} run(s){totalExtra > 0.01 && <span style={{ color: AMBER }}> · +${fmt(totalExtra, 2)} extra</span>}
                       </span>
                     )}
@@ -778,17 +778,17 @@ export default function AdminTokenDistribution() {
                   <span className="ml-auto inline-flex items-center gap-2">
                     {distributedToday && <SourceChip source={completed[0].source} />}
                     <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md" style={{ color: badge.color, background: badge.bg }}>{badge.text}</span>
-                    <ChevronDown size={16} style={{ color: "rgba(194,210,255,0.5)", transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+                    <ChevronDown size={16} style={{ color: "rgba(176,255,224,0.5)", transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
                   </span>
                 </button>
 
                 {/* Expanded body */}
                 {isOpen && (
-                  <div className="px-4 pb-4 pt-1 space-y-4" style={{ borderTop: "1px solid rgba(91,140,255,0.1)" }}>
+                  <div className="px-4 pb-4 pt-1 space-y-4" style={{ borderTop: "1px solid rgba(0,255,148,0.1)" }}>
                     {isToday && (
                       <div className="pt-3">
                         {distributedToday && (
-                          <p className="text-[11px] mb-3" style={{ color: "rgba(194,210,255,0.45)" }}>
+                          <p className="text-[11px] mb-3" style={{ color: "rgba(176,255,224,0.45)" }}>
                             Already distributed today. Run another distribution below to advance another day or catch up.
                           </p>
                         )}
@@ -797,12 +797,12 @@ export default function AdminTokenDistribution() {
                     )}
                     {dayBatches.length > 0 && (
                       <div className="space-y-2">
-                        {isToday && <div className="text-[11px] font-semibold uppercase tracking-wider pt-1" style={{ color: "rgba(194,210,255,0.5)" }}>Runs on this day</div>}
+                        {isToday && <div className="text-[11px] font-semibold uppercase tracking-wider pt-1" style={{ color: "rgba(176,255,224,0.5)" }}>Runs on this day</div>}
                         {dayBatches.map((b) => renderBatchCard(b))}
                       </div>
                     )}
                     {!isToday && dayBatches.length === 0 && (
-                      <p className="text-[11px] py-2" style={{ color: "rgba(194,210,255,0.4)" }}>No distributions recorded for this day.</p>
+                      <p className="text-[11px] py-2" style={{ color: "rgba(176,255,224,0.4)" }}>No distributions recorded for this day.</p>
                     )}
                   </div>
                 )}

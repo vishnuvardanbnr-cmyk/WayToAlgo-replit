@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Bell } from "lucide-react";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 
 interface Notice {
   id: number;
@@ -52,18 +52,18 @@ export default function NoticesBell() {
       data-testid="link-notifications"
       className="w-8 h-8 rounded-full flex items-center justify-center transition-all relative"
       style={{
-        background: isActive ? "rgba(91,140,255,0.14)" : "rgba(91,140,255,0.06)",
-        border: `1px solid ${isActive ? "rgba(91,140,255,0.45)" : "rgba(91,140,255,0.18)"}`,
-        color: isActive ? TEAL : "rgba(194,210,255,0.55)",
+        background: isActive ? "rgba(0,255,148,0.14)" : "rgba(0,255,148,0.06)",
+        border: `1px solid ${isActive ? "rgba(0,255,148,0.45)" : "rgba(0,255,148,0.18)"}`,
+        color: isActive ? TEAL : "rgba(176,255,224,0.55)",
       }}
       onMouseEnter={e => {
         (e.currentTarget as HTMLAnchorElement).style.color = TEAL;
-        (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(91,140,255,0.45)";
+        (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(0,255,148,0.45)";
       }}
       onMouseLeave={e => {
         if (!isActive) {
-          (e.currentTarget as HTMLAnchorElement).style.color = "rgba(194,210,255,0.55)";
-          (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(91,140,255,0.18)";
+          (e.currentTarget as HTMLAnchorElement).style.color = "rgba(176,255,224,0.55)";
+          (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(0,255,148,0.18)";
         }
       }}
     >
@@ -72,11 +72,11 @@ export default function NoticesBell() {
         <span
           className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full flex items-center justify-center text-[9px] font-bold px-1"
           style={{
-            background: hasUrgent ? "#f87171" : "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-            color: hasUrgent ? "#fff" : "#060814",
+            background: hasUrgent ? "#f87171" : "linear-gradient(135deg, #00FF94, #00CC77)",
+            color: hasUrgent ? "#fff" : "#050C0A",
             boxShadow: hasUrgent
               ? "0 0 8px rgba(248,113,113,0.7)"
-              : "0 0 8px rgba(91,140,255,0.6)",
+              : "0 0 8px rgba(0,255,148,0.6)",
             animation: hasUrgent ? "noticePulse 1.4s ease-in-out infinite" : undefined,
           }}
         >

@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { CheckCircle2, Clock, XCircle, RefreshCw, ArrowDownToLine, Wallet, AlertTriangle, ExternalLink, Loader2, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 const USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955";
 const BSC_CHAIN_ID = "0x38"; // 56 decimal
 
@@ -216,17 +216,17 @@ export default function Deposit({ user }: { user: any }) {
         <ArrowDownToLine size={20} style={{ color: TEAL }} />
         <h1 className="text-xl font-bold" style={{
           fontFamily: "'Sora', sans-serif",
-          background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+          background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
           WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
         }}>Deposit USDT</h1>
       </div>
 
       {/* Wallet Balance */}
       <div className="flex items-center justify-between px-5 py-4 rounded-2xl"
-        style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.18)" }}>
+        style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.18)" }}>
         <div className="flex items-center gap-3">
           <Wallet size={18} style={{ color: TEAL }} />
-          <span className="text-sm font-medium" style={{ color: "rgba(194,210,255,0.7)" }}>Wallet Balance</span>
+          <span className="text-sm font-medium" style={{ color: "rgba(176,255,224,0.7)" }}>Wallet Balance</span>
         </div>
         <span className="font-bold text-lg" style={{ color: TEAL, fontFamily: "'Sora', sans-serif" }}>
           ${parseFloat(user?.walletBalance ?? "0").toFixed(2)}
@@ -238,14 +238,14 @@ export default function Deposit({ user }: { user: any }) {
 
         <div>
           <h2 className="font-semibold text-sm mb-0.5" style={{ color: TEAL }}>Deposit via Connected Wallet</h2>
-          <p className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <p className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
             USDT (BEP-20) will be sent from your MetaMask to your deposit address automatically.
           </p>
         </div>
 
         {/* Amount Input */}
         <div>
-          <label className="block text-xs font-medium mb-2" style={{ color: "rgba(194,210,255,0.6)", letterSpacing: "0.05em" }}>
+          <label className="block text-xs font-medium mb-2" style={{ color: "rgba(176,255,224,0.6)", letterSpacing: "0.05em" }}>
             AMOUNT (USDT)
           </label>
           <div className="relative">
@@ -260,8 +260,8 @@ export default function Deposit({ user }: { user: any }) {
               className="w-full px-4 py-3 pr-16 rounded-xl text-sm outline-none disabled:opacity-50"
               style={{
                 background: "rgba(0,20,40,0.7)",
-                border: "1px solid rgba(91,140,255,0.22)",
-                color: "rgba(194,210,255,0.9)",
+                border: "1px solid rgba(0,255,148,0.22)",
+                color: "rgba(176,255,224,0.9)",
               }}
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold"
@@ -276,9 +276,9 @@ export default function Deposit({ user }: { user: any }) {
                 disabled={busy}
                 className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-40"
                 style={{
-                  background: amount === String(v) ? "rgba(91,140,255,0.2)" : "rgba(0,20,40,0.5)",
-                  border: `1px solid ${amount === String(v) ? "rgba(91,140,255,0.4)" : "rgba(91,140,255,0.12)"}`,
-                  color: amount === String(v) ? TEAL : "rgba(194,210,255,0.5)",
+                  background: amount === String(v) ? "rgba(0,255,148,0.2)" : "rgba(0,20,40,0.5)",
+                  border: `1px solid ${amount === String(v) ? "rgba(0,255,148,0.4)" : "rgba(0,255,148,0.12)"}`,
+                  color: amount === String(v) ? TEAL : "rgba(176,255,224,0.5)",
                 }}
               >${v}</button>
             ))}
@@ -298,23 +298,23 @@ export default function Deposit({ user }: { user: any }) {
         {stage !== "idle" && (
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl"
             style={{
-              background: stage === "credited" ? "rgba(52,211,153,0.06)" : stage === "failed" ? "rgba(248,113,113,0.06)" : "rgba(91,140,255,0.06)",
-              border: `1px solid ${stage === "credited" ? "rgba(52,211,153,0.3)" : stage === "failed" ? "rgba(248,113,113,0.3)" : "rgba(91,140,255,0.2)"}`,
+              background: stage === "credited" ? "rgba(52,211,153,0.06)" : stage === "failed" ? "rgba(248,113,113,0.06)" : "rgba(0,255,148,0.06)",
+              border: `1px solid ${stage === "credited" ? "rgba(52,211,153,0.3)" : stage === "failed" ? "rgba(248,113,113,0.3)" : "rgba(0,255,148,0.2)"}`,
             }}>
             {busy && <Loader2 size={15} className="animate-spin shrink-0" style={{ color: TEAL }} />}
             {stage === "credited" && <CheckCircle2 size={15} className="shrink-0" style={{ color: "rgba(52,211,153,0.9)" }} />}
             {stage === "failed" && <XCircle size={15} className="shrink-0" style={{ color: "rgba(248,113,113,0.9)" }} />}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium" style={{
-                color: stage === "credited" ? "rgba(52,211,153,0.95)" : stage === "failed" ? "rgba(248,113,113,0.9)" : "rgba(194,210,255,0.85)"
+                color: stage === "credited" ? "rgba(52,211,153,0.95)" : stage === "failed" ? "rgba(248,113,113,0.9)" : "rgba(176,255,224,0.85)"
               }}>
                 {stageLabel[stage]}
               </p>
               {result?.message && stage !== "credited" && (
-                <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>{result.message}</p>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.45)" }}>{result.message}</p>
               )}
               {stage === "credited" && result && (
-                <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.5)" }}>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.5)" }}>
                   New balance: <strong style={{ color: TEAL }}>${result.newBalance?.toFixed(2)}</strong>
                 </p>
               )}
@@ -342,12 +342,12 @@ export default function Deposit({ user }: { user: any }) {
             disabled={!depositAddress}
             className="w-full py-3.5 rounded-xl font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             style={{
-              background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-              color: "#060814",
+              background: "linear-gradient(135deg, #00FF94, #00CC77)",
+              color: "#050C0A",
               fontFamily: "'Sora', sans-serif",
               fontSize: "0.8rem",
               letterSpacing: "0.04em",
-              boxShadow: "0 0 20px rgba(91,140,255,0.25)",
+              boxShadow: "0 0 20px rgba(0,255,148,0.25)",
             }}
           >
             {stage === "failed" ? (
@@ -370,7 +370,7 @@ export default function Deposit({ user }: { user: any }) {
           </button>
         ) : (
           <button disabled className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 opacity-60"
-            style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814", fontFamily: "'Sora', sans-serif", fontSize: "0.8rem", letterSpacing: "0.04em" }}>
+            style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A", fontFamily: "'Sora', sans-serif", fontSize: "0.8rem", letterSpacing: "0.04em" }}>
             <Loader2 size={15} className="animate-spin" />
             {stageLabel[stage]}
           </button>
@@ -381,17 +381,17 @@ export default function Deposit({ user }: { user: any }) {
       <div className="rounded-2xl p-5" style={GLASS}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-sm" style={{ color: TEAL }}>Deposit History</h2>
-          <button onClick={fetchHistory} style={{ color: "rgba(91,140,255,0.5)" }}>
+          <button onClick={fetchHistory} style={{ color: "rgba(0,255,148,0.5)" }}>
             <RefreshCw size={14} />
           </button>
         </div>
 
         {historyLoading ? (
           <div className="space-y-2">
-            {[1, 2].map(i => <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "rgba(91,140,255,0.04)" }} />)}
+            {[1, 2].map(i => <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)" }} />)}
           </div>
         ) : history.length === 0 ? (
-          <p className="text-sm text-center py-6" style={{ color: "rgba(194,210,255,0.3)" }}>No deposits yet</p>
+          <p className="text-sm text-center py-6" style={{ color: "rgba(176,255,224,0.3)" }}>No deposits yet</p>
         ) : (
           <div className="space-y-2">
             {history.map(dep => {
@@ -399,14 +399,14 @@ export default function Deposit({ user }: { user: any }) {
               const StatusIcon = cfg.icon;
               return (
                 <div key={dep.id} className="flex items-center justify-between px-4 py-3 rounded-xl"
-                  style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(91,140,255,0.07)" }}>
+                  style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(0,255,148,0.07)" }}>
                   <div className="flex items-center gap-3">
                     <StatusIcon size={16} style={{ color: cfg.color }} />
                     <div>
-                      <div className="text-sm font-medium" style={{ color: "rgba(194,210,255,0.85)" }}>
+                      <div className="text-sm font-medium" style={{ color: "rgba(176,255,224,0.85)" }}>
                         ${parseFloat(String(dep.amount)).toFixed(2)} USDT
                       </div>
-                      <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>
+                      <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
                         {new Date(dep.createdAt).toLocaleDateString()} · {cfg.label}
                       </div>
                     </div>

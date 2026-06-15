@@ -10,10 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Copy, Shield, ShieldCheck, X, Mail } from "lucide-react";
 import { Link } from "wouter";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
-const INPUT_STYLE = { background: "rgba(0,20,40,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" };
-const LABEL_STYLE = { color: "rgba(194,210,255,0.65)", fontSize: "0.8rem" };
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
+const INPUT_STYLE = { background: "rgba(0,20,40,0.6)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" };
+const LABEL_STYLE = { color: "rgba(176,255,224,0.65)", fontSize: "0.8rem" };
 
 const BEP20_REGEX = /^0x[a-fA-F0-9]{40}$/;
 
@@ -134,7 +134,7 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
         className="text-xl font-bold"
         style={{
           fontFamily: "'Sora', sans-serif",
-          background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+          background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
@@ -147,26 +147,26 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
       <div
         className="rounded-2xl p-6 flex items-center gap-4 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(91,140,255,0.10), rgba(61,92,224,0.05))",
-          border: "1px solid rgba(91,140,255,0.22)",
+          background: "linear-gradient(135deg, rgba(0,255,148,0.10), rgba(0,204,119,0.05))",
+          border: "1px solid rgba(0,255,148,0.22)",
         }}
       >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(91,140,255,0.12) 0%, transparent 60%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(0,255,148,0.12) 0%, transparent 60%)" }} />
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 relative"
           style={{
-            background: "linear-gradient(135deg, rgba(91,140,255,0.20), rgba(61,92,224,0.10))",
-            border: "2px solid rgba(91,140,255,0.45)",
+            background: "linear-gradient(135deg, rgba(0,255,148,0.20), rgba(0,204,119,0.10))",
+            border: "2px solid rgba(0,255,148,0.45)",
             color: TEAL,
-            boxShadow: "0 0 20px rgba(91,140,255,0.2)",
+            boxShadow: "0 0 20px rgba(0,255,148,0.2)",
           }}
         >
           {user?.name?.charAt(0)?.toUpperCase()}
         </div>
         <div className="flex-1 min-w-0 relative">
-          <div className="font-bold text-lg" data-testid="text-username" style={{ color: "rgba(194,210,255,0.92)" }}>{user?.name}</div>
-          <div className="text-sm" style={{ color: "rgba(194,210,255,0.45)" }}>{user?.email}</div>
-          <div className="text-sm" style={{ color: "rgba(194,210,255,0.35)" }}>{user?.phone}</div>
+          <div className="font-bold text-lg" data-testid="text-username" style={{ color: "rgba(176,255,224,0.92)" }}>{user?.name}</div>
+          <div className="text-sm" style={{ color: "rgba(176,255,224,0.45)" }}>{user?.email}</div>
+          <div className="text-sm" style={{ color: "rgba(176,255,224,0.35)" }}>{user?.phone}</div>
           {user?.isAdmin && (
             <div className="flex items-center gap-1 text-xs mt-1" style={{ color: "#f97316" }}>
               <Shield size={12} /> Admin
@@ -184,21 +184,21 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
           { label: "Member Since",   value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—" },
         ].map(item => (
           <div key={item.label} className="rounded-xl p-4" style={GLASS}>
-            <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>{item.label}</div>
-            <div className="font-bold text-sm mt-1" style={{ color: "rgba(194,210,255,0.85)" }}>{item.value}</div>
+            <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>{item.label}</div>
+            <div className="font-bold text-sm mt-1" style={{ color: "rgba(176,255,224,0.85)" }}>{item.value}</div>
           </div>
         ))}
       </div>
 
       {/* Referral Code */}
       <div className="rounded-xl p-4" style={GLASS}>
-        <div className="text-xs mb-2" style={{ color: "rgba(194,210,255,0.4)" }}>Your Referral Code</div>
+        <div className="text-xs mb-2" style={{ color: "rgba(176,255,224,0.4)" }}>Your Referral Code</div>
         <div className="flex items-center gap-3">
           <div
             className="flex-1 rounded-lg px-4 py-2.5 font-mono font-bold text-center tracking-widest"
             style={{
               background: "rgba(0,10,24,0.6)",
-              border: "1px solid rgba(91,140,255,0.18)",
+              border: "1px solid rgba(0,255,148,0.18)",
               color: TEAL,
               fontFamily: "'Sora', monospace",
               letterSpacing: "0.12em",
@@ -211,8 +211,8 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
             onClick={copyReferral}
             className="w-10 h-10 rounded-lg flex items-center justify-center"
             style={{
-              background: "rgba(91,140,255,0.08)",
-              border: "1px solid rgba(91,140,255,0.2)",
+              background: "rgba(0,255,148,0.08)",
+              border: "1px solid rgba(0,255,148,0.2)",
               color: TEAL,
             }}
           >
@@ -231,9 +231,9 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
           <Link key={item.href} href={item.href}>
             <div
               className="rounded-xl p-4 text-sm font-medium cursor-pointer transition-all"
-              style={{ ...GLASS, color: "rgba(194,210,255,0.6)" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(91,140,255,0.25)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(91,140,255,0.10)"; }}
+              style={{ ...GLASS, color: "rgba(176,255,224,0.6)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,255,148,0.25)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,255,148,0.10)"; }}
             >
               {item.label}
             </div>
@@ -252,14 +252,14 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
             className="w-full max-w-sm rounded-2xl p-6 relative"
             style={{
               background: "linear-gradient(155deg, rgba(4,16,32,0.97), rgba(2,10,22,0.97))",
-              border: "1px solid rgba(91,140,255,0.30)",
-              boxShadow: "0 30px 80px rgba(0,0,0,0.6), 0 0 40px rgba(91,140,255,0.15)",
+              border: "1px solid rgba(0,255,148,0.30)",
+              boxShadow: "0 30px 80px rgba(0,0,0,0.6), 0 0 40px rgba(0,255,148,0.15)",
             }}
           >
             <button
               onClick={() => { if (!otpSending) setOtpModalOpen(false); }}
               className="absolute top-3 right-3 p-1.5 rounded-lg"
-              style={{ color: "rgba(194,210,255,0.4)" }}
+              style={{ color: "rgba(176,255,224,0.4)" }}
             >
               <X size={16} />
             </button>
@@ -268,17 +268,17 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
               <div
                 className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3"
                 style={{
-                  background: "rgba(91,140,255,0.12)",
-                  border: "1px solid rgba(91,140,255,0.35)",
-                  boxShadow: "0 0 24px rgba(91,140,255,0.25)",
+                  background: "rgba(0,255,148,0.12)",
+                  border: "1px solid rgba(0,255,148,0.35)",
+                  boxShadow: "0 0 24px rgba(0,255,148,0.25)",
                 }}
               >
                 <Mail size={22} style={{ color: TEAL }} />
               </div>
-              <h3 className="font-bold text-lg" style={{ color: "rgba(194,210,255,0.95)", fontFamily: "'Sora', sans-serif" }}>
+              <h3 className="font-bold text-lg" style={{ color: "rgba(176,255,224,0.95)", fontFamily: "'Sora', sans-serif" }}>
                 Verify Wallet Change
               </h3>
-              <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.55)" }}>
+              <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.55)" }}>
                 We sent a 6-digit code to <span style={{ color: TEAL }}>{user?.email}</span>
               </p>
             </div>
@@ -293,7 +293,7 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
               className="w-full px-4 py-3 rounded-xl text-center text-xl font-bold tracking-[0.4em] outline-none"
               style={{
                 background: "rgba(0,10,24,0.8)",
-                border: `1px solid ${otpError ? "rgba(248,113,113,0.4)" : "rgba(91,140,255,0.25)"}`,
+                border: `1px solid ${otpError ? "rgba(248,113,113,0.4)" : "rgba(0,255,148,0.25)"}`,
                 color: TEAL,
                 fontFamily: "'Sora', monospace",
               }}
@@ -309,9 +309,9 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
               disabled={otpSending || otpCode.length !== 6}
               className="w-full mt-4 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                color: "#060814",
-                boxShadow: "0 0 16px rgba(91,140,255,0.35)",
+                background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                color: "#050C0A",
+                boxShadow: "0 0 16px rgba(0,255,148,0.35)",
               }}
             >
               {otpSending ? "Verifying…" : "Verify & Update Wallet"}
@@ -321,7 +321,7 @@ export default function Profile({ user, onUpdate }: { user: any; onUpdate: (u: a
               onClick={requestOtp}
               disabled={otpSending}
               className="w-full mt-2 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
-              style={{ background: "transparent", color: "rgba(194,210,255,0.6)" }}
+              style={{ background: "transparent", color: "rgba(176,255,224,0.6)" }}
             >
               Didn't get the code? Resend
             </button>

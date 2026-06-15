@@ -1,6 +1,11 @@
+import MatrixRain from "./MatrixRain";
+
 export default function SpaceBackground() {
   return (
     <>
+      {/* Matrix Rain — trading terminal data streams */}
+      <MatrixRain />
+
       {/* Faint data grid */}
       <div className="app-grid" aria-hidden="true" />
 

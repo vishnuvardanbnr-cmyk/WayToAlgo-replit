@@ -196,8 +196,8 @@ function DepositModal({ onClose, onCredited }: { onClose: () => void; onCredited
         className="w-full max-w-sm rounded-3xl overflow-hidden"
         style={{
           background: "linear-gradient(170deg, rgba(4,16,32,0.99) 0%, rgba(2,10,22,0.99) 100%)",
-          border: "1px solid rgba(91,140,255,0.18)",
-          boxShadow: "0 8px 60px rgba(6,8,20,0.9), 0 0 0 1px rgba(91,140,255,0.06)",
+          border: "1px solid rgba(0,255,148,0.18)",
+          boxShadow: "0 8px 60px rgba(6,8,20,0.9), 0 0 0 1px rgba(0,255,148,0.06)",
           maxHeight: "92dvh", overflowY: "auto",
         }}
         onClick={e => e.stopPropagation()}
@@ -208,26 +208,26 @@ function DepositModal({ onClose, onCredited }: { onClose: () => void; onCredited
         <div className="flex items-center justify-between px-5 pt-5 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))", border: "1px solid rgba(91,140,255,0.28)", boxShadow: "0 0 16px rgba(91,140,255,0.15)" }}>
+              style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,255,148,0.06))", border: "1px solid rgba(0,255,148,0.28)", boxShadow: "0 0 16px rgba(0,255,148,0.15)" }}>
               <ArrowDownLeft size={18} style={{ color: TEAL }} />
             </div>
             <div>
               <div className="font-bold tracking-wide" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.8rem" }}>
                 Deposit USDT
               </div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>BEP-20 · Binance Smart Chain</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>BEP-20 · Binance Smart Chain</div>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center transition-all"
-            style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.09)" }}>
-            <X size={14} style={{ color: "rgba(194,210,255,0.45)" }} />
+            style={{ background: "rgba(176,255,224,0.06)", border: "1px solid rgba(176,255,224,0.09)" }}>
+            <X size={14} style={{ color: "rgba(176,255,224,0.45)" }} />
           </button>
         </div>
 
         <div className="px-5 pb-6 space-y-4">
           {/* Amount Input */}
           <div>
-            <label className="block text-xs font-medium mb-2" style={{ color: "rgba(194,210,255,0.55)", letterSpacing: "0.05em" }}>
+            <label className="block text-xs font-medium mb-2" style={{ color: "rgba(176,255,224,0.55)", letterSpacing: "0.05em" }}>
               AMOUNT (USDT)
             </label>
             <div className="relative">
@@ -237,7 +237,7 @@ function DepositModal({ onClose, onCredited }: { onClose: () => void; onCredited
                 value={amount} onChange={e => setAmount(e.target.value)}
                 disabled={busy}
                 className="w-full px-4 py-3 pr-16 rounded-xl text-sm outline-none disabled:opacity-50"
-                style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(91,140,255,0.22)", color: "rgba(194,210,255,0.9)" }}
+                style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(0,255,148,0.22)", color: "rgba(176,255,224,0.9)" }}
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold" style={{ color: TEAL }}>USDT</span>
             </div>
@@ -247,9 +247,9 @@ function DepositModal({ onClose, onCredited }: { onClose: () => void; onCredited
                 <button key={v} onClick={() => setAmount(String(v))} disabled={busy}
                   className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-40"
                   style={{
-                    background: amount === String(v) ? "rgba(91,140,255,0.2)" : "rgba(0,20,40,0.5)",
-                    border: `1px solid ${amount === String(v) ? "rgba(91,140,255,0.4)" : "rgba(91,140,255,0.12)"}`,
-                    color: amount === String(v) ? TEAL : "rgba(194,210,255,0.45)",
+                    background: amount === String(v) ? "rgba(0,255,148,0.2)" : "rgba(0,20,40,0.5)",
+                    border: `1px solid ${amount === String(v) ? "rgba(0,255,148,0.4)" : "rgba(0,255,148,0.12)"}`,
+                    color: amount === String(v) ? TEAL : "rgba(176,255,224,0.45)",
                   }}>${v}</button>
               ))}
             </div>
@@ -268,21 +268,21 @@ function DepositModal({ onClose, onCredited }: { onClose: () => void; onCredited
           {stage !== "idle" && (
             <div className="flex items-center gap-3 px-4 py-3 rounded-xl"
               style={{
-                background: stage === "credited" ? "rgba(52,211,153,0.06)" : stage === "failed" ? "rgba(248,113,113,0.06)" : "rgba(91,140,255,0.06)",
-                border: `1px solid ${stage === "credited" ? "rgba(52,211,153,0.3)" : stage === "failed" ? "rgba(248,113,113,0.3)" : "rgba(91,140,255,0.2)"}`,
+                background: stage === "credited" ? "rgba(52,211,153,0.06)" : stage === "failed" ? "rgba(248,113,113,0.06)" : "rgba(0,255,148,0.06)",
+                border: `1px solid ${stage === "credited" ? "rgba(52,211,153,0.3)" : stage === "failed" ? "rgba(248,113,113,0.3)" : "rgba(0,255,148,0.2)"}`,
               }}>
               {busy && <RefreshCw size={14} className="animate-spin shrink-0" style={{ color: TEAL }} />}
               {stage === "credited" && <CheckCircle2 size={14} className="shrink-0" style={{ color: "rgba(52,211,153,0.9)" }} />}
               {stage === "failed" && <XCircle size={14} className="shrink-0" style={{ color: "rgba(248,113,113,0.9)" }} />}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium" style={{
-                  color: stage === "credited" ? "rgba(52,211,153,0.95)" : stage === "failed" ? "rgba(248,113,113,0.9)" : "rgba(194,210,255,0.85)"
+                  color: stage === "credited" ? "rgba(52,211,153,0.95)" : stage === "failed" ? "rgba(248,113,113,0.9)" : "rgba(176,255,224,0.85)"
                 }}>{stageLabel[stage]}</p>
                 {result?.message && stage !== "credited" && (
-                  <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(194,210,255,0.4)" }}>{result.message}</p>
+                  <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(176,255,224,0.4)" }}>{result.message}</p>
                 )}
                 {stage === "credited" && result && (
-                  <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.5)" }}>
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.5)" }}>
                     New balance: <strong style={{ color: TEAL }}>${result.newBalance?.toFixed(2)}</strong>
                   </p>
                 )}
@@ -302,9 +302,9 @@ function DepositModal({ onClose, onCredited }: { onClose: () => void; onCredited
               disabled={!depositAddress}
               className="w-full py-3.5 rounded-2xl font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               style={{
-                background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814",
+                background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A",
                 fontFamily: "'Sora', sans-serif", fontSize: "0.75rem", letterSpacing: "0.05em",
-                boxShadow: "0 0 24px rgba(91,140,255,0.25)",
+                boxShadow: "0 0 24px rgba(0,255,148,0.25)",
               }}
             >
               {stage === "failed" ? <><RefreshCw size={14} /> Try Again</> : <><Upload size={14} /> Deposit Now</>}
@@ -318,7 +318,7 @@ function DepositModal({ onClose, onCredited }: { onClose: () => void; onCredited
           ) : (
             <button disabled
               className="w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 opacity-60"
-              style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814", fontFamily: "'Sora', sans-serif", fontSize: "0.75rem", letterSpacing: "0.05em" }}>
+              style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A", fontFamily: "'Sora', sans-serif", fontSize: "0.75rem", letterSpacing: "0.05em" }}>
               <RefreshCw size={14} className="animate-spin" /> {stageLabel[stage]}
             </button>
           )}
@@ -328,11 +328,11 @@ function DepositModal({ onClose, onCredited }: { onClose: () => void; onCredited
   );
 }
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const GLASS = {
   background: "rgba(10,14,30,0.65)",
   backdropFilter: "blur(14px)",
-  border: "1px solid rgba(91,140,255,0.10)",
+  border: "1px solid rgba(0,255,148,0.10)",
 } as const;
 
 /* ────────────────────────────────────────────────
@@ -402,28 +402,28 @@ function P2PModal({ usdtBalance, onClose, onSuccess }: {
         className="w-full max-w-sm rounded-3xl overflow-hidden"
         style={{
           background: "linear-gradient(170deg, rgba(4,16,32,0.99) 0%, rgba(2,10,22,0.99) 100%)",
-          border: "1px solid rgba(91,140,255,0.18)",
+          border: "1px solid rgba(0,255,148,0.18)",
           boxShadow: "0 8px 60px rgba(6,8,20,0.9)",
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #5B8CFF, transparent)" }} />
+        <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #00FF94, transparent)" }} />
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))", border: "1px solid rgba(91,140,255,0.28)" }}>
+              style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,255,148,0.06))", border: "1px solid rgba(0,255,148,0.28)" }}>
               <ArrowUpRight size={17} style={{ color: TEAL }} />
             </div>
             <div>
               <div className="font-bold" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.8rem" }}>P2P Transfer</div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>Send to another user</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.35)" }}>Send to another user</div>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.09)" }}>
-            <X size={14} style={{ color: "rgba(194,210,255,0.45)" }} />
+            style={{ background: "rgba(176,255,224,0.06)", border: "1px solid rgba(176,255,224,0.09)" }}>
+            <X size={14} style={{ color: "rgba(176,255,224,0.45)" }} />
           </button>
         </div>
 
@@ -432,11 +432,11 @@ function P2PModal({ usdtBalance, onClose, onSuccess }: {
             <div className="text-center py-6">
               <CheckCircle2 size={48} className="mx-auto mb-3" style={{ color: "#34d399" }} />
               <div className="font-bold text-sm mb-1" style={{ color: "#34d399" }}>Transfer Successful!</div>
-              <div className="text-xs" style={{ color: "rgba(194,210,255,0.45)" }}>
+              <div className="text-xs" style={{ color: "rgba(176,255,224,0.45)" }}>
                 ${parseFloat(amount).toFixed(2)} {coinLabel} sent to {verified?.name}
               </div>
               <button onClick={onClose} className="mt-5 w-full py-3 rounded-2xl font-bold text-xs"
-                style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814" }}>
+                style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A" }}>
                 Done
               </button>
             </div>
@@ -445,14 +445,14 @@ function P2PModal({ usdtBalance, onClose, onSuccess }: {
 
               {/* Available balance */}
               <div className="rounded-xl px-4 py-2.5 text-center"
-                style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)" }}>
-                <div className="text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Available {coinLabel}</div>
+                style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.12)" }}>
+                <div className="text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>Available {coinLabel}</div>
                 <div className="font-bold text-sm" style={{ color: coinColor }}>${activeBal.toFixed(2)}</div>
               </div>
 
               {/* User ID lookup */}
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.55)" }}>Recipient Referral Code or User ID</label>
+                <label className="block text-xs mb-1.5" style={{ color: "rgba(176,255,224,0.55)" }}>Recipient Referral Code or User ID</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -462,7 +462,7 @@ function P2PModal({ usdtBalance, onClose, onSuccess }: {
                     className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none"
                     style={{
                       background: "rgba(0,20,40,0.6)",
-                      border: `1px solid ${verified ? "rgba(52,211,153,0.45)" : verifyError ? "rgba(248,113,113,0.35)" : "rgba(91,140,255,0.15)"}`,
+                      border: `1px solid ${verified ? "rgba(52,211,153,0.45)" : verifyError ? "rgba(248,113,113,0.35)" : "rgba(0,255,148,0.15)"}`,
                       color: "rgba(200,240,255,0.9)",
                     }}
                     onKeyDown={e => e.key === "Enter" && handleVerify()}
@@ -472,8 +472,8 @@ function P2PModal({ usdtBalance, onClose, onSuccess }: {
                     disabled={verifying || !userId}
                     className="px-4 rounded-xl font-bold text-xs transition-all"
                     style={{
-                      background: verified ? "linear-gradient(135deg, rgba(52,211,153,0.2), rgba(52,211,153,0.08))" : "linear-gradient(135deg, rgba(91,140,255,0.2), rgba(91,140,255,0.08))",
-                      border: verified ? "1px solid rgba(52,211,153,0.4)" : "1px solid rgba(91,140,255,0.25)",
+                      background: verified ? "linear-gradient(135deg, rgba(52,211,153,0.2), rgba(52,211,153,0.08))" : "linear-gradient(135deg, rgba(0,255,148,0.2), rgba(0,255,148,0.08))",
+                      border: verified ? "1px solid rgba(52,211,153,0.4)" : "1px solid rgba(0,255,148,0.25)",
                       color: verified ? "#34d399" : TEAL,
                       opacity: verifying || !userId ? 0.5 : 1,
                     }}
@@ -488,7 +488,7 @@ function P2PModal({ usdtBalance, onClose, onSuccess }: {
                     <CheckCircle2 size={14} style={{ color: "#34d399" }} />
                     <div>
                       <div className="text-xs font-semibold" style={{ color: "#34d399" }}>{verified.name}</div>
-                      <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>{verified.email}</div>
+                      <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>{verified.email}</div>
                     </div>
                   </div>
                 )}
@@ -497,9 +497,9 @@ function P2PModal({ usdtBalance, onClose, onSuccess }: {
               {/* Amount */}
               {verified && (
                 <div>
-                  <label className="block text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.55)" }}>Amount ({coinLabel})</label>
+                  <label className="block text-xs mb-1.5" style={{ color: "rgba(176,255,224,0.55)" }}>Amount ({coinLabel})</label>
                   <div className="flex items-center gap-2 rounded-xl px-3 py-2.5"
-                    style={{ background: "rgba(0,20,40,0.6)", border: "1px solid rgba(91,140,255,0.15)" }}>
+                    style={{ background: "rgba(0,20,40,0.6)", border: "1px solid rgba(0,255,148,0.15)" }}>
                     <input
                       type="number"
                       value={amount}
@@ -511,7 +511,7 @@ function P2PModal({ usdtBalance, onClose, onSuccess }: {
                     <button
                       onClick={() => setAmount(activeBal.toFixed(2))}
                       className="text-xs font-bold px-2 py-0.5 rounded-lg"
-                      style={{ background: "rgba(91,140,255,0.12)", color: coinColor }}
+                      style={{ background: "rgba(0,255,148,0.12)", color: coinColor }}
                     >
                       MAX
                     </button>
@@ -526,9 +526,9 @@ function P2PModal({ usdtBalance, onClose, onSuccess }: {
                 disabled={!verified || !amount || sending}
                 className="w-full py-3 rounded-2xl font-bold text-xs transition-all"
                 style={{
-                  background: !verified || !amount ? "rgba(91,140,255,0.08)" : "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                  color: !verified || !amount ? "rgba(194,210,255,0.3)" : "#060814",
-                  boxShadow: verified && amount ? "0 0 24px rgba(91,140,255,0.3)" : "none",
+                  background: !verified || !amount ? "rgba(0,255,148,0.08)" : "linear-gradient(135deg, #00FF94, #00CC77)",
+                  color: !verified || !amount ? "rgba(176,255,224,0.3)" : "#050C0A",
+                  boxShadow: verified && amount ? "0 0 24px rgba(0,255,148,0.3)" : "none",
                   cursor: !verified || !amount || sending ? "not-allowed" : "pointer",
                 }}
               >
@@ -608,8 +608,8 @@ function DetailModal({ item, type, onClose }: { item: any; type: "deposit" | "wi
         className="w-full max-w-sm rounded-3xl overflow-hidden"
         style={{
           background: "linear-gradient(170deg, rgba(4,16,32,0.99) 0%, rgba(2,10,22,0.99) 100%)",
-          border: "1px solid rgba(91,140,255,0.16)",
-          boxShadow: "0 8px 60px rgba(6,8,20,0.9), 0 0 0 1px rgba(91,140,255,0.06)",
+          border: "1px solid rgba(0,255,148,0.16)",
+          boxShadow: "0 8px 60px rgba(6,8,20,0.9), 0 0 0 1px rgba(0,255,148,0.06)",
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -645,9 +645,9 @@ function DetailModal({ item, type, onClose }: { item: any; type: "deposit" | "wi
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:brightness-125"
-            style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.09)" }}
+            style={{ background: "rgba(176,255,224,0.06)", border: "1px solid rgba(176,255,224,0.09)" }}
           >
-            <X size={14} style={{ color: "rgba(194,210,255,0.45)" }} />
+            <X size={14} style={{ color: "rgba(176,255,224,0.45)" }} />
           </button>
         </div>
 
@@ -655,12 +655,12 @@ function DetailModal({ item, type, onClose }: { item: any; type: "deposit" | "wi
           className="mx-5 mb-5 rounded-2xl py-5 text-center"
           style={{
             background: isDeposit
-              ? "linear-gradient(135deg, rgba(91,140,255,0.07), rgba(61,92,224,0.03))"
+              ? "linear-gradient(135deg, rgba(0,255,148,0.07), rgba(0,204,119,0.03))"
               : "linear-gradient(135deg, rgba(248,113,113,0.07), rgba(220,80,80,0.03))",
             border: `1px solid ${accentColor}20`,
           }}
         >
-          <div className="text-xs mb-2 uppercase tracking-widest" style={{ color: "rgba(194,210,255,0.35)" }}>
+          <div className="text-xs mb-2 uppercase tracking-widest" style={{ color: "rgba(176,255,224,0.35)" }}>
             {isDeposit ? "Amount Deposited" : "Amount Withdrawn"}
           </div>
           <div
@@ -676,24 +676,24 @@ function DetailModal({ item, type, onClose }: { item: any; type: "deposit" | "wi
           </div>
         </div>
 
-        <div className="mx-5 mb-4 h-px" style={{ background: "rgba(91,140,255,0.07)" }} />
+        <div className="mx-5 mb-4 h-px" style={{ background: "rgba(0,255,148,0.07)" }} />
 
         <div className="px-5 pb-6 space-y-0">
           {rows.map((row, i) => (
             <div
               key={row.label}
               className="flex items-center justify-between py-3"
-              style={{ borderBottom: i < rows.length - 1 ? "1px solid rgba(91,140,255,0.05)" : "none" }}
+              style={{ borderBottom: i < rows.length - 1 ? "1px solid rgba(0,255,148,0.05)" : "none" }}
             >
               <div className="flex items-center gap-2.5">
-                <row.icon size={12} style={{ color: "rgba(194,210,255,0.28)" }} />
-                <span className="text-xs" style={{ color: "rgba(194,210,255,0.42)" }}>{row.label}</span>
+                <row.icon size={12} style={{ color: "rgba(176,255,224,0.28)" }} />
+                <span className="text-xs" style={{ color: "rgba(176,255,224,0.42)" }}>{row.label}</span>
               </div>
               <span
                 className="text-xs font-semibold text-right max-w-[55%] break-all leading-relaxed"
                 style={{
                   color: row.label === "Transaction ID"
-                    ? "rgba(194,210,255,0.55)"
+                    ? "rgba(176,255,224,0.55)"
                     : row.label === "Reason"
                       ? "#f87171"
                       : row.label === "Processed" && row.value === "Awaiting"
@@ -720,8 +720,8 @@ function DetailModal({ item, type, onClose }: { item: any; type: "deposit" | "wi
 function EmptyState() {
   return (
     <div className="rounded-xl p-12 text-center" style={GLASS}>
-      <Wallet size={36} className="mx-auto mb-3" style={{ color: "rgba(194,210,255,0.15)" }} />
-      <p className="text-sm" style={{ color: "rgba(194,210,255,0.3)" }}>No transactions yet</p>
+      <Wallet size={36} className="mx-auto mb-3" style={{ color: "rgba(176,255,224,0.15)" }} />
+      <p className="text-sm" style={{ color: "rgba(176,255,224,0.3)" }}>No transactions yet</p>
     </div>
   );
 }
@@ -787,28 +787,28 @@ function ConvertModal({
         className="w-full max-w-sm rounded-3xl overflow-hidden"
         style={{
           background: "linear-gradient(170deg, rgba(4,16,32,0.99) 0%, rgba(2,10,22,0.99) 100%)",
-          border: "1px solid rgba(91,140,255,0.18)",
+          border: "1px solid rgba(0,255,148,0.18)",
           boxShadow: "0 8px 60px rgba(6,8,20,0.9)",
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #5B8CFF, transparent)" }} />
+        <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #00FF94, transparent)" }} />
         <div className="flex items-center justify-between px-5 pt-5 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))", border: "1px solid rgba(91,140,255,0.28)" }}>
+              style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,255,148,0.06))", border: "1px solid rgba(0,255,148,0.28)" }}>
               <CircleDollarSign size={17} style={{ color: TEAL }} />
             </div>
             <div>
               <div className="font-bold" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.8rem" }}>
                 Sell Tokens → Main Wallet
               </div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>{label} WTA → USDT</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.35)" }}>{label} WTA → USDT</div>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.09)" }}>
-            <X size={14} style={{ color: "rgba(194,210,255,0.45)" }} />
+            style={{ background: "rgba(176,255,224,0.06)", border: "1px solid rgba(176,255,224,0.09)" }}>
+            <X size={14} style={{ color: "rgba(176,255,224,0.45)" }} />
           </button>
         </div>
 
@@ -817,32 +817,32 @@ function ConvertModal({
             <div className="text-center py-4">
               <CheckCircle2 size={48} className="mx-auto mb-3" style={{ color: "#34d399" }} />
               <div className="font-bold text-sm mb-1" style={{ color: "#34d399" }}>Sale Successful!</div>
-              <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.5)" }}>
+              <div className="text-xs mb-1" style={{ color: "rgba(176,255,224,0.5)" }}>
                 Credited to your main wallet:
               </div>
               <div className="font-black text-xl mb-3" style={{ color: TEAL, fontFamily: "'Sora', sans-serif" }}>
                 ${result?.usdtReceived?.toFixed(2)} USDT
               </div>
               <button onClick={onClose} className="w-full py-3 rounded-2xl font-bold text-xs"
-                style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814" }}>
+                style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A" }}>
                 Done
               </button>
             </div>
           ) : (
             <>
               <div className="rounded-xl px-4 py-2.5 text-center"
-                style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)" }}>
-                <div className="text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Available in {label}</div>
+                style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.12)" }}>
+                <div className="text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>Available in {label}</div>
                 <div className="font-bold text-sm" style={{ color: TEAL }}>{sourceBalance.toFixed(4)} WTA</div>
                 {tokenPrice > 0 && (
-                  <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.3)" }}>
+                  <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.3)" }}>
                     ≈ ${(sourceBalance * tokenPrice).toFixed(2)} USDT at current price
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.55)" }}>
+                <label className="block text-xs mb-1.5" style={{ color: "rgba(176,255,224,0.55)" }}>
                   WTA to Sell
                 </label>
                 <div className="relative">
@@ -852,12 +852,12 @@ function ConvertModal({
                     onChange={e => { setAmount(e.target.value); setResult(null); }}
                     placeholder="Enter token amount..."
                     className="w-full px-4 py-3 pr-20 rounded-xl text-sm outline-none"
-                    style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(91,140,255,0.22)", color: "rgba(194,210,255,0.9)" }}
+                    style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(0,255,148,0.22)", color: "rgba(176,255,224,0.9)" }}
                   />
                   <button
                     onClick={() => setAmount(sourceBalance.toFixed(6))}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold px-2 py-0.5 rounded-lg"
-                    style={{ background: "rgba(91,140,255,0.15)", color: TEAL }}>
+                    style={{ background: "rgba(0,255,148,0.15)", color: TEAL }}>
                     MAX
                   </button>
                 </div>
@@ -867,19 +867,19 @@ function ConvertModal({
                 <div className="rounded-xl px-4 py-3 space-y-2"
                   style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.2)" }}>
                   <div className="flex justify-between text-xs">
-                    <span style={{ color: "rgba(194,210,255,0.45)" }}>Selling</span>
+                    <span style={{ color: "rgba(176,255,224,0.45)" }}>Selling</span>
                     <span style={{ color: "rgba(200,240,255,0.85)", fontWeight: 600 }}>{tokenAmt.toFixed(4)} WTA</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span style={{ color: "rgba(194,210,255,0.45)" }}>Token price (est.)</span>
-                    <span style={{ color: "rgba(194,210,255,0.55)" }}>${tokenPrice.toFixed(4)}</span>
+                    <span style={{ color: "rgba(176,255,224,0.45)" }}>Token price (est.)</span>
+                    <span style={{ color: "rgba(176,255,224,0.55)" }}>${tokenPrice.toFixed(4)}</span>
                   </div>
                   <div className="h-px" style={{ background: "rgba(52,211,153,0.15)" }} />
                   <div className="flex justify-between text-xs font-bold">
                     <span style={{ color: "#34d399" }}>Est. USDT to receive</span>
                     <span style={{ color: "#34d399" }}>≈${estimatedUsdt.toFixed(2)}</span>
                   </div>
-                  <div className="text-xs" style={{ color: "rgba(194,210,255,0.25)" }}>
+                  <div className="text-xs" style={{ color: "rgba(176,255,224,0.25)" }}>
                     Actual amount depends on on-chain price at time of sale.
                   </div>
                 </div>
@@ -897,9 +897,9 @@ function ConvertModal({
                 disabled={converting || !amount || tokenAmt <= 0}
                 className="w-full py-3.5 rounded-2xl font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{
-                  background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814",
+                  background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A",
                   fontFamily: "'Sora', sans-serif", fontSize: "0.75rem", letterSpacing: "0.05em",
-                  boxShadow: "0 0 24px rgba(91,140,255,0.25)",
+                  boxShadow: "0 0 24px rgba(0,255,148,0.25)",
                 }}
               >
                 {converting ? <><RefreshCw size={14} className="animate-spin" /> Selling…</> : <><CircleDollarSign size={14} /> Sell & Credit to Main Wallet</>}
@@ -971,7 +971,7 @@ export default function WalletPage({ user }: { user: any }) {
         className="text-xl font-bold"
         style={{
           fontFamily: "'Sora', sans-serif",
-          background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+          background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
@@ -984,12 +984,12 @@ export default function WalletPage({ user }: { user: any }) {
       <div
         className="rounded-2xl p-5"
         style={{
-          background: "linear-gradient(135deg, rgba(91,140,255,0.13), rgba(61,92,224,0.05))",
-          border: "1px solid rgba(91,140,255,0.28)",
-          boxShadow: "0 0 24px rgba(91,140,255,0.08)",
+          background: "linear-gradient(135deg, rgba(0,255,148,0.13), rgba(0,204,119,0.05))",
+          border: "1px solid rgba(0,255,148,0.28)",
+          boxShadow: "0 0 24px rgba(0,255,148,0.08)",
         }}
       >
-        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.4)" }}>
+        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(176,255,224,0.4)" }}>
           Main Wallet
         </div>
         <div
@@ -998,7 +998,7 @@ export default function WalletPage({ user }: { user: any }) {
         >
           ${usdtBalance.toFixed(2)}
         </div>
-        <div className="text-xs mt-1.5" style={{ color: "rgba(194,210,255,0.28)" }}>USDT · Deposit, invest &amp; P2P</div>
+        <div className="text-xs mt-1.5" style={{ color: "rgba(176,255,224,0.28)" }}>USDT · Deposit, invest &amp; P2P</div>
       </div>
 
       {/* ── Withdraw Wallet Card ── */}
@@ -1012,7 +1012,7 @@ export default function WalletPage({ user }: { user: any }) {
       >
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(176,255,224,0.4)" }}>
               Withdraw Wallet
             </div>
             <div
@@ -1021,7 +1021,7 @@ export default function WalletPage({ user }: { user: any }) {
             >
               ${(summary?.withdrawBalance ?? (parseFloat(user?.withdrawBalance ?? "0") || 0)).toFixed(2)}
             </div>
-            <div className="text-xs mt-1.5" style={{ color: "rgba(194,210,255,0.28)" }}>USDT · All earnings &amp; sold tokens · Withdrawable</div>
+            <div className="text-xs mt-1.5" style={{ color: "rgba(176,255,224,0.28)" }}>USDT · All earnings &amp; sold tokens · Withdrawable</div>
           </div>
           <button
             onClick={() => setLocation("/withdrawals")}
@@ -1047,13 +1047,13 @@ export default function WalletPage({ user }: { user: any }) {
             border: "1px solid rgba(52,211,153,0.22)",
           }}
         >
-          <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.38)" }}>Trading Profit</div>
+          <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(176,255,224,0.38)" }}>Trading Profit</div>
           <div className="font-black" style={{ fontFamily: "'Sora', sans-serif", color: "#34d399", fontSize: "1.1rem", lineHeight: 1.1 }}>
             {tradingBal.toFixed(4)}
           </div>
           <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(52,211,153,0.6)" }}>WTA</div>
           {tokenPrice > 0 && (
-            <div className="text-xs mb-2" style={{ color: "rgba(194,210,255,0.3)" }}>≈${(tradingBal * tokenPrice).toFixed(2)}</div>
+            <div className="text-xs mb-2" style={{ color: "rgba(176,255,224,0.3)" }}>≈${(tradingBal * tokenPrice).toFixed(2)}</div>
           )}
           <button
             onClick={() => setShowConvertModal({ source: "trading" })}
@@ -1077,13 +1077,13 @@ export default function WalletPage({ user }: { user: any }) {
             border: "1px solid rgba(168,85,247,0.22)",
           }}
         >
-          <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.38)" }}>Team Benefit</div>
+          <div className="text-xs uppercase tracking-widest mb-2" style={{ color: "rgba(176,255,224,0.38)" }}>Team Benefit</div>
           <div className="font-black" style={{ fontFamily: "'Sora', sans-serif", color: "#c084fc", fontSize: "1.1rem", lineHeight: 1.1 }}>
             {teamBal.toFixed(4)}
           </div>
           <div className="text-xs mb-1 font-semibold" style={{ color: "rgba(168,85,247,0.6)" }}>WTA</div>
           {tokenPrice > 0 && (
-            <div className="text-xs mb-2" style={{ color: "rgba(194,210,255,0.3)" }}>≈${(teamBal * tokenPrice).toFixed(2)}</div>
+            <div className="text-xs mb-2" style={{ color: "rgba(176,255,224,0.3)" }}>≈${(teamBal * tokenPrice).toFixed(2)}</div>
           )}
           <button
             onClick={() => setShowConvertModal({ source: "team" })}
@@ -1102,10 +1102,10 @@ export default function WalletPage({ user }: { user: any }) {
 
       {/* Info note */}
       <div className="flex gap-2.5 px-3 py-2.5 rounded-xl"
-        style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
-        <AlertCircle size={13} className="shrink-0 mt-0.5" style={{ color: "rgba(91,140,255,0.6)" }} />
-        <p className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.45)" }}>
-          Tokens in these wallets are held by the platform. Click <strong style={{ color: "rgba(194,210,255,0.7)" }}>Sell</strong> to sell them on-chain and receive USDT in your Withdraw Wallet.
+        style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.10)" }}>
+        <AlertCircle size={13} className="shrink-0 mt-0.5" style={{ color: "rgba(0,255,148,0.6)" }} />
+        <p className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.45)" }}>
+          Tokens in these wallets are held by the platform. Click <strong style={{ color: "rgba(176,255,224,0.7)" }}>Sell</strong> to sell them on-chain and receive USDT in your Withdraw Wallet.
         </p>
       </div>
 
@@ -1114,15 +1114,15 @@ export default function WalletPage({ user }: { user: any }) {
         <div
           className="rounded-2xl p-5"
           style={{
-            background: "linear-gradient(135deg, rgba(91,140,255,0.10), rgba(61,92,224,0.04))",
-            border: "1px solid rgba(91,140,255,0.22)",
+            background: "linear-gradient(135deg, rgba(0,255,148,0.10), rgba(0,204,119,0.04))",
+            border: "1px solid rgba(0,255,148,0.22)",
           }}
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))", border: "1px solid rgba(91,140,255,0.28)" }}
+                style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,255,148,0.06))", border: "1px solid rgba(0,255,148,0.28)" }}
               >
                 <Coins size={16} style={{ color: TEAL }} />
               </div>
@@ -1130,7 +1130,7 @@ export default function WalletPage({ user }: { user: any }) {
                 <div className="font-bold text-sm" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif" }}>
                   WTA Token Balance
                 </div>
-                <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.38)" }}>
+                <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.38)" }}>
                   On-chain · {wtaHoldings.purchaseCount} purchase{wtaHoldings.purchaseCount !== 1 ? "s" : ""}
                 </div>
               </div>
@@ -1138,7 +1138,7 @@ export default function WalletPage({ user }: { user: any }) {
             <a
               href="/invest?tab=token"
               className="text-xs px-3 py-1.5 rounded-xl font-semibold"
-              style={{ background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.28)", color: TEAL }}
+              style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.28)", color: TEAL }}
             >
               Buy More
             </a>
@@ -1146,52 +1146,52 @@ export default function WalletPage({ user }: { user: any }) {
 
           <div className="grid grid-cols-3 gap-3">
             {/* WTA Holding */}
-            <div className="rounded-xl px-3 py-3" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}>
-              <div className="flex items-center gap-1 text-xs mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <div className="rounded-xl px-3 py-3" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.14)" }}>
+              <div className="flex items-center gap-1 text-xs mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>
                 <Coins size={10} /> Holding
               </div>
               <div className="font-black text-base" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", lineHeight: 1.1 }}>
                 {parseFloat(wtaHoldings.totalWtaReceived).toFixed(4)}
               </div>
-              <div className="text-xs mt-0.5 font-semibold" style={{ color: "rgba(91,140,255,0.7)" }}>WTA</div>
+              <div className="text-xs mt-0.5 font-semibold" style={{ color: "rgba(0,255,148,0.7)" }}>WTA</div>
             </div>
 
             {/* Current Value */}
-            <div className="rounded-xl px-3 py-3" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}>
-              <div className="flex items-center gap-1 text-xs mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <div className="rounded-xl px-3 py-3" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.14)" }}>
+              <div className="flex items-center gap-1 text-xs mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>
                 <TrendingDown size={10} /> Current Value
               </div>
               <div className="font-black text-base" style={{ color: TEAL, fontFamily: "'Sora', sans-serif", lineHeight: 1.1 }}>
                 ${parseFloat(wtaHoldings.currentValue).toFixed(2)}
               </div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.3)" }}>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.3)" }}>
                 @{parseFloat(wtaHoldings.sellPrice).toFixed(4)} sell
               </div>
             </div>
 
             {/* Total Purchased */}
-            <div className="rounded-xl px-3 py-3" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}>
-              <div className="flex items-center gap-1 text-xs mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <div className="rounded-xl px-3 py-3" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.14)" }}>
+              <div className="flex items-center gap-1 text-xs mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>
                 <PiggyBank size={10} /> Purchased
               </div>
               <div className="font-black text-base" style={{ color: "rgba(200,240,255,0.85)", fontFamily: "'Sora', sans-serif", lineHeight: 1.1 }}>
                 ${parseFloat(wtaHoldings.totalUsdtSpent).toFixed(2)}
               </div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.3)" }}>USDT spent</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.3)" }}>USDT spent</div>
             </div>
           </div>
         </div>
       ) : (
         <div
           className="rounded-2xl p-4 flex items-center gap-3"
-          style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}
+          style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.10)" }}
         >
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)" }}>
-            <Coins size={15} style={{ color: "rgba(91,140,255,0.6)" }} />
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)" }}>
+            <Coins size={15} style={{ color: "rgba(0,255,148,0.6)" }} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.7)" }}>WTA Token Balance</div>
-            <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>
+            <div className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.7)" }}>WTA Token Balance</div>
+            <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.35)" }}>
               No on-chain purchases yet · <a href="/invest?tab=token" style={{ color: TEAL }}>Buy WTA tokens</a>
             </div>
           </div>
@@ -1207,8 +1207,8 @@ export default function WalletPage({ user }: { user: any }) {
           { label: "Total Withdrawn",    value: summary?.withdrawnTotal    },
         ].map(item => (
           <div key={item.label} className="rounded-xl p-3.5" style={GLASS}>
-            <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.38)" }}>{item.label}</div>
-            <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.82)" }}>
+            <div className="text-xs mb-1" style={{ color: "rgba(176,255,224,0.38)" }}>{item.label}</div>
+            <div className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.82)" }}>
               ${item.value?.toFixed(2) ?? "0.00"}
             </div>
           </div>
@@ -1222,9 +1222,9 @@ export default function WalletPage({ user }: { user: any }) {
           onClick={() => setShowDepositModal(true)}
           className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-xs transition-all active:scale-[0.97]"
           style={{
-            background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-            color: "#060814",
-            boxShadow: "0 0 24px rgba(91,140,255,0.30)",
+            background: "linear-gradient(135deg, #00FF94, #00CC77)",
+            color: "#050C0A",
+            boxShadow: "0 0 24px rgba(0,255,148,0.30)",
           }}
         >
           <ArrowDownLeft size={16} strokeWidth={2.5} />
@@ -1264,11 +1264,11 @@ export default function WalletPage({ user }: { user: any }) {
 
       {/* ── Section Label ── */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-px" style={{ background: "rgba(91,140,255,0.08)" }} />
-        <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(194,210,255,0.28)" }}>
+        <div className="flex-1 h-px" style={{ background: "rgba(0,255,148,0.08)" }} />
+        <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(176,255,224,0.28)" }}>
           Transaction History
         </span>
-        <div className="flex-1 h-px" style={{ background: "rgba(91,140,255,0.08)" }} />
+        <div className="flex-1 h-px" style={{ background: "rgba(0,255,148,0.08)" }} />
       </div>
 
       {/* ── Combined History ── */}
@@ -1298,23 +1298,23 @@ export default function WalletPage({ user }: { user: any }) {
                       : <ArrowUpRight  size={16} style={{ color: accentColor }} />}
                   </div>
                   <div>
-                    <div className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.85)" }}>
+                    <div className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.85)" }}>
                       {isDeposit ? "Deposit" : "Withdrawal"}{" "}
-                      <span className="font-mono text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>#{shortId(item.id)}</span>
+                      <span className="font-mono text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>#{shortId(item.id)}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs mt-0.5">
                       <cfg.icon size={10} style={{ color: cfg.color }} />
                       <span style={{ color: cfg.color }}>{cfg.label}</span>
-                      <span style={{ color: "rgba(194,210,255,0.25)" }}>·</span>
-                      <span style={{ color: "rgba(194,210,255,0.35)" }}>{formatDate(item.createdAt)}</span>
+                      <span style={{ color: "rgba(176,255,224,0.25)" }}>·</span>
+                      <span style={{ color: "rgba(176,255,224,0.35)" }}>{formatDate(item.createdAt)}</span>
                     </div>
                     {isDeposit && item.plan && (
-                      <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.25)" }}>
+                      <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.25)" }}>
                         {planLabels[item.plan] ?? item.plan}
                       </div>
                     )}
                     {!isDeposit && item.walletAddress && (
-                      <div className="text-xs mt-0.5 truncate max-w-[160px]" style={{ color: "rgba(194,210,255,0.25)" }}>
+                      <div className="text-xs mt-0.5 truncate max-w-[160px]" style={{ color: "rgba(176,255,224,0.25)" }}>
                         {item.walletAddress}
                       </div>
                     )}
@@ -1327,7 +1327,7 @@ export default function WalletPage({ user }: { user: any }) {
                   >
                     {isDeposit ? "+" : "−"}${item.amount?.toFixed(2)}
                   </div>
-                  <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.28)" }}>Tap for details</div>
+                  <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.28)" }}>Tap for details</div>
                 </div>
               </button>
             );

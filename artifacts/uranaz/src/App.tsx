@@ -260,22 +260,22 @@ function AppInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#060814" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#050C0A" }}>
         <SpaceBackground />
         <div className="relative z-10 flex flex-col items-center gap-4">
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center"
             style={{
-              background: "linear-gradient(135deg, rgba(91,140,255,0.2), rgba(61,92,224,0.1))",
-              border: "1px solid rgba(91,140,255,0.4)",
-              boxShadow: "0 0 30px rgba(91,140,255,0.3)",
+              background: "linear-gradient(135deg, rgba(0,255,148,0.2), rgba(0,204,119,0.1))",
+              border: "1px solid rgba(0,255,148,0.4)",
+              boxShadow: "0 0 30px rgba(0,255,148,0.3)",
             }}
           >
-            <span style={{ color: "#5B8CFF", fontFamily: "'Sora',sans-serif", fontWeight: 700 }}>WA</span>
+            <span style={{ color: "#00FF94", fontFamily: "'Sora',sans-serif", fontWeight: 700 }}>WA</span>
           </div>
           <div
             className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
-            style={{ borderColor: "rgba(91,140,255,0.6)", borderTopColor: "transparent" }}
+            style={{ borderColor: "rgba(0,255,148,0.6)", borderTopColor: "transparent" }}
           />
         </div>
       </div>

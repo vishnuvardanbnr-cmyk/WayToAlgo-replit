@@ -7,7 +7,7 @@ import { Wallet, CheckCircle2, Loader2 } from "lucide-react";
 
 interface Props { onLogin: (user: any) => void; }
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 
 export default function Login({ onLogin }: Props) {
   const [, setLocation] = useLocation();
@@ -94,7 +94,7 @@ export default function Login({ onLogin }: Props) {
             className="text-2xl font-bold mb-1"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -102,7 +102,7 @@ export default function Login({ onLogin }: Props) {
           >
             Welcome Back
           </h1>
-          <p style={{ color: "rgba(194,210,255,0.5)", fontSize: "0.875rem" }}>
+          <p style={{ color: "rgba(176,255,224,0.5)", fontSize: "0.875rem" }}>
             Connect your wallet to sign in
           </p>
         </div>
@@ -115,14 +115,14 @@ export default function Login({ onLogin }: Props) {
             backdropFilter: "blur(24px) saturate(1.5)",
             WebkitBackdropFilter: "blur(24px) saturate(1.5)",
             border: "1px solid rgba(91, 140, 255, 0.20)",
-            boxShadow: "0 0 0 1px rgba(91,140,255,0.06) inset, 0 20px 60px rgba(0,0,0,0.5), 0 0 100px rgba(91,140,255,0.05)",
+            boxShadow: "0 0 0 1px rgba(0,255,148,0.06) inset, 0 20px 60px rgba(0,0,0,0.5), 0 0 100px rgba(0,255,148,0.05)",
           }}
         >
           {/* Wallet address display field */}
           <div>
             <div
               className="text-xs font-medium mb-1.5"
-              style={{ color: "rgba(194,210,255,0.6)", letterSpacing: "0.05em" }}
+              style={{ color: "rgba(176,255,224,0.6)", letterSpacing: "0.05em" }}
             >
               Wallet Address
             </div>
@@ -130,7 +130,7 @@ export default function Login({ onLogin }: Props) {
               className="w-full h-10 rounded-xl px-3 flex items-center gap-2 text-sm"
               style={{
                 background: "rgba(0,20,40,0.6)",
-                border: `1px solid ${connectedAddress ? "rgba(91,140,255,0.35)" : "rgba(91,140,255,0.12)"}`,
+                border: `1px solid ${connectedAddress ? "rgba(0,255,148,0.35)" : "rgba(0,255,148,0.12)"}`,
                 transition: "border-color 0.3s",
               }}
             >
@@ -138,19 +138,19 @@ export default function Login({ onLogin }: Props) {
                 <>
                   <span
                     className="truncate flex-1"
-                    style={{ color: "rgba(194,210,255,0.85)", fontFamily: "monospace", fontSize: "0.78rem" }}
+                    style={{ color: "rgba(176,255,224,0.85)", fontFamily: "monospace", fontSize: "0.78rem" }}
                   >
                     {connectedAddress}
                   </span>
                   <span
                     className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full"
-                    style={{ background: "rgba(91,140,255,0.15)", color: TEAL, border: "1px solid rgba(91,140,255,0.3)" }}
+                    style={{ background: "rgba(0,255,148,0.15)", color: TEAL, border: "1px solid rgba(0,255,148,0.3)" }}
                   >
                     Connected
                   </span>
                 </>
               ) : (
-                <span style={{ color: "rgba(194,210,255,0.25)" }}>Not connected</span>
+                <span style={{ color: "rgba(176,255,224,0.25)" }}>Not connected</span>
               )}
             </div>
           </div>
@@ -160,8 +160,8 @@ export default function Login({ onLogin }: Props) {
             <div
               className="w-full py-3 rounded-xl flex items-center justify-center gap-2.5 text-sm font-bold"
               style={{
-                background: "rgba(91,140,255,0.10)",
-                border: "1px solid rgba(91,140,255,0.35)",
+                background: "rgba(0,255,148,0.10)",
+                border: "1px solid rgba(0,255,148,0.35)",
                 color: TEAL,
                 letterSpacing: "0.04em",
               }}
@@ -176,11 +176,11 @@ export default function Login({ onLogin }: Props) {
               disabled={loading}
               className="w-full py-3 rounded-xl font-bold transition-all duration-200 disabled:opacity-60 flex items-center justify-center gap-2.5"
               style={{
-                background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                color: "#060814",
+                background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                color: "#050C0A",
                 fontSize: "1rem",
                 letterSpacing: "0.04em",
-                boxShadow: "0 0 24px rgba(91,140,255,0.4), 0 4px 16px rgba(0,0,0,0.4)",
+                boxShadow: "0 0 24px rgba(0,255,148,0.4), 0 4px 16px rgba(0,0,0,0.4)",
               }}
             >
               {loading ? (
@@ -210,7 +210,7 @@ export default function Login({ onLogin }: Props) {
             </div>
           )}
 
-          <div className="text-center text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="text-center text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>
             Don't have an account?{" "}
             <Link href="/register" style={{ color: TEAL, fontWeight: 600 }} className="hover:underline">
               Register

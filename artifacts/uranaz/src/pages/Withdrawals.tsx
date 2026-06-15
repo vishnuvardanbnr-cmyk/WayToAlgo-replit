@@ -9,9 +9,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Wallet, Clock, CheckCircle, XCircle, AlertCircle, Mail, ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.12)" } as const;
-const INPUT_STYLE = { background: "rgba(0,20,40,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" };
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.12)" } as const;
+const INPUT_STYLE = { background: "rgba(0,20,40,0.6)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" };
 
 const BEP20_REGEX = /^0x[a-fA-F0-9]{40}$/;
 
@@ -24,7 +24,7 @@ const schema = z.object({
 
 const statusConfig: Record<string, { icon: any; color: string; bg: string; label: string }> = {
   pending:    { icon: Clock,       color: "#fbbf24", bg: "rgba(251,191,36,0.10)",   label: "Pending"    },
-  processing: { icon: Loader2,     color: "#5B8CFF", bg: "rgba(91,140,255,0.10)",   label: "Processing" },
+  processing: { icon: Loader2,     color: "#00FF94", bg: "rgba(0,255,148,0.10)",   label: "Processing" },
   approved:   { icon: CheckCircle, color: "#34d399", bg: "rgba(52,211,153,0.10)",   label: "Approved"   },
   rejected:   { icon: XCircle,     color: "#f87171", bg: "rgba(248,113,113,0.10)",  label: "Rejected"   },
 };
@@ -153,7 +153,7 @@ export default function Withdrawals({ user }: { user: any }) {
         className="text-xl font-bold"
         style={{
           fontFamily: "'Sora', sans-serif",
-          background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+          background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
@@ -166,14 +166,14 @@ export default function Withdrawals({ user }: { user: any }) {
       <div
         className="rounded-2xl p-5 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(91,140,255,0.12), rgba(61,92,224,0.05))",
-          border: "1px solid rgba(91,140,255,0.28)",
-          boxShadow: "0 0 30px rgba(91,140,255,0.07)",
+          background: "linear-gradient(135deg, rgba(0,255,148,0.12), rgba(0,204,119,0.05))",
+          border: "1px solid rgba(0,255,148,0.28)",
+          boxShadow: "0 0 30px rgba(0,255,148,0.07)",
         }}
       >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(91,140,255,0.14) 0%, transparent 60%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(0,255,148,0.14) 0%, transparent 60%)" }} />
         <div className="relative">
-          <div className="text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(194,210,255,0.45)" }}>
+          <div className="text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(176,255,224,0.45)" }}>
             Available for Withdrawal
           </div>
           <div
@@ -181,7 +181,7 @@ export default function Withdrawals({ user }: { user: any }) {
             data-testid="text-available-balance"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -189,9 +189,9 @@ export default function Withdrawals({ user }: { user: any }) {
           >
             ${summary?.availableBalance?.toFixed(2) ?? "0.00"}
           </div>
-          <div className="flex gap-4 mt-3 text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
-            <span>Pending: <span style={{ color: "rgba(194,210,255,0.8)", fontWeight: 600 }}>${summary?.pendingWithdrawal?.toFixed(2) ?? "0.00"}</span></span>
-            <span>Total Withdrawn: <span style={{ color: "rgba(194,210,255,0.8)", fontWeight: 600 }}>${summary?.withdrawnTotal?.toFixed(2) ?? "0.00"}</span></span>
+          <div className="flex gap-4 mt-3 text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
+            <span>Pending: <span style={{ color: "rgba(176,255,224,0.8)", fontWeight: 600 }}>${summary?.pendingWithdrawal?.toFixed(2) ?? "0.00"}</span></span>
+            <span>Total Withdrawn: <span style={{ color: "rgba(176,255,224,0.8)", fontWeight: 600 }}>${summary?.withdrawnTotal?.toFixed(2) ?? "0.00"}</span></span>
           </div>
         </div>
       </div>
@@ -200,13 +200,13 @@ export default function Withdrawals({ user }: { user: any }) {
       <div className="rounded-2xl p-5" style={GLASS}>
         {step === "form" ? (
           <>
-            <h2 className="font-semibold text-sm mb-4" style={{ color: "rgba(194,210,255,0.8)" }}>Request Withdrawal</h2>
+            <h2 className="font-semibold text-sm mb-4" style={{ color: "rgba(176,255,224,0.8)" }}>Request Withdrawal</h2>
             <div
               className="flex items-start gap-2 rounded-lg p-3 mb-4"
-              style={{ background: "rgba(91,140,255,0.05)", border: "1px solid rgba(91,140,255,0.14)" }}
+              style={{ background: "rgba(0,255,148,0.05)", border: "1px solid rgba(0,255,148,0.14)" }}
             >
               <AlertCircle size={14} className="shrink-0 mt-0.5" style={{ color: TEAL }} />
-              <p className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>
+              <p className="text-xs" style={{ color: "rgba(176,255,224,0.5)" }}>
                 Withdrawals are processed within 24–48 hours. Minimum withdrawal amount is $10.
               </p>
             </div>
@@ -214,7 +214,7 @@ export default function Withdrawals({ user }: { user: any }) {
               <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
                 <FormField control={form.control} name="amount" render={({ field }) => (
                   <FormItem>
-                    <FormLabel style={{ color: "rgba(194,210,255,0.65)", fontSize: "0.8rem" }}>Amount (USDT)</FormLabel>
+                    <FormLabel style={{ color: "rgba(176,255,224,0.65)", fontSize: "0.8rem" }}>Amount (USDT)</FormLabel>
                     <FormControl>
                       <Input data-testid="input-withdraw-amount" type="number" min="10" step="0.01" placeholder="Enter amount" {...field} style={INPUT_STYLE} />
                     </FormControl>
@@ -228,18 +228,18 @@ export default function Withdrawals({ user }: { user: any }) {
                   const youReceive = mode === "deduct_from_amount" ? Number(watchedAmount) - fee : Number(watchedAmount);
                   const balanceDebit = mode === "deduct_from_balance" ? Number(watchedAmount) + fee : Number(watchedAmount);
                   return (
-                    <div className="rounded-xl px-4 py-3 space-y-1.5" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
-                      <div className="flex justify-between text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>
+                    <div className="rounded-xl px-4 py-3 space-y-1.5" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.10)" }}>
+                      <div className="flex justify-between text-xs" style={{ color: "rgba(176,255,224,0.5)" }}>
                         <span>Withdrawal fee</span>
                         <span style={{ color: "#f87171" }}>−${fee.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>
+                      <div className="flex justify-between text-xs" style={{ color: "rgba(176,255,224,0.5)" }}>
                         <span>Balance debited</span>
-                        <span style={{ color: "rgba(194,210,255,0.8)" }}>${balanceDebit.toFixed(2)}</span>
+                        <span style={{ color: "rgba(176,255,224,0.8)" }}>${balanceDebit.toFixed(2)}</span>
                       </div>
-                      <div className="h-px" style={{ background: "rgba(91,140,255,0.08)" }} />
+                      <div className="h-px" style={{ background: "rgba(0,255,148,0.08)" }} />
                       <div className="flex justify-between text-sm font-bold">
-                        <span style={{ color: "rgba(194,210,255,0.7)" }}>You receive</span>
+                        <span style={{ color: "rgba(176,255,224,0.7)" }}>You receive</span>
                         <span style={{ color: "#34d399" }}>${youReceive.toFixed(2)} USDT</span>
                       </div>
                     </div>
@@ -248,7 +248,7 @@ export default function Withdrawals({ user }: { user: any }) {
 
                 <FormField control={form.control} name="walletAddress" render={({ field }) => (
                   <FormItem>
-                    <FormLabel style={{ color: "rgba(194,210,255,0.65)", fontSize: "0.75rem" }}>USDT Wallet Address (BEP-20)</FormLabel>
+                    <FormLabel style={{ color: "rgba(176,255,224,0.65)", fontSize: "0.75rem" }}>USDT Wallet Address (BEP-20)</FormLabel>
                     <FormControl>
                       <Input
                         data-testid="input-withdraw-wallet"
@@ -266,10 +266,10 @@ export default function Withdrawals({ user }: { user: any }) {
                   disabled={createWithdrawal.isPending || sending}
                   className="w-full py-2.5 rounded-xl font-bold transition-all disabled:opacity-60"
                   style={{
-                    background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                    color: "#060814",
+                    background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                    color: "#050C0A",
                     letterSpacing: "0.04em",
-                    boxShadow: "0 0 20px rgba(91,140,255,0.3)",
+                    boxShadow: "0 0 20px rgba(0,255,148,0.3)",
                   }}
                 >
                   {sending ? "Sending OTP..." : createWithdrawal.isPending ? "Submitting..." : "Request Withdrawal"}
@@ -279,19 +279,19 @@ export default function Withdrawals({ user }: { user: any }) {
           </>
         ) : (
           <div className="space-y-5">
-            <h2 className="font-semibold text-sm" style={{ color: "rgba(194,210,255,0.8)" }}>Email Verification</h2>
+            <h2 className="font-semibold text-sm" style={{ color: "rgba(176,255,224,0.8)" }}>Email Verification</h2>
             <div
               className="flex items-center gap-3 p-3 rounded-xl"
-              style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}
+              style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.14)" }}
             >
               <Mail size={18} style={{ color: TEAL, flexShrink: 0 }} />
-              <p className="text-xs" style={{ color: "rgba(194,210,255,0.6)" }}>
+              <p className="text-xs" style={{ color: "rgba(176,255,224,0.6)" }}>
                 Enter the 6-digit code sent to <span style={{ color: TEAL }}>{user?.email}</span>
               </p>
             </div>
 
             <div>
-              <label className="text-xs font-medium block mb-2" style={{ color: "rgba(194,210,255,0.5)" }}>Verification Code</label>
+              <label className="text-xs font-medium block mb-2" style={{ color: "rgba(176,255,224,0.5)" }}>Verification Code</label>
               <input
                 data-testid="input-withdrawal-otp"
                 type="text"
@@ -303,15 +303,15 @@ export default function Withdrawals({ user }: { user: any }) {
                 className="w-full rounded-xl px-3 py-3 text-center text-2xl font-bold focus:outline-none"
                 style={{
                   background: "rgba(0,20,40,0.7)",
-                  border: "1px solid rgba(91,140,255,0.25)",
+                  border: "1px solid rgba(0,255,148,0.25)",
                   color: TEAL,
                   letterSpacing: "0.4em",
                 }}
               />
             </div>
 
-            <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(91,140,255,0.08)" }}>
-              <div className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>Withdrawal amount:</div>
+            <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(0,255,148,0.08)" }}>
+              <div className="text-xs" style={{ color: "rgba(176,255,224,0.5)" }}>Withdrawal amount:</div>
               <div className="text-lg font-bold" style={{ color: TEAL }}>${pendingData?.amount?.toFixed(2)} USDT</div>
             </div>
 
@@ -321,10 +321,10 @@ export default function Withdrawals({ user }: { user: any }) {
               disabled={createWithdrawal.isPending || otp.length !== 6}
               className="w-full py-2.5 rounded-xl font-bold transition-all disabled:opacity-60"
               style={{
-                background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                color: "#060814",
+                background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                color: "#050C0A",
                 letterSpacing: "0.04em",
-                boxShadow: "0 0 20px rgba(91,140,255,0.3)",
+                boxShadow: "0 0 20px rgba(0,255,148,0.3)",
               }}
             >
               {createWithdrawal.isPending ? "Processing..." : "Confirm Withdrawal"}
@@ -335,7 +335,7 @@ export default function Withdrawals({ user }: { user: any }) {
                 type="button"
                 onClick={() => { setStep("form"); setOtp(""); }}
                 className="flex items-center gap-1.5 text-xs"
-                style={{ color: "rgba(194,210,255,0.4)" }}
+                style={{ color: "rgba(176,255,224,0.4)" }}
               >
                 <ArrowLeft size={12} /> Back
               </button>
@@ -355,15 +355,15 @@ export default function Withdrawals({ user }: { user: any }) {
 
       {/* History */}
       <div>
-        <h2 className="font-semibold text-sm mb-3" style={{ color: "rgba(194,210,255,0.75)" }}>Withdrawal History</h2>
+        <h2 className="font-semibold text-sm mb-3" style={{ color: "rgba(176,255,224,0.75)" }}>Withdrawal History</h2>
         {isLoading ? (
           <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />)}
+            {[1,2,3].map(i => <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />)}
           </div>
         ) : !withdrawals?.length ? (
           <div className="rounded-xl p-8 text-center" style={GLASS}>
-            <Wallet size={32} className="mx-auto mb-2" style={{ color: "rgba(194,210,255,0.2)" }} />
-            <p className="text-sm" style={{ color: "rgba(194,210,255,0.35)" }}>No withdrawal history yet</p>
+            <Wallet size={32} className="mx-auto mb-2" style={{ color: "rgba(176,255,224,0.2)" }} />
+            <p className="text-sm" style={{ color: "rgba(176,255,224,0.35)" }}>No withdrawal history yet</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -384,9 +384,9 @@ export default function Withdrawals({ user }: { user: any }) {
                         <cfg.icon size={16} style={{ color: cfg.color }} className={status === "processing" ? "animate-spin" : ""} />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.85)" }}>${w.amount.toFixed(2)} USDT</div>
-                        <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>{formatDate(w.createdAt)}</div>
-                        <div className="text-xs truncate max-w-36" style={{ color: "rgba(194,210,255,0.3)" }}>{w.walletAddress}</div>
+                        <div className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.85)" }}>${w.amount.toFixed(2)} USDT</div>
+                        <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>{formatDate(w.createdAt)}</div>
+                        <div className="text-xs truncate max-w-36" style={{ color: "rgba(176,255,224,0.3)" }}>{w.walletAddress}</div>
                       </div>
                     </div>
                     <span
@@ -402,7 +402,7 @@ export default function Withdrawals({ user }: { user: any }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 mt-2 pt-2 text-xs font-mono"
-                      style={{ borderTop: "1px solid rgba(91,140,255,0.08)", color: "#5B8CFF" }}
+                      style={{ borderTop: "1px solid rgba(0,255,148,0.08)", color: "#00FF94" }}
                     >
                       <ExternalLink size={10} />
                       TX: {txHash.slice(0, 18)}…{txHash.slice(-6)}

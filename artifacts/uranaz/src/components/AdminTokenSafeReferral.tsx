@@ -7,11 +7,11 @@ import {
   REFERRAL_LEVELS, BPS_DENOMINATOR,
 } from "@/lib/tokenContract";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const INPUT_CLS = "w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all";
 const INPUT_STYLE = {
   background: "rgba(10,14,30,0.6)",
-  border: "1px solid rgba(91,140,255,0.18)",
+  border: "1px solid rgba(0,255,148,0.18)",
   color: "rgba(200,240,255,0.95)",
 } as const;
 
@@ -127,9 +127,9 @@ export default function AdminTokenSafeReferral() {
 
   return (
     <div className="space-y-5">
-      <div className="flex gap-3 p-3.5 rounded-xl" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.2)" }}>
+      <div className="flex gap-3 p-3.5 rounded-xl" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.2)" }}>
         <Users size={16} className="shrink-0 mt-0.5" style={{ color: TEAL }} />
-        <div className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.75)" }}>
+        <div className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.75)" }}>
           Separate referral scheme for <strong>Safe Invest</strong> token purchases only (buySafe). Each upline sponsor
           receives this percentage of the buyer's tokens — carved from the buyer's own allocation, so total supply is
           unaffected. <strong>Level 6 is reserved for the admin master wallet.</strong> Recommended: Level 1 = 10%,
@@ -139,9 +139,9 @@ export default function AdminTokenSafeReferral() {
       </div>
 
       {!configured ? (
-        <div className="flex gap-2.5 px-4 py-3 rounded-xl" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.2)" }}>
+        <div className="flex gap-2.5 px-4 py-3 rounded-xl" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.2)" }}>
           <Sparkles size={15} className="shrink-0 mt-0.5" style={{ color: TEAL }} />
-          <p className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.7)" }}>
+          <p className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.7)" }}>
             <span style={{ color: TEAL, fontWeight: 700 }}>Preview mode.</span> Safe referral percentages become editable once the deployed token contract address is set.
           </p>
         </div>
@@ -149,7 +149,7 @@ export default function AdminTokenSafeReferral() {
         <>
           {/* Wallet / owner status */}
           <div className="flex flex-wrap items-center gap-3 justify-between text-xs">
-            <div style={{ color: "rgba(194,210,255,0.6)" }}>
+            <div style={{ color: "rgba(176,255,224,0.6)" }}>
               {account ? (
                 <span className="font-mono">Connected: {account.slice(0, 6)}…{account.slice(-4)}{isOwner ? " · owner ✓" : owner ? " · not owner" : ""}</span>
               ) : (
@@ -158,14 +158,14 @@ export default function AdminTokenSafeReferral() {
             </div>
             <div className="flex items-center gap-2">
               {!account && (
-                <button onClick={connect} className="px-3 py-1.5 rounded-lg font-semibold" style={{ background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.3)", color: TEAL }}>
+                <button onClick={connect} className="px-3 py-1.5 rounded-lg font-semibold" style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.3)", color: TEAL }}>
                   Connect Wallet
                 </button>
               )}
-              <button onClick={applyPreset} className="px-3 py-1.5 rounded-lg flex items-center gap-1.5" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}>
+              <button onClick={applyPreset} className="px-3 py-1.5 rounded-lg flex items-center gap-1.5" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.7)" }}>
                 <Wand2 size={12} /> Use Preset
               </button>
-              <button onClick={load} disabled={loading} className="px-3 py-1.5 rounded-lg flex items-center gap-1.5 disabled:opacity-60" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}>
+              <button onClick={load} disabled={loading} className="px-3 py-1.5 rounded-lg flex items-center gap-1.5 disabled:opacity-60" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.7)" }}>
                 <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
               </button>
             </div>
@@ -175,7 +175,7 @@ export default function AdminTokenSafeReferral() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {percents.map((p, i) => (
               <div key={i}>
-                <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(194,210,255,0.6)" }}>
+                <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(176,255,224,0.6)" }}>
                   Level {i + 1}{i === 5 ? " (admin)" : ""}
                 </label>
                 <div className="relative">
@@ -186,15 +186,15 @@ export default function AdminTokenSafeReferral() {
                     className={INPUT_CLS + " pr-6"}
                     style={INPUT_STYLE}
                   />
-                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>%</span>
+                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>%</span>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Total */}
-          <div className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ background: overCap ? "rgba(248,113,113,0.06)" : "rgba(91,140,255,0.04)", border: `1px solid ${overCap ? "rgba(248,113,113,0.3)" : "rgba(91,140,255,0.12)"}` }}>
-            <span className="text-xs" style={{ color: "rgba(194,210,255,0.6)" }}>Total Safe referral payout per buy</span>
+          <div className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ background: overCap ? "rgba(248,113,113,0.06)" : "rgba(0,255,148,0.04)", border: `1px solid ${overCap ? "rgba(248,113,113,0.3)" : "rgba(0,255,148,0.12)"}` }}>
+            <span className="text-xs" style={{ color: "rgba(176,255,224,0.6)" }}>Total Safe referral payout per buy</span>
             <span className="font-bold text-sm" style={{ color: overCap ? "rgba(248,113,113,0.95)" : TEAL }}>
               {totalPct.toFixed(2)}% {overCap ? `· exceeds ${MAX_TOTAL_BPS / 100}% cap` : ""}
             </span>
@@ -210,14 +210,14 @@ export default function AdminTokenSafeReferral() {
           {/* Stage indicator */}
           {stage !== "idle" && (
             <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{
-              background: stage === "success" ? "rgba(52,211,153,0.06)" : stage === "failed" ? "rgba(248,113,113,0.06)" : "rgba(91,140,255,0.06)",
-              border: `1px solid ${stage === "success" ? "rgba(52,211,153,0.3)" : stage === "failed" ? "rgba(248,113,113,0.3)" : "rgba(91,140,255,0.2)"}`,
+              background: stage === "success" ? "rgba(52,211,153,0.06)" : stage === "failed" ? "rgba(248,113,113,0.06)" : "rgba(0,255,148,0.06)",
+              border: `1px solid ${stage === "success" ? "rgba(52,211,153,0.3)" : stage === "failed" ? "rgba(248,113,113,0.3)" : "rgba(0,255,148,0.2)"}`,
             }}>
               {busy && <RefreshCw size={14} className="animate-spin shrink-0" style={{ color: TEAL }} />}
               {stage === "success" && <CheckCircle2 size={14} className="shrink-0" style={{ color: "rgba(52,211,153,0.9)" }} />}
               {stage === "failed" && <XCircle size={14} className="shrink-0" style={{ color: "rgba(248,113,113,0.9)" }} />}
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium" style={{ color: stage === "success" ? "rgba(52,211,153,0.95)" : stage === "failed" ? "rgba(248,113,113,0.9)" : "rgba(194,210,255,0.85)" }}>
+                <p className="text-xs font-medium" style={{ color: stage === "success" ? "rgba(52,211,153,0.95)" : stage === "failed" ? "rgba(248,113,113,0.9)" : "rgba(176,255,224,0.85)" }}>
                   {stage === "switch_network" && "Switching to BSC…"}
                   {stage === "sending" && "Confirm transaction in wallet…"}
                   {stage === "confirming" && "Waiting for confirmation…"}
@@ -225,7 +225,7 @@ export default function AdminTokenSafeReferral() {
                   {stage === "failed" && "Update failed"}
                 </p>
                 {errorMsg && stage === "failed" && (
-                  <p className="text-xs mt-0.5 break-words" style={{ color: "rgba(194,210,255,0.4)" }}>{errorMsg}</p>
+                  <p className="text-xs mt-0.5 break-words" style={{ color: "rgba(176,255,224,0.4)" }}>{errorMsg}</p>
                 )}
                 {txHash && (
                   <a href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer" className="text-xs mt-0.5 inline-flex items-center gap-1" style={{ color: TEAL }}>
@@ -252,7 +252,7 @@ export default function AdminTokenSafeReferral() {
             </button>
           </div>
 
-          <p className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>
+          <p className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>
             Contract: <span className="font-mono">{TOKEN_CONTRACT_ADDRESS.slice(0, 10)}…{TOKEN_CONTRACT_ADDRESS.slice(-6)}</span>
           </p>
         </>

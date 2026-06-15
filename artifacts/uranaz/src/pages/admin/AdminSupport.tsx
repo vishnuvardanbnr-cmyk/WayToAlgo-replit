@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MessageCircle, ChevronLeft, Clock, CheckCircle, AlertCircle, Send, Loader2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 
 function getToken() { return localStorage.getItem("waytoalgo_token") || ""; }
 
@@ -13,7 +13,7 @@ function getWsUrl() {
 }
 
 const statusConfig: Record<string, { color: string; bg: string; label: string; icon: any }> = {
-  open:        { color: TEAL,       bg: "rgba(91,140,255,0.10)",  label: "Open",        icon: AlertCircle },
+  open:        { color: TEAL,       bg: "rgba(0,255,148,0.10)",  label: "Open",        icon: AlertCircle },
   in_progress: { color: "#fbbf24",  bg: "rgba(251,191,36,0.10)",  label: "In Progress", icon: Clock },
   closed:      { color: "#6b7280",  bg: "rgba(107,114,128,0.10)", label: "Closed",      icon: CheckCircle },
 };
@@ -116,20 +116,20 @@ export default function AdminSupport() {
       {/* Header */}
       <div className="flex items-center gap-3">
         {view === "chat" && (
-          <button onClick={() => { setView("list"); setActiveTicket(null); }} style={{ color: "rgba(194,210,255,0.5)" }}>
+          <button onClick={() => { setView("list"); setActiveTicket(null); }} style={{ color: "rgba(176,255,224,0.5)" }}>
             <ChevronLeft size={20} />
           </button>
         )}
         <div className="flex-1">
           <h1 className="text-xl font-bold" style={{
             fontFamily: "'Sora', sans-serif",
-            background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+            background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
           }}>
             {view === "list" ? "Support Tickets" : activeTicket?.subject}
           </h1>
           {view === "list" && (
-            <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.35)" }}>
               {counts.open} open · {counts.in_progress} in progress
             </p>
           )}
@@ -147,14 +147,14 @@ export default function AdminSupport() {
                 onClick={() => setFilter(f)}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                 style={{
-                  background: filter === f ? "rgba(91,140,255,0.15)" : "rgba(0,15,30,0.5)",
-                  border: filter === f ? "1px solid rgba(91,140,255,0.35)" : "1px solid rgba(91,140,255,0.08)",
-                  color: filter === f ? TEAL : "rgba(194,210,255,0.45)",
+                  background: filter === f ? "rgba(0,255,148,0.15)" : "rgba(0,15,30,0.5)",
+                  border: filter === f ? "1px solid rgba(0,255,148,0.35)" : "1px solid rgba(0,255,148,0.08)",
+                  color: filter === f ? TEAL : "rgba(176,255,224,0.45)",
                 }}
               >
                 {f === "all" ? `All (${tickets.length})` : f === "in_progress" ? "In Progress" : f.charAt(0).toUpperCase() + f.slice(1)}
                 {f === "open" && counts.open > 0 && (
-                  <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] rounded-full font-bold" style={{ background: TEAL, color: "#060814" }}>
+                  <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] rounded-full font-bold" style={{ background: TEAL, color: "#050C0A" }}>
                     {counts.open}
                   </span>
                 )}
@@ -163,11 +163,11 @@ export default function AdminSupport() {
           </div>
 
           {loading ? (
-            <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-18 rounded-xl animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />)}</div>
+            <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-18 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />)}</div>
           ) : filtered.length === 0 ? (
             <div className="rounded-2xl p-12 text-center" style={GLASS}>
-              <MessageCircle size={36} className="mx-auto mb-3" style={{ color: "rgba(194,210,255,0.2)" }} />
-              <p className="text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>No tickets here</p>
+              <MessageCircle size={36} className="mx-auto mb-3" style={{ color: "rgba(176,255,224,0.2)" }} />
+              <p className="text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>No tickets here</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -179,8 +179,8 @@ export default function AdminSupport() {
                     onClick={() => openTicket(ticket)}
                     className="w-full text-left rounded-xl px-4 py-3.5 transition-all"
                     style={{ ...GLASS }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(91,140,255,0.22)")}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(91,140,255,0.10)")}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,255,148,0.22)")}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,255,148,0.10)")}
                   >
                     <div className="flex items-start gap-3">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: cfg.bg, border: `1px solid ${cfg.color}33` }}>
@@ -188,18 +188,18 @@ export default function AdminSupport() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-sm font-semibold truncate" style={{ color: "rgba(194,210,255,0.85)" }}>{ticket.subject}</span>
+                          <span className="text-sm font-semibold truncate" style={{ color: "rgba(176,255,224,0.85)" }}>{ticket.subject}</span>
                           <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
                             {cfg.label}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>
+                        <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
                           <Users size={10} />
                           <span>{ticket.userName}</span>
                           <span>·</span>
                           <span>{ticket.userEmail}</span>
                         </div>
-                        <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.25)" }}>
+                        <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.25)" }}>
                           Updated {formatDate(ticket.updatedAt)}
                         </div>
                       </div>
@@ -216,9 +216,9 @@ export default function AdminSupport() {
       {view === "chat" && activeTicket && (
         <div className="flex flex-col" style={{ height: "calc(100vh - 240px)", minHeight: "400px" }}>
           {/* Ticket info + actions */}
-          <div className="rounded-xl px-4 py-3 mb-3 flex items-center justify-between flex-wrap gap-2" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(91,140,255,0.08)" }}>
+          <div className="rounded-xl px-4 py-3 mb-3 flex items-center justify-between flex-wrap gap-2" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(0,255,148,0.08)" }}>
             <div>
-              <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>{activeTicket.userName} · {activeTicket.userEmail}</div>
+              <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>{activeTicket.userName} · {activeTicket.userEmail}</div>
               <div className="flex items-center gap-2 mt-1">
                 {(() => { const cfg = statusConfig[activeTicket.status]; return (
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}33` }}>
@@ -227,7 +227,7 @@ export default function AdminSupport() {
                 ); })()}
                 <div className="flex items-center gap-1">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ background: wsReady ? "#34d399" : "#6b7280" }} />
-                  <span className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>{wsReady ? "Live" : "Offline"}</span>
+                  <span className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>{wsReady ? "Live" : "Offline"}</span>
                 </div>
               </div>
             </div>
@@ -243,7 +243,7 @@ export default function AdminSupport() {
                 </button>
               )}
               {activeTicket.status === "closed" && (
-                <button onClick={() => updateStatus("open")} className="text-xs px-2.5 py-1.5 rounded-lg font-medium" style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.25)", color: TEAL }}>
+                <button onClick={() => updateStatus("open")} className="text-xs px-2.5 py-1.5 rounded-lg font-medium" style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.25)", color: TEAL }}>
                   Reopen
                 </button>
               )}
@@ -254,7 +254,7 @@ export default function AdminSupport() {
           <div className="flex-1 overflow-y-auto space-y-3 pr-1 mb-3">
             {messages.length === 0 && (
               <div className="text-center py-8">
-                <p className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>No messages yet</p>
+                <p className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>No messages yet</p>
               </div>
             )}
             {messages.map(msg => (
@@ -262,11 +262,11 @@ export default function AdminSupport() {
                 <div
                   className="max-w-xs rounded-2xl px-4 py-2.5 text-sm"
                   style={msg.isAdmin
-                    ? { background: "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(61,92,224,0.15))", border: "1px solid rgba(91,140,255,0.25)", color: "#C2D2FF", borderBottomRightRadius: "4px" }
-                    : { background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)", color: "rgba(194,210,255,0.85)", borderBottomLeftRadius: "4px" }
+                    ? { background: "linear-gradient(135deg, rgba(0,255,148,0.22), rgba(0,204,119,0.15))", border: "1px solid rgba(0,255,148,0.25)", color: "#B0FFE0", borderBottomRightRadius: "4px" }
+                    : { background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.12)", color: "rgba(176,255,224,0.85)", borderBottomLeftRadius: "4px" }
                   }
                 >
-                  <div className="text-xs font-bold mb-1" style={{ color: msg.isAdmin ? TEAL : "rgba(194,210,255,0.55)" }}>
+                  <div className="text-xs font-bold mb-1" style={{ color: msg.isAdmin ? TEAL : "rgba(176,255,224,0.55)" }}>
                     {msg.isAdmin ? "You (Admin)" : msg.senderName}
                   </div>
                   <p style={{ wordBreak: "break-word" }}>{msg.message}</p>
@@ -279,7 +279,7 @@ export default function AdminSupport() {
 
           {/* Input */}
           {activeTicket.status === "closed" ? (
-            <div className="rounded-xl p-3 text-center text-sm" style={{ background: "rgba(107,114,128,0.10)", border: "1px solid rgba(107,114,128,0.2)", color: "rgba(194,210,255,0.4)" }}>
+            <div className="rounded-xl p-3 text-center text-sm" style={{ background: "rgba(107,114,128,0.10)", border: "1px solid rgba(107,114,128,0.2)", color: "rgba(176,255,224,0.4)" }}>
               Ticket is closed — reopen to reply
             </div>
           ) : (
@@ -291,13 +291,13 @@ export default function AdminSupport() {
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                 placeholder="Reply to user..."
                 className="flex-1 rounded-xl px-4 py-2.5 text-sm focus:outline-none"
-                style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" }}
+                style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" }}
               />
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || !wsReady}
                 className="w-11 h-11 rounded-xl flex items-center justify-center disabled:opacity-40"
-                style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814" }}
+                style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A" }}
               >
                 <Send size={16} />
               </button>

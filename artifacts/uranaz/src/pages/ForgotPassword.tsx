@@ -4,22 +4,22 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Mail, KeyRound, ShieldCheck } from "lucide-react";
 
-const TEAL = "#5B8CFF";
-const LABEL_STYLE = { color: "rgba(194,210,255,0.7)", fontSize: "0.8rem", letterSpacing: "0.05em" };
-const INPUT_STYLE = { background: "rgba(0,20,40,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" };
+const TEAL = "#00FF94";
+const LABEL_STYLE = { color: "rgba(176,255,224,0.7)", fontSize: "0.8rem", letterSpacing: "0.05em" };
+const INPUT_STYLE = { background: "rgba(0,20,40,0.6)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" };
 const CARD_STYLE = {
   background: "rgba(10, 14, 30, 0.75)",
   backdropFilter: "blur(24px) saturate(1.5)",
   WebkitBackdropFilter: "blur(24px) saturate(1.5)" as any,
   border: "1px solid rgba(91, 140, 255, 0.20)",
-  boxShadow: "0 0 0 1px rgba(91,140,255,0.06) inset, 0 20px 60px rgba(0,0,0,0.5)",
+  boxShadow: "0 0 0 1px rgba(0,255,148,0.06) inset, 0 20px 60px rgba(0,0,0,0.5)",
 };
 const BTN_STYLE = {
-  background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-  color: "#060814",
+  background: "linear-gradient(135deg, #00FF94, #00CC77)",
+  color: "#050C0A",
   fontWeight: 700,
   letterSpacing: "0.04em",
-  boxShadow: "0 0 20px rgba(91,140,255,0.35), 0 4px 16px rgba(0,0,0,0.4)",
+  boxShadow: "0 0 20px rgba(0,255,148,0.35), 0 4px 16px rgba(0,0,0,0.4)",
 };
 
 type Step = "email" | "otp" | "password" | "done";
@@ -115,7 +115,7 @@ export default function ForgotPassword() {
             className="text-2xl font-bold mb-1"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -123,7 +123,7 @@ export default function ForgotPassword() {
           >
             {stepTitle[step]}
           </h1>
-          <p style={{ color: "rgba(194,210,255,0.5)", fontSize: "0.875rem" }}>
+          <p style={{ color: "rgba(176,255,224,0.5)", fontSize: "0.875rem" }}>
             {stepSub[step]}
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function ForgotPassword() {
               >
                 {loading ? "Sending..." : "Send Reset Code"}
               </button>
-              <div className="text-center text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>
+              <div className="text-center text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>
                 <Link href="/login" style={{ color: TEAL, fontWeight: 600 }} className="hover:underline flex items-center justify-center gap-1.5">
                   <ArrowLeft size={13} /> Back to Sign In
                 </Link>
@@ -162,10 +162,10 @@ export default function ForgotPassword() {
             <div className="space-y-5">
               <div
                 className="flex items-center gap-3 p-3 rounded-xl"
-                style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}
+                style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.14)" }}
               >
                 <Mail size={18} style={{ color: TEAL, flexShrink: 0 }} />
-                <p className="text-xs" style={{ color: "rgba(194,210,255,0.6)" }}>
+                <p className="text-xs" style={{ color: "rgba(176,255,224,0.6)" }}>
                   Enter the 6-digit code sent to <span style={{ color: TEAL }}>{email}</span>
                 </p>
               </div>
@@ -181,7 +181,7 @@ export default function ForgotPassword() {
                   className="w-full rounded-xl px-3 py-3 text-center text-2xl font-bold tracking-[0.4em] focus:outline-none"
                   style={{
                     background: "rgba(0,20,40,0.7)",
-                    border: "1px solid rgba(91,140,255,0.25)",
+                    border: "1px solid rgba(0,255,148,0.25)",
                     color: TEAL,
                     letterSpacing: "0.4em",
                   }}
@@ -200,7 +200,7 @@ export default function ForgotPassword() {
                   type="button"
                   onClick={() => { setStep("email"); setOtp(""); }}
                   className="flex items-center gap-1.5 text-xs"
-                  style={{ color: "rgba(194,210,255,0.4)" }}
+                  style={{ color: "rgba(176,255,224,0.4)" }}
                 >
                   <ArrowLeft size={12} /> Back
                 </button>
@@ -221,10 +221,10 @@ export default function ForgotPassword() {
             <div className="space-y-4">
               <div
                 className="flex items-center gap-3 p-3 rounded-xl"
-                style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}
+                style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.14)" }}
               >
                 <KeyRound size={18} style={{ color: TEAL, flexShrink: 0 }} />
-                <p className="text-xs" style={{ color: "rgba(194,210,255,0.6)" }}>
+                <p className="text-xs" style={{ color: "rgba(176,255,224,0.6)" }}>
                   Choose a strong new password for <span style={{ color: TEAL }}>{email}</span>
                 </p>
               </div>
@@ -261,7 +261,7 @@ export default function ForgotPassword() {
                 type="button"
                 onClick={() => setStep("otp")}
                 className="flex items-center justify-center gap-1.5 text-xs w-full"
-                style={{ color: "rgba(194,210,255,0.4)" }}
+                style={{ color: "rgba(176,255,224,0.4)" }}
               >
                 <ArrowLeft size={12} /> Back
               </button>
@@ -272,10 +272,10 @@ export default function ForgotPassword() {
             <div className="space-y-5 text-center">
               <div
                 className="flex flex-col items-center gap-3 p-4 rounded-xl"
-                style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.18)" }}
+                style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.18)" }}
               >
                 <ShieldCheck size={36} style={{ color: TEAL }} />
-                <p className="text-sm" style={{ color: "rgba(194,210,255,0.7)" }}>
+                <p className="text-sm" style={{ color: "rgba(176,255,224,0.7)" }}>
                   Your password has been updated. You can now sign in with your new password.
                 </p>
               </div>

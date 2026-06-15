@@ -3,8 +3,8 @@ import { Users, ChevronDown, ChevronRight, Copy, CheckCircle, Link as LinkIcon, 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 
 const levelCommissions: Record<number, string> = {
   1: "20%", 2: "10%", 3: "10%", 4: "4%", 5: "4%", 6: "4%", 7: "4%", 8: "4%",
@@ -68,7 +68,7 @@ export default function Team({ user }: { user: any }) {
         className="text-xl font-bold"
         style={{
           fontFamily: "'Sora', sans-serif",
-          background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+          background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
@@ -83,27 +83,27 @@ export default function Team({ user }: { user: any }) {
           className="rounded-2xl overflow-hidden relative"
           style={{
             background: "linear-gradient(155deg, rgba(4,16,32,0.97) 0%, rgba(2,10,22,0.97) 100%)",
-            border: "1px solid rgba(91,140,255,0.18)",
-            boxShadow: "0 0 40px rgba(91,140,255,0.07)",
+            border: "1px solid rgba(0,255,148,0.18)",
+            boxShadow: "0 0 40px rgba(0,255,148,0.07)",
           }}
         >
-          <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #5B8CFF, transparent)" }} />
+          <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #00FF94, transparent)" }} />
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at top right, rgba(91,140,255,0.08) 0%, transparent 60%)" }}
+            style={{ background: "radial-gradient(ellipse at top right, rgba(0,255,148,0.08) 0%, transparent 60%)" }}
           />
           <div className="relative p-5 space-y-4">
             {/* Header */}
             <div className="flex items-center gap-2.5">
               <div
                 className="w-8 h-8 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.22)" }}
+                style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.22)" }}
               >
                 <LinkIcon size={14} style={{ color: TEAL }} />
               </div>
               <span
                 className="font-bold text-xs tracking-widest uppercase"
-                style={{ color: "rgba(194,210,255,0.55)", fontFamily: "'Sora', sans-serif" }}
+                style={{ color: "rgba(176,255,224,0.55)", fontFamily: "'Sora', sans-serif" }}
               >
                 Your Referral
               </span>
@@ -113,16 +113,16 @@ export default function Team({ user }: { user: any }) {
             <div
               className="rounded-2xl py-4 px-4 text-center"
               style={{
-                background: "linear-gradient(135deg, rgba(91,140,255,0.08), rgba(61,92,224,0.03))",
-                border: "1px solid rgba(91,140,255,0.18)",
+                background: "linear-gradient(135deg, rgba(0,255,148,0.08), rgba(0,204,119,0.03))",
+                border: "1px solid rgba(0,255,148,0.18)",
               }}
             >
-              <div className="text-xs uppercase tracking-widest mb-1.5" style={{ color: "rgba(194,210,255,0.38)" }}>
+              <div className="text-xs uppercase tracking-widest mb-1.5" style={{ color: "rgba(176,255,224,0.38)" }}>
                 Your User ID (Ref ID)
               </div>
               <div
                 className="font-black text-4xl"
-                style={{ color: TEAL, fontFamily: "'Sora', sans-serif", textShadow: "0 0 28px rgba(91,140,255,0.45)" }}
+                style={{ color: TEAL, fontFamily: "'Sora', sans-serif", textShadow: "0 0 28px rgba(0,255,148,0.45)" }}
               >
                 {referral.referralCode}
               </div>
@@ -131,7 +131,7 @@ export default function Team({ user }: { user: any }) {
                 className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg mt-3 transition-all"
                 style={copiedCode
                   ? { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.25)", color: "#34d399" }
-                  : { background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }
+                  : { background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }
                 }
               >
                 {copiedCode ? <><CheckCircle size={11} /> Copied</> : <><Copy size={11} /> Copy ID</>}
@@ -140,14 +140,14 @@ export default function Team({ user }: { user: any }) {
 
             {/* Referral Link */}
             <div>
-              <div className="text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.38)" }}>Referral Link</div>
+              <div className="text-xs mb-1.5" style={{ color: "rgba(176,255,224,0.38)" }}>Referral Link</div>
               <div
                 className="flex items-center gap-2 rounded-xl px-4 py-3"
-                style={{ background: "rgba(0,10,24,0.7)", border: "1px solid rgba(91,140,255,0.14)" }}
+                style={{ background: "rgba(0,10,24,0.7)", border: "1px solid rgba(0,255,148,0.14)" }}
               >
                 <span
                   className="flex-1 text-xs font-mono truncate"
-                  style={{ color: "rgba(194,210,255,0.5)" }}
+                  style={{ color: "rgba(176,255,224,0.5)" }}
                 >
                   {referral.referralLink}
                 </span>
@@ -156,7 +156,7 @@ export default function Team({ user }: { user: any }) {
                   className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all shrink-0"
                   style={copiedLink
                     ? { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.25)", color: "#34d399" }
-                    : { background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }
+                    : { background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }
                   }
                 >
                   {copiedLink ? <><CheckCircle size={11} /> Copied</> : <><Copy size={11} /> Copy</>}
@@ -188,8 +188,8 @@ export default function Team({ user }: { user: any }) {
                 onClick={shareNative}
                 className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all active:scale-[0.97]"
                 style={{
-                  background: "rgba(91,140,255,0.08)",
-                  border: "1px solid rgba(91,140,255,0.2)",
+                  background: "rgba(0,255,148,0.08)",
+                  border: "1px solid rgba(0,255,148,0.2)",
                   color: TEAL,
                 }}
               >
@@ -199,7 +199,7 @@ export default function Team({ user }: { user: any }) {
             </div>
 
             {/* Hint */}
-            <p className="text-xs" style={{ color: "rgba(194,210,255,0.28)" }}>
+            <p className="text-xs" style={{ color: "rgba(176,255,224,0.28)" }}>
               Share your link or code to earn referral commissions on every investment your team makes.
             </p>
           </div>
@@ -209,7 +209,7 @@ export default function Team({ user }: { user: any }) {
       {/* Stats grid */}
       {loadingStats ? (
         <div className="grid grid-cols-2 gap-3">
-          {[1,2,3,4].map(i => <div key={i} className="rounded-xl h-20 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />)}
+          {[1,2,3,4].map(i => <div key={i} className="rounded-xl h-20 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />)}
         </div>
       ) : stats && (
         <div className="grid grid-cols-2 gap-3">
@@ -221,7 +221,7 @@ export default function Team({ user }: { user: any }) {
           ].map(item => (
             <div key={item.label} className="rounded-xl p-4" style={GLASS}>
               <div className="text-xl font-bold" style={{ color: TEAL }}>{item.value}</div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{item.label}</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{item.label}</div>
             </div>
           ))}
         </div>
@@ -232,18 +232,18 @@ export default function Team({ user }: { user: any }) {
         <div
           className="rounded-2xl p-5 relative overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, rgba(91,140,255,0.10), rgba(61,92,224,0.05))",
-            border: "1px solid rgba(91,140,255,0.22)",
+            background: "linear-gradient(135deg, rgba(0,255,148,0.10), rgba(0,204,119,0.05))",
+            border: "1px solid rgba(0,255,148,0.22)",
           }}
         >
-          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(91,140,255,0.14) 0%, transparent 60%)" }} />
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(0,255,148,0.14) 0%, transparent 60%)" }} />
           <div className="relative">
-            <div className="text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(194,210,255,0.45)" }}>Total Team Business</div>
+            <div className="text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(176,255,224,0.45)" }}>Total Team Business</div>
             <div
               className="text-3xl font-black"
               style={{
                 fontFamily: "'Sora', sans-serif",
-                background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+                background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -252,13 +252,13 @@ export default function Team({ user }: { user: any }) {
               ${stats.totalTeamBusiness.toFixed(2)}
             </div>
             <div className="mt-3">
-              <div className="flex justify-between text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+              <div className="flex justify-between text-xs mb-1.5" style={{ color: "rgba(176,255,224,0.4)" }}>
                 <span>Level {stats.levelsUnlocked} → Level {Math.min(stats.levelsUnlocked + 1, 8)}</span>
                 {(stats.nextLevelRequirement ?? 0) > 0 && (
                   <span>${stats.totalTeamBusiness.toFixed(0)} / ${(stats.nextLevelRequirement ?? 0).toLocaleString()}</span>
                 )}
               </div>
-              <div className="w-full rounded-full h-2" style={{ background: "rgba(91,140,255,0.08)" }}>
+              <div className="w-full rounded-full h-2" style={{ background: "rgba(0,255,148,0.08)" }}>
                 <div
                   className="h-2 rounded-full uranus-progress"
                   style={{ width: `${Math.min(100, stats.nextLevelProgress ?? 0)}%` }}
@@ -273,16 +273,16 @@ export default function Team({ user }: { user: any }) {
       {/* Team members by level */}
       {loadingTeam ? (
         <div className="space-y-3">
-          {[1,2].map(i => <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />)}
+          {[1,2].map(i => <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />)}
         </div>
       ) : (
         <div>
-          <h2 className="font-semibold text-sm mb-3" style={{ color: "rgba(194,210,255,0.75)" }}>Team Members</h2>
+          <h2 className="font-semibold text-sm mb-3" style={{ color: "rgba(176,255,224,0.75)" }}>Team Members</h2>
           {!team?.levels?.length ? (
             <div className="rounded-xl p-8 text-center" style={GLASS}>
-              <Users size={32} className="mx-auto mb-2" style={{ color: "rgba(194,210,255,0.2)" }} />
-              <p className="text-sm" style={{ color: "rgba(194,210,255,0.35)" }}>No team members yet</p>
-              <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.25)" }}>Share your referral link to build your team</p>
+              <Users size={32} className="mx-auto mb-2" style={{ color: "rgba(176,255,224,0.2)" }} />
+              <p className="text-sm" style={{ color: "rgba(176,255,224,0.35)" }}>No team members yet</p>
+              <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.25)" }}>Share your referral link to build your team</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -302,59 +302,59 @@ export default function Team({ user }: { user: any }) {
                       <div
                         className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
                         style={{
-                          background: "rgba(91,140,255,0.12)",
-                          border: "1px solid rgba(91,140,255,0.2)",
+                          background: "rgba(0,255,148,0.12)",
+                          border: "1px solid rgba(0,255,148,0.2)",
                           color: TEAL,
                         }}
                       >
                         L{level}
                       </div>
                       <div className="text-left">
-                        <div className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.8)" }}>
+                        <div className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.8)" }}>
                           {members.length} member{members.length !== 1 ? "s" : ""}
                         </div>
-                        <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>
+                        <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
                           Business: ${totalBusiness.toFixed(2)}
                         </div>
                       </div>
                     </div>
                     {expanded.includes(level)
-                      ? <ChevronDown size={16} style={{ color: "rgba(194,210,255,0.3)" }} />
-                      : <ChevronRight size={16} style={{ color: "rgba(194,210,255,0.3)" }} />
+                      ? <ChevronDown size={16} style={{ color: "rgba(176,255,224,0.3)" }} />
+                      : <ChevronRight size={16} style={{ color: "rgba(176,255,224,0.3)" }} />
                     }
                   </button>
                   {expanded.includes(level) && members.length > 0 && (
-                    <div style={{ borderTop: "1px solid rgba(91,140,255,0.07)" }}>
+                    <div style={{ borderTop: "1px solid rgba(0,255,148,0.07)" }}>
                       {members.map((member, idx) => (
                         <div
                           key={member.id}
                           data-testid={`row-member-${member.id}`}
                           className="px-4 py-3 flex items-center justify-between"
-                          style={{ borderTop: idx > 0 ? "1px solid rgba(91,140,255,0.05)" : "none" }}
+                          style={{ borderTop: idx > 0 ? "1px solid rgba(0,255,148,0.05)" : "none" }}
                         >
                           <div className="flex items-center gap-3">
                             <div
                               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
                               style={{
-                                background: "rgba(91,140,255,0.08)",
-                                border: "1px solid rgba(91,140,255,0.15)",
+                                background: "rgba(0,255,148,0.08)",
+                                border: "1px solid rgba(0,255,148,0.15)",
                                 color: TEAL,
                               }}
                             >
                               {member.name.charAt(0)}
                             </div>
                             <div>
-                              <div className="text-sm font-medium" style={{ color: "rgba(194,210,255,0.8)" }}>{member.name}</div>
-                              <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>
+                              <div className="text-sm font-medium" style={{ color: "rgba(176,255,224,0.8)" }}>{member.name}</div>
+                              <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
                                 {member.directReferrals} referrals · {member.isActive ? "Active" : "Inactive"}
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.75)" }}>
+                            <div className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.75)" }}>
                               ${member.totalInvested.toFixed(0)}
                             </div>
-                            <div className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>invested</div>
+                            <div className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>invested</div>
                           </div>
                         </div>
                       ))}

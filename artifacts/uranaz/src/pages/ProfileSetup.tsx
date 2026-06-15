@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Loader2 } from "lucide-react";
 
 const BEP20_REGEX = /^0x[a-fA-F0-9]{40}$/;
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 
 interface Props { onUpdate: (user: any) => void; }
 
@@ -70,9 +70,9 @@ export default function ProfileSetup({ onUpdate }: Props) {
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
           style={{
-            background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(61,92,224,0.08))",
-            border: "2px solid rgba(91,140,255,0.45)",
-            boxShadow: "0 0 30px rgba(91,140,255,0.25)",
+            background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,204,119,0.08))",
+            border: "2px solid rgba(0,255,148,0.45)",
+            boxShadow: "0 0 30px rgba(0,255,148,0.25)",
           }}
         >
           {status === "done"
@@ -84,7 +84,7 @@ export default function ProfileSetup({ onUpdate }: Props) {
           className="text-2xl font-bold mb-2"
           style={{
             fontFamily: "'Sora', sans-serif",
-            background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+            background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -93,7 +93,7 @@ export default function ProfileSetup({ onUpdate }: Props) {
           {status === "done" ? "All Set!" : "Setting Up Your Account"}
         </h1>
 
-        <p style={{ color: "rgba(194,210,255,0.5)", fontSize: "0.875rem" }}>
+        <p style={{ color: "rgba(176,255,224,0.5)", fontSize: "0.875rem" }}>
           {status === "done"
             ? "Redirecting to your dashboard…"
             : status === "saving"
@@ -106,8 +106,8 @@ export default function ProfileSetup({ onUpdate }: Props) {
             className="mt-6 px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm mx-auto"
             style={{
               background: "rgba(0,20,40,0.6)",
-              border: "1px solid rgba(91,140,255,0.35)",
-              color: "rgba(194,210,255,0.8)",
+              border: "1px solid rgba(0,255,148,0.35)",
+              color: "rgba(176,255,224,0.8)",
             }}
           >
             <span className="truncate flex-1 text-left" style={{ fontFamily: "monospace", fontSize: "0.75rem" }}>
@@ -115,7 +115,7 @@ export default function ProfileSetup({ onUpdate }: Props) {
             </span>
             <span
               className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: "rgba(91,140,255,0.15)", color: TEAL, border: "1px solid rgba(91,140,255,0.3)" }}
+              style={{ background: "rgba(0,255,148,0.15)", color: TEAL, border: "1px solid rgba(0,255,148,0.3)" }}
             >
               Connected
             </span>

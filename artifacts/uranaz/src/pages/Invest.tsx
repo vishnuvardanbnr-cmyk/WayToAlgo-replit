@@ -24,7 +24,7 @@ function getCoolingInfo(createdAt: string, coolingHours: number) {
   return { h, m, endsAt: new Date(new Date(createdAt).getTime() + msTotal) };
 }
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 
 /* ── Investment Detail Modal ── */
 function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; coolingHours: number; onClose: () => void }) {
@@ -71,7 +71,7 @@ function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; cooli
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: `linear-gradient(135deg, ${isSafe ? "rgba(52,211,153,0.18)" : "rgba(251,146,60,0.18)"}, rgba(91,140,255,0.06))`, border: `1px solid ${isSafe ? "rgba(52,211,153,0.28)" : "rgba(251,146,60,0.28)"}` }}
+              style={{ background: `linear-gradient(135deg, ${isSafe ? "rgba(52,211,153,0.18)" : "rgba(251,146,60,0.18)"}, rgba(0,255,148,0.06))`, border: `1px solid ${isSafe ? "rgba(52,211,153,0.28)" : "rgba(251,146,60,0.28)"}` }}
             >
               {isSafe ? <Shield size={17} style={{ color: "#34d399" }} /> : <Zap size={17} style={{ color: "#fb923c" }} />}
             </div>
@@ -88,21 +88,21 @@ function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; cooli
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.09)" }}
+            style={{ background: "rgba(176,255,224,0.06)", border: "1px solid rgba(176,255,224,0.09)" }}
           >
-            <X size={14} style={{ color: "rgba(194,210,255,0.45)" }} />
+            <X size={14} style={{ color: "rgba(176,255,224,0.45)" }} />
           </button>
         </div>
 
         <div
           className="mx-5 mb-4 rounded-2xl py-4 text-center"
-          style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.08), rgba(61,92,224,0.03))", border: "1px solid rgba(91,140,255,0.18)" }}
+          style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.08), rgba(0,204,119,0.03))", border: "1px solid rgba(0,255,148,0.18)" }}
         >
-          <div className="text-xs mb-1 uppercase tracking-widest" style={{ color: "rgba(194,210,255,0.35)" }}>Total Invested</div>
+          <div className="text-xs mb-1 uppercase tracking-widest" style={{ color: "rgba(176,255,224,0.35)" }}>Total Invested</div>
           <div className="font-black" style={{ fontFamily: "'Sora', sans-serif", fontSize: "2rem", color: TEAL, textShadow: `0 0 24px ${TEAL}50` }}>
             ${inv.amount.toFixed(2)}
           </div>
-          <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.4)" }}>
             {isSafe ? "50% Virtual WTA Tokens · 50% Daily ROI" : "100% Daily ROI"}
           </div>
         </div>
@@ -126,26 +126,26 @@ function InvestmentDetailModal({ inv, coolingHours, onClose }: { inv: any; cooli
         )}
 
         <div className="px-5 mb-4">
-          <div className="flex justify-between text-xs mb-1.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="flex justify-between text-xs mb-1.5" style={{ color: "rgba(176,255,224,0.4)" }}>
             <span>Progress</span><span>{progress.toFixed(1)}%</span>
           </div>
-          <div className="w-full rounded-full h-2" style={{ background: "rgba(91,140,255,0.08)" }}>
+          <div className="w-full rounded-full h-2" style={{ background: "rgba(0,255,148,0.08)" }}>
             <div className="h-2 rounded-full uranus-progress" style={{ width: `${progress}%` }} />
           </div>
-          <div className="flex justify-between text-xs mt-1" style={{ color: "rgba(194,210,255,0.28)" }}>
+          <div className="flex justify-between text-xs mt-1" style={{ color: "rgba(176,255,224,0.28)" }}>
             <span>Day {daysElapsed}</span><span>Day {inv.durationDays}</span>
           </div>
         </div>
 
-        <div className="mx-5 h-px mb-1" style={{ background: "rgba(91,140,255,0.07)" }} />
+        <div className="mx-5 h-px mb-1" style={{ background: "rgba(0,255,148,0.07)" }} />
 
         <div className="px-5 pb-6">
           {rows.map((row, i) => (
             <div key={row.label} className="flex items-center justify-between py-3"
-              style={{ borderBottom: i < rows.length - 1 ? "1px solid rgba(91,140,255,0.05)" : "none" }}>
+              style={{ borderBottom: i < rows.length - 1 ? "1px solid rgba(0,255,148,0.05)" : "none" }}>
               <div className="flex items-center gap-2.5">
-                <row.icon size={12} style={{ color: "rgba(194,210,255,0.28)" }} />
-                <span className="text-xs" style={{ color: "rgba(194,210,255,0.42)" }}>{row.label}</span>
+                <row.icon size={12} style={{ color: "rgba(176,255,224,0.28)" }} />
+                <span className="text-xs" style={{ color: "rgba(176,255,224,0.42)" }}>{row.label}</span>
               </div>
               <span className="text-xs font-semibold" style={{ color: row.label.includes("Earned") ? "#34d399" : "rgba(200,240,255,0.85)", fontFamily: row.label === "Investment ID" ? "monospace" : "inherit" }}>
                 {row.value}
@@ -176,30 +176,30 @@ function MaxInvestmentModal({ currentTotal, remaining, maxTotal, onClose }: { cu
           <h2 className="font-bold text-base mb-2" style={{ fontFamily: "'Sora', sans-serif", color: "rgba(200,240,255,0.92)" }}>
             Investment Limit Reached
           </h2>
-          <p className="text-sm mb-5" style={{ color: "rgba(194,210,255,0.5)" }}>
+          <p className="text-sm mb-5" style={{ color: "rgba(176,255,224,0.5)" }}>
             The maximum total investment per account is{" "}
             <span style={{ color: "#ff6464", fontWeight: 700 }}>${maxTotal.toLocaleString()}</span>.
           </p>
           <div className="rounded-2xl p-4 mb-5 text-left space-y-3"
             style={{ background: "rgba(255,100,100,0.05)", border: "1px solid rgba(255,100,100,0.15)" }}>
             <div className="flex justify-between text-sm">
-              <span style={{ color: "rgba(194,210,255,0.45)" }}>Currently Active</span>
+              <span style={{ color: "rgba(176,255,224,0.45)" }}>Currently Active</span>
               <span style={{ color: "rgba(200,240,255,0.85)", fontWeight: 600 }}>${currentTotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span style={{ color: "rgba(194,210,255,0.45)" }}>Maximum Allowed</span>
+              <span style={{ color: "rgba(176,255,224,0.45)" }}>Maximum Allowed</span>
               <span style={{ color: "rgba(200,240,255,0.85)", fontWeight: 600 }}>${maxTotal.toLocaleString()}</span>
             </div>
             <div className="h-px" style={{ background: "rgba(255,100,100,0.12)" }} />
             <div className="flex justify-between text-sm">
-              <span style={{ color: "rgba(194,210,255,0.45)" }}>You Can Still Invest</span>
+              <span style={{ color: "rgba(176,255,224,0.45)" }}>You Can Still Invest</span>
               <span style={{ color: remaining > 0 ? TEAL : "#ff6464", fontWeight: 700 }}>
                 {remaining > 0 ? `$${remaining.toFixed(2)}` : "Nothing"}
               </span>
             </div>
           </div>
           <button onClick={onClose} className="w-full py-3 rounded-xl font-bold text-sm"
-            style={{ background: "rgba(91,140,255,0.1)", border: "1px solid rgba(91,140,255,0.2)", color: TEAL }}>
+            style={{ background: "rgba(0,255,148,0.1)", border: "1px solid rgba(0,255,148,0.2)", color: TEAL }}>
             Got It
           </button>
         </div>
@@ -235,7 +235,7 @@ function InvestTypeSelector({ value, onChange }: { value: "safe" | "risky"; onCh
 
   return (
     <div className="space-y-2.5">
-      <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "rgba(194,210,255,0.45)", letterSpacing: "0.1em" }}>
+      <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "rgba(176,255,224,0.45)", letterSpacing: "0.1em" }}>
         Choose Investment Mode
       </div>
       {options.map(opt => {
@@ -248,7 +248,7 @@ function InvestTypeSelector({ value, onChange }: { value: "safe" | "risky"; onCh
             className="w-full text-left transition-all duration-200"
             style={{
               background: selected ? `linear-gradient(135deg, ${opt.glow}, rgba(6,8,20,0.6))` : "rgba(6,8,20,0.4)",
-              border: `1.5px solid ${selected ? opt.color + "55" : "rgba(91,140,255,0.10)"}`,
+              border: `1.5px solid ${selected ? opt.color + "55" : "rgba(0,255,148,0.10)"}`,
               borderRadius: "1rem",
               padding: "1rem",
               boxShadow: selected ? `0 0 20px ${opt.glow}` : "none",
@@ -257,27 +257,27 @@ function InvestTypeSelector({ value, onChange }: { value: "safe" | "risky"; onCh
             <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: selected ? `${opt.glow}` : "rgba(91,140,255,0.06)", border: `1px solid ${selected ? opt.color + "44" : "rgba(91,140,255,0.10)"}` }}
+                style={{ background: selected ? `${opt.glow}` : "rgba(0,255,148,0.06)", border: `1px solid ${selected ? opt.color + "44" : "rgba(0,255,148,0.10)"}` }}
               >
-                <opt.icon size={18} style={{ color: selected ? opt.color : "rgba(194,210,255,0.3)" }} />
+                <opt.icon size={18} style={{ color: selected ? opt.color : "rgba(176,255,224,0.3)" }} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="font-bold text-sm" style={{ color: selected ? opt.color : "rgba(194,210,255,0.7)", fontFamily: "'Sora', sans-serif" }}>
+                  <span className="font-bold text-sm" style={{ color: selected ? opt.color : "rgba(176,255,224,0.7)", fontFamily: "'Sora', sans-serif" }}>
                     {opt.label}
                   </span>
                   <span
                     className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                    style={{ background: selected ? `${opt.color}22` : "rgba(91,140,255,0.08)", color: selected ? opt.color : "rgba(194,210,255,0.3)", border: `1px solid ${selected ? opt.color + "33" : "transparent"}` }}
+                    style={{ background: selected ? `${opt.color}22` : "rgba(0,255,148,0.08)", color: selected ? opt.color : "rgba(176,255,224,0.3)", border: `1px solid ${selected ? opt.color + "33" : "transparent"}` }}
                   >
                     {opt.tag}
                   </span>
                 </div>
-                <div className="text-xs" style={{ color: selected ? "rgba(194,210,255,0.55)" : "rgba(194,210,255,0.3)" }}>
+                <div className="text-xs" style={{ color: selected ? "rgba(176,255,224,0.55)" : "rgba(176,255,224,0.3)" }}>
                   {opt.split}
                 </div>
               </div>
-              <ChevronRight size={16} style={{ color: selected ? opt.color : "rgba(194,210,255,0.15)", flexShrink: 0 }} />
+              <ChevronRight size={16} style={{ color: selected ? opt.color : "rgba(176,255,224,0.15)", flexShrink: 0 }} />
             </div>
           </button>
         );
@@ -289,7 +289,7 @@ function InvestTypeSelector({ value, onChange }: { value: "safe" | "risky"; onCh
 const GLASS = {
   background: "rgba(10,14,30,0.65)",
   backdropFilter: "blur(14px)",
-  border: "1px solid rgba(91,140,255,0.12)",
+  border: "1px solid rgba(0,255,148,0.12)",
 } as const;
 
 const DEFAULT_MAX_TOTAL = 2000;
@@ -377,13 +377,13 @@ export default function Invest({ user }: { user: any }) {
     <div className="px-4 py-6 max-w-2xl mx-auto space-y-6 pb-24 md:pb-8">
       <h1
         className="text-xl font-bold"
-        style={{ fontFamily: "'Sora', sans-serif", background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
+        style={{ fontFamily: "'Sora', sans-serif", background: "linear-gradient(135deg, #B0FFE0, #00FF94)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
       >
         {section === "invest" ? "Investment Plans" : "Buy Token"}
       </h1>
 
       {/* Section switcher */}
-      <div className="flex gap-1.5 p-1 rounded-xl" style={{ background: "rgba(0,20,40,0.5)", border: "1px solid rgba(91,140,255,0.1)" }}>
+      <div className="flex gap-1.5 p-1 rounded-xl" style={{ background: "rgba(0,20,40,0.5)", border: "1px solid rgba(0,255,148,0.1)" }}>
         {([
           { key: "invest", label: "Investments", icon: TrendingUp },
           { key: "token", label: "Buy Token", icon: Coins },
@@ -391,9 +391,9 @@ export default function Invest({ user }: { user: any }) {
           <button key={s.key} onClick={() => setSection(s.key)}
             className="flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5"
             style={{
-              background: section === s.key ? "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(91,140,255,0.08))" : "transparent",
-              border: section === s.key ? "1px solid rgba(91,140,255,0.4)" : "1px solid transparent",
-              color: section === s.key ? TEAL : "rgba(194,210,255,0.45)",
+              background: section === s.key ? "linear-gradient(135deg, rgba(0,255,148,0.22), rgba(0,255,148,0.08))" : "transparent",
+              border: section === s.key ? "1px solid rgba(0,255,148,0.4)" : "1px solid transparent",
+              color: section === s.key ? TEAL : "rgba(176,255,224,0.45)",
               letterSpacing: "0.04em",
             }}>
             <s.icon size={13} /> {s.label}
@@ -407,18 +407,18 @@ export default function Invest({ user }: { user: any }) {
         <>
           {/* Plan info card */}
           <div className="rounded-2xl p-5" style={{
-            background: "linear-gradient(135deg, rgba(91,140,255,0.10), rgba(61,92,224,0.04))",
-            border: "1px solid rgba(91,140,255,0.3)",
-            boxShadow: "0 0 32px rgba(91,140,255,0.08)",
+            background: "linear-gradient(135deg, rgba(0,255,148,0.10), rgba(0,204,119,0.04))",
+            border: "1px solid rgba(0,255,148,0.3)",
+            boxShadow: "0 0 32px rgba(0,255,148,0.08)",
           }}>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <div className="text-xs uppercase tracking-widest mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Investment Plan</div>
+                <div className="text-xs uppercase tracking-widest mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>Investment Plan</div>
                 <div className="font-black text-lg" style={{ fontFamily: "'Sora', sans-serif", color: TEAL }}>Variable Token Returns</div>
-                <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Earn WTA daily · rate depends on trading profit</div>
+                <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>Earn WTA daily · rate depends on trading profit</div>
               </div>
               <div className="px-3 py-1.5 rounded-xl text-xs font-bold"
-                style={{ background: "rgba(91,140,255,0.15)", border: "1px solid rgba(91,140,255,0.3)", color: TEAL }}>
+                style={{ background: "rgba(0,255,148,0.15)", border: "1px solid rgba(0,255,148,0.3)", color: TEAL }}>
                 {plan.days} Days
               </div>
             </div>
@@ -429,23 +429,23 @@ export default function Invest({ user }: { user: any }) {
                 { label: "Max Amount", value: `$${plan.max.toLocaleString()}` },
               ].map(item => (
                 <div key={item.label} className="rounded-xl p-3 text-center"
-                  style={{ background: "rgba(0,20,40,0.5)", border: "1px solid rgba(91,140,255,0.12)" }}>
-                  <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.35)" }}>{item.label}</div>
-                  <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>{item.value}</div>
+                  style={{ background: "rgba(0,20,40,0.5)", border: "1px solid rgba(0,255,148,0.12)" }}>
+                  <div className="text-xs mb-1" style={{ color: "rgba(176,255,224,0.35)" }}>{item.label}</div>
+                  <div className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.85)" }}>{item.value}</div>
                 </div>
               ))}
             </div>
 
             <div className="flex justify-between items-center px-3 py-2.5 rounded-xl"
-              style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.10)" }}>
-              <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Your USDT Balance</div>
+              style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.10)" }}>
+              <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Your USDT Balance</div>
               <div className="font-bold text-sm" style={{ color: TEAL }}>${usdtBalance.toFixed(2)}</div>
             </div>
           </div>
 
           {/* Invest Form */}
           <div className="rounded-2xl p-5" style={{ ...GLASS }}>
-            <h2 className="font-semibold text-sm mb-5" style={{ color: "rgba(194,210,255,0.8)" }}>New Investment</h2>
+            <h2 className="font-semibold text-sm mb-5" style={{ color: "rgba(176,255,224,0.8)" }}>New Investment</h2>
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -461,7 +461,7 @@ export default function Invest({ user }: { user: any }) {
                 {/* Amount input */}
                 <FormField control={form.control} name="amount" render={({ field }) => (
                   <FormItem>
-                    <FormLabel style={{ color: "rgba(194,210,255,0.65)", fontSize: "0.8rem" }}>
+                    <FormLabel style={{ color: "rgba(176,255,224,0.65)", fontSize: "0.8rem" }}>
                       Amount (USDT) — min ${plan.min.toLocaleString()}, max ${plan.max.toLocaleString()}
                     </FormLabel>
                     <FormControl>
@@ -474,7 +474,7 @@ export default function Invest({ user }: { user: any }) {
                           if (e.target.value === "") field.onChange("");
                           else field.onChange(Number(e.target.value));
                         }}
-                        style={{ background: "rgba(0,20,40,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" }}
+                        style={{ background: "rgba(0,20,40,0.6)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -483,9 +483,9 @@ export default function Invest({ user }: { user: any }) {
 
                 {/* Split preview */}
                 {(watchedAmount || 0) >= plan.min && (
-                  <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(91,140,255,0.15)" }}>
+                  <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(0,255,148,0.15)" }}>
                     <div className="px-4 py-2.5 text-xs font-semibold uppercase tracking-widest"
-                      style={{ background: "rgba(91,140,255,0.06)", color: "rgba(194,210,255,0.4)", borderBottom: "1px solid rgba(91,140,255,0.10)" }}>
+                      style={{ background: "rgba(0,255,148,0.06)", color: "rgba(176,255,224,0.4)", borderBottom: "1px solid rgba(0,255,148,0.10)" }}>
                       Your Investment Breakdown
                     </div>
                     <div className="px-4 py-3 space-y-2.5" style={{ background: "rgba(4,12,26,0.5)" }}>
@@ -493,7 +493,7 @@ export default function Invest({ user }: { user: any }) {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Coins size={12} style={{ color: "#34d399" }} />
-                            <span className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>Virtual Token Allocation (50%)</span>
+                            <span className="text-xs" style={{ color: "rgba(176,255,224,0.5)" }}>Virtual Token Allocation (50%)</span>
                           </div>
                           <span className="text-xs font-bold" style={{ color: "#34d399" }}>${tokenPortion.toFixed(2)}</span>
                         </div>
@@ -501,15 +501,15 @@ export default function Invest({ user }: { user: any }) {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <TrendingUp size={12} style={{ color: TEAL }} />
-                          <span className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>
+                          <span className="text-xs" style={{ color: "rgba(176,255,224,0.5)" }}>
                             Daily ROI Pool {watchedType === "safe" ? "(50%)" : "(100%)"}
                           </span>
                         </div>
                         <span className="text-xs font-bold" style={{ color: TEAL }}>${roiPortion.toFixed(2)}</span>
                       </div>
-                      <div className="pt-1.5" style={{ borderTop: "1px solid rgba(91,140,255,0.08)" }}>
+                      <div className="pt-1.5" style={{ borderTop: "1px solid rgba(0,255,148,0.08)" }}>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>Duration</span>
+                          <span className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>Duration</span>
                           <span className="text-xs font-semibold" style={{ color: TEAL }}>{plan.days} days</span>
                         </div>
                       </div>
@@ -538,7 +538,7 @@ export default function Invest({ user }: { user: any }) {
                     : `${watchedType === "safe" ? "Safe Invest" : "Trading Invest"} $${watchedAmount || 0}`}
                 </button>
                 {watchedType === "safe" && (
-                  <p className="text-xs text-center" style={{ color: "rgba(194,210,255,0.45)" }}>
+                  <p className="text-xs text-center" style={{ color: "rgba(176,255,224,0.45)" }}>
                     100% deducted from your balance · 50% virtually allocated as WTA tokens
                   </p>
                 )}
@@ -550,8 +550,8 @@ export default function Invest({ user }: { user: any }) {
           {activeInvestments.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-semibold text-sm" style={{ color: "rgba(194,210,255,0.75)" }}>Your Active Investments</h2>
-                <span className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>{activeInvestments.length} total</span>
+                <h2 className="font-semibold text-sm" style={{ color: "rgba(176,255,224,0.75)" }}>Your Active Investments</h2>
+                <span className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>{activeInvestments.length} total</span>
               </div>
               <div className="space-y-3">
                 {paginatedInvestments.map(inv => {
@@ -573,7 +573,7 @@ export default function Invest({ user }: { user: any }) {
                             {isSafe ? <Shield size={11} style={{ color: typeColor }} /> : <Zap size={11} style={{ color: typeColor }} />}
                           </div>
                           <div>
-                            <div className="font-semibold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>
+                            <div className="font-semibold text-sm" style={{ color: "rgba(176,255,224,0.85)" }}>
                               ${inv.amount.toFixed(2)}
                             </div>
                             <div className="text-xs" style={{ color: typeColor, opacity: 0.8 }}>
@@ -595,18 +595,18 @@ export default function Invest({ user }: { user: any }) {
                         </div>
                       </div>
 
-                      <div className="flex gap-3 mb-2.5 text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>
+                      <div className="flex gap-3 mb-2.5 text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
                         <span>{inv.remainingDays}d left</span>
                         <span>·</span>
                         <span>Earned: <span style={{ color: "#34d399" }}>${inv.earnedSoFar.toFixed(2)}</span></span>
                       </div>
 
-                      <div className="w-full rounded-full h-1.5" style={{ background: "rgba(91,140,255,0.08)" }}>
+                      <div className="w-full rounded-full h-1.5" style={{ background: "rgba(0,255,148,0.08)" }}>
                         <div
                           className="h-1.5 rounded-full"
                           style={{
                             width: `${Math.max(2, ((inv.durationDays - inv.remainingDays) / inv.durationDays) * 100)}%`,
-                            background: `linear-gradient(90deg, ${TEAL}, #3D5CE0)`,
+                            background: `linear-gradient(90deg, ${TEAL}, #00CC77)`,
                           }}
                         />
                       </div>

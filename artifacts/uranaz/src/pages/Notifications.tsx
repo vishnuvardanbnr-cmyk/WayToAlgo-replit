@@ -4,7 +4,7 @@ import { ArrowLeft, Bell, Pin, X, ChevronRight, ChevronLeft, Info, CheckCircle2,
 
 const PAGE_SIZE = 10;
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 
 interface Notice {
   id: number;
@@ -21,7 +21,7 @@ interface Notice {
 }
 
 const TYPE_STYLES: Record<Notice["type"], { color: string; bg: string; border: string; Icon: any; label: string }> = {
-  info:         { color: "#5B8CFF", bg: "rgba(91,140,255,0.10)",  border: "rgba(91,140,255,0.28)",  Icon: Info,         label: "Info" },
+  info:         { color: "#00FF94", bg: "rgba(0,255,148,0.10)",  border: "rgba(0,255,148,0.28)",  Icon: Info,         label: "Info" },
   success:      { color: "#34d399", bg: "rgba(52,211,153,0.10)",  border: "rgba(52,211,153,0.30)",  Icon: CheckCircle2, label: "Success" },
   warning:      { color: "#fbbf24", bg: "rgba(251,191,36,0.10)",  border: "rgba(251,191,36,0.30)",  Icon: AlertTriangle,label: "Warning" },
   critical:     { color: "#f87171", bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.30)", Icon: AlertOctagon, label: "Critical" },
@@ -130,7 +130,7 @@ export default function Notifications() {
         <button
           onClick={() => setLocation("/dashboard")}
           className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-          style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" }}
+          style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" }}
         >
           <ArrowLeft size={16} style={{ color: TEAL }} />
         </button>
@@ -139,7 +139,7 @@ export default function Notifications() {
             className="text-xl font-bold flex items-center gap-2"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -148,7 +148,7 @@ export default function Notifications() {
             <Bell size={18} style={{ color: TEAL }} />
             Notifications
           </h1>
-          <p className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <p className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
             {notices.length} total · {unreadCount} unread
           </p>
         </div>
@@ -156,20 +156,20 @@ export default function Notifications() {
 
       {/* Tabs + Actions */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex rounded-xl overflow-hidden" style={{ background: "rgba(10,14,30,0.65)", border: "1px solid rgba(91,140,255,0.10)" }}>
+        <div className="flex rounded-xl overflow-hidden" style={{ background: "rgba(10,14,30,0.65)", border: "1px solid rgba(0,255,148,0.10)" }}>
           {(["all", "unread"] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className="px-4 py-2 text-xs font-semibold transition-all capitalize"
               style={{
-                background: tab === t ? "rgba(91,140,255,0.14)" : "transparent",
-                color: tab === t ? TEAL : "rgba(194,210,255,0.5)",
-                borderRight: t === "all" ? "1px solid rgba(91,140,255,0.10)" : "none",
+                background: tab === t ? "rgba(0,255,148,0.14)" : "transparent",
+                color: tab === t ? TEAL : "rgba(176,255,224,0.5)",
+                borderRight: t === "all" ? "1px solid rgba(0,255,148,0.10)" : "none",
               }}
             >
               {t} {t === "unread" && unreadCount > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 rounded-full text-[9px]" style={{ background: TEAL, color: "#060814" }}>{unreadCount}</span>
+                <span className="ml-1 px-1.5 py-0.5 rounded-full text-[9px]" style={{ background: TEAL, color: "#050C0A" }}>{unreadCount}</span>
               )}
             </button>
           ))}
@@ -180,7 +180,7 @@ export default function Notifications() {
             onClick={dismissAll}
             disabled={markingAll}
             className="text-[11px] px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.65)" }}
+            style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.65)" }}
           >
             <CheckCircle2 size={11} />
             {markingAll ? "Marking…" : "Mark all read"}
@@ -189,7 +189,7 @@ export default function Notifications() {
           <button
             onClick={restoreAll}
             className="text-[11px] px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-1.5"
-            style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.65)" }}
+            style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.65)" }}
           >
             <RotateCcw size={11} /> Restore all
           </button>
@@ -200,21 +200,21 @@ export default function Notifications() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="rounded-2xl h-24 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+            <div key={i} className="rounded-2xl h-24 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
           ))}
         </div>
       ) : visible.length === 0 ? (
-        <div className="rounded-2xl p-10 text-center" style={{ background: "rgba(10,14,30,0.65)", border: "1px dashed rgba(91,140,255,0.12)" }}>
+        <div className="rounded-2xl p-10 text-center" style={{ background: "rgba(10,14,30,0.65)", border: "1px dashed rgba(0,255,148,0.12)" }}>
           <div
             className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center"
-            style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)" }}
+            style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.12)" }}
           >
-            <Inbox size={22} style={{ color: "rgba(194,210,255,0.4)" }} />
+            <Inbox size={22} style={{ color: "rgba(176,255,224,0.4)" }} />
           </div>
-          <div className="text-sm font-medium mb-1" style={{ color: "rgba(194,210,255,0.65)" }}>
+          <div className="text-sm font-medium mb-1" style={{ color: "rgba(176,255,224,0.65)" }}>
             {tab === "unread" ? "No unread notifications" : "No notifications yet"}
           </div>
-          <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>
+          <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
             {tab === "unread" ? "You're all caught up" : "We'll let you know when something happens"}
           </div>
         </div>
@@ -233,11 +233,11 @@ export default function Notifications() {
                   background: isUnread
                     ? `linear-gradient(155deg, rgba(4,16,32,0.97), rgba(2,10,22,0.97))`
                     : "rgba(10,14,30,0.5)",
-                  border: `1px solid ${isUnread ? s.border : "rgba(91,140,255,0.07)"}`,
+                  border: `1px solid ${isUnread ? s.border : "rgba(0,255,148,0.07)"}`,
                   boxShadow: isUnread ? `0 0 24px ${s.bg}` : "none",
                 }}
                 onMouseEnter={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = s.color; }}
-                onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = isUnread ? s.border : "rgba(91,140,255,0.07)"; }}
+                onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = isUnread ? s.border : "rgba(0,255,148,0.07)"; }}
               >
                 <div className="flex items-start gap-3">
                   <div
@@ -250,7 +250,7 @@ export default function Notifications() {
                   <div className="flex-1 min-w-0 pr-2">
                     <div className="flex items-center gap-1.5 flex-wrap mb-1">
                       {n.pinned && <Pin size={11} style={{ color: TEAL }} />}
-                      <span className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.95)" }}>{n.title}</span>
+                      <span className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.95)" }}>{n.title}</span>
                       <span
                         className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
                         style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
@@ -266,18 +266,18 @@ export default function Notifications() {
                         </span>
                       )}
                       {!isUnread && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(194,210,255,0.04)", color: "rgba(194,210,255,0.4)", border: "1px solid rgba(194,210,255,0.08)" }}>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(176,255,224,0.04)", color: "rgba(176,255,224,0.4)", border: "1px solid rgba(176,255,224,0.08)" }}>
                           Read
                         </span>
                       )}
                     </div>
 
-                    <div className="text-sm leading-relaxed" style={{ color: "rgba(194,210,255,0.72)" }}>
+                    <div className="text-sm leading-relaxed" style={{ color: "rgba(176,255,224,0.72)" }}>
                       {n.message}
                     </div>
 
                     <div className="flex items-center gap-3 mt-3 flex-wrap">
-                      <span className="text-[11px]" style={{ color: "rgba(194,210,255,0.35)" }}>
+                      <span className="text-[11px]" style={{ color: "rgba(176,255,224,0.35)" }}>
                         {timeAgo(n.createdAt)}
                       </span>
                       <span
@@ -294,7 +294,7 @@ export default function Notifications() {
                             tabIndex={0}
                             onClick={(e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); dismiss(n.id); }}
                             className="text-[11px] flex items-center gap-1 px-2 py-1 rounded-lg transition-all cursor-pointer"
-                            style={{ color: "rgba(194,210,255,0.4)", background: "rgba(194,210,255,0.04)" }}
+                            style={{ color: "rgba(176,255,224,0.4)", background: "rgba(176,255,224,0.04)" }}
                           >
                             <X size={11} /> Dismiss
                           </span>
@@ -304,7 +304,7 @@ export default function Notifications() {
                             tabIndex={0}
                             onClick={(e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); restore(n.id); }}
                             className="text-[11px] flex items-center gap-1 px-2 py-1 rounded-lg transition-all cursor-pointer"
-                            style={{ color: "rgba(194,210,255,0.4)", background: "rgba(194,210,255,0.04)" }}
+                            style={{ color: "rgba(176,255,224,0.4)", background: "rgba(176,255,224,0.04)" }}
                           >
                             <RotateCcw size={11} /> Restore
                           </span>
@@ -312,7 +312,7 @@ export default function Notifications() {
                       )}
                     </div>
                   </div>
-                  <ChevronRight size={16} className="flex-shrink-0 mt-3" style={{ color: "rgba(194,210,255,0.3)" }} />
+                  <ChevronRight size={16} className="flex-shrink-0 mt-3" style={{ color: "rgba(176,255,224,0.3)" }} />
                 </div>
               </Link>
             );
@@ -325,7 +325,7 @@ export default function Notifications() {
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={safePage <= 1}
                 className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                style={{ background: "rgba(10,14,30,0.65)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}
+                style={{ background: "rgba(10,14,30,0.65)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.7)" }}
               >
                 <ChevronLeft size={13} /> Prev
               </button>
@@ -336,16 +336,16 @@ export default function Notifications() {
                   .map((p, idx, arr) => (
                     <span key={p} className="flex items-center gap-1">
                       {idx > 0 && arr[idx - 1] !== p - 1 && (
-                        <span className="text-[11px]" style={{ color: "rgba(194,210,255,0.3)" }}>···</span>
+                        <span className="text-[11px]" style={{ color: "rgba(176,255,224,0.3)" }}>···</span>
                       )}
                       <button
                         onClick={() => setPage(p)}
                         className="min-w-[30px] h-[30px] rounded-lg text-xs font-bold transition-all"
                         style={{
-                          background: p === safePage ? "linear-gradient(135deg, #5B8CFF, #3D5CE0)" : "rgba(91,140,255,0.06)",
-                          color: p === safePage ? "#060814" : "rgba(194,210,255,0.6)",
-                          border: `1px solid ${p === safePage ? "transparent" : "rgba(91,140,255,0.18)"}`,
-                          boxShadow: p === safePage ? "0 0 12px rgba(91,140,255,0.45)" : "none",
+                          background: p === safePage ? "linear-gradient(135deg, #00FF94, #00CC77)" : "rgba(0,255,148,0.06)",
+                          color: p === safePage ? "#050C0A" : "rgba(176,255,224,0.6)",
+                          border: `1px solid ${p === safePage ? "transparent" : "rgba(0,255,148,0.18)"}`,
+                          boxShadow: p === safePage ? "0 0 12px rgba(0,255,148,0.45)" : "none",
                         }}
                       >
                         {p}
@@ -358,7 +358,7 @@ export default function Notifications() {
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={safePage >= totalPages}
                 className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                style={{ background: "rgba(10,14,30,0.65)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}
+                style={{ background: "rgba(10,14,30,0.65)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.7)" }}
               >
                 Next <ChevronRight size={13} />
               </button>
@@ -367,7 +367,7 @@ export default function Notifications() {
 
           {/* Range indicator */}
           {filtered.length > 0 && (
-            <p className="text-[11px] text-center pt-1" style={{ color: "rgba(194,210,255,0.35)" }}>
+            <p className="text-[11px] text-center pt-1" style={{ color: "rgba(176,255,224,0.35)" }}>
               Showing {startIdx + 1}–{Math.min(startIdx + PAGE_SIZE, filtered.length)} of {filtered.length}
               {tab === "unread" ? " unread" : ""}
             </p>

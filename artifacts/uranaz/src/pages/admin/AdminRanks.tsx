@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Award, Plus, Pencil, Trash2, X, Save, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const INPUT_CLS = "w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all";
-const INPUT_STYLE = { background: "rgba(3,12,26,0.7)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" };
+const INPUT_STYLE = { background: "rgba(3,12,26,0.7)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" };
 const ORBITRON: React.CSSProperties = { fontFamily: "'Sora', sans-serif" };
 
 function getToken() { return localStorage.getItem("waytoalgo_token"); }
@@ -59,7 +59,7 @@ const RANK_GRADIENTS = [
   { from: "#6b7280", to: "#9ca3af" },
   { from: "#d97706", to: "#fbbf24" },
   { from: "#7c3aed", to: "#a78bfa" },
-  { from: "#0891b2", to: "#5B8CFF" },
+  { from: "#0891b2", to: "#00FF94" },
 ];
 
 function fmtUsd(n: number) {
@@ -177,9 +177,9 @@ export default function AdminRanks() {
   function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
     return (
       <div className="space-y-1.5">
-        <label className="text-xs font-medium" style={{ color: "rgba(194,210,255,0.55)" }}>{label}</label>
+        <label className="text-xs font-medium" style={{ color: "rgba(176,255,224,0.55)" }}>{label}</label>
         {children}
-        {hint && <p className="text-[10px]" style={{ color: "rgba(194,210,255,0.3)" }}>{hint}</p>}
+        {hint && <p className="text-[10px]" style={{ color: "rgba(176,255,224,0.3)" }}>{hint}</p>}
       </div>
     );
   }
@@ -208,18 +208,18 @@ export default function AdminRanks() {
           <div
             className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
             style={{
-              background: "linear-gradient(135deg, rgba(91,140,255,0.2), rgba(61,92,224,0.08))",
-              border: "1px solid rgba(91,140,255,0.35)",
-              boxShadow: "0 0 20px rgba(91,140,255,0.18)",
+              background: "linear-gradient(135deg, rgba(0,255,148,0.2), rgba(0,204,119,0.08))",
+              border: "1px solid rgba(0,255,148,0.35)",
+              boxShadow: "0 0 20px rgba(0,255,148,0.18)",
             }}
           >
             <Award size={20} style={{ color: TEAL }} />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold" style={{ ...ORBITRON, background: "linear-gradient(135deg,#C2D2FF,#5B8CFF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+            <h1 className="text-xl md:text-2xl font-bold" style={{ ...ORBITRON, background: "linear-gradient(135deg,#B0FFE0,#00FF94)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               Rank Management
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
               Define ranks, qualification requirements, and monthly rewards
             </p>
           </div>
@@ -238,8 +238,8 @@ export default function AdminRanks() {
             onClick={openCreate}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
             style={{
-              background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(61,92,224,0.08))",
-              border: "1px solid rgba(91,140,255,0.4)",
+              background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,204,119,0.08))",
+              border: "1px solid rgba(0,255,148,0.4)",
               color: TEAL,
             }}
           >
@@ -252,13 +252,13 @@ export default function AdminRanks() {
       {loading ? (
         <div className="space-y-3">
           {[1,2,3].map(i => (
-            <div key={i} className="rounded-2xl h-24 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+            <div key={i} className="rounded-2xl h-24 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
           ))}
         </div>
       ) : ranks.length === 0 ? (
-        <div className="rounded-2xl py-16 text-center" style={{ background: "rgba(10,14,30,0.5)", border: "1px dashed rgba(91,140,255,0.15)" }}>
-          <Award size={32} className="mx-auto mb-3" style={{ color: "rgba(91,140,255,0.3)" }} />
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>No ranks yet. Create your first one.</p>
+        <div className="rounded-2xl py-16 text-center" style={{ background: "rgba(10,14,30,0.5)", border: "1px dashed rgba(0,255,148,0.15)" }}>
+          <Award size={32} className="mx-auto mb-3" style={{ color: "rgba(0,255,148,0.3)" }} />
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>No ranks yet. Create your first one.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -266,26 +266,26 @@ export default function AdminRanks() {
             <div
               key={rank.id}
               className="rounded-2xl p-4 flex items-start gap-4"
-              style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" }}
+              style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" }}
             >
               <RankBadge index={idx} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.9)" }}>{rank.name}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }}>
+                  <span className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.9)" }}>{rank.name}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }}>
                     Rank #{rank.rankNumber}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-2 text-xs" style={{ color: "rgba(194,210,255,0.55)" }}>
-                  <span>Self ≥ <strong style={{ color: "rgba(194,210,255,0.85)" }}>{fmtUsd(Number(rank.selfInvestmentMin) || 0)}</strong></span>
-                  <span>Direct ≥ <strong style={{ color: "rgba(194,210,255,0.85)" }}>{fmtUsd(Number(rank.directBusinessMin) || 0)}</strong></span>
-                  <span>Team ≥ <strong style={{ color: "rgba(194,210,255,0.85)" }}>{fmtUsd(Number(rank.teamBusinessMin) || 0)}</strong></span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-2 text-xs" style={{ color: "rgba(176,255,224,0.55)" }}>
+                  <span>Self ≥ <strong style={{ color: "rgba(176,255,224,0.85)" }}>{fmtUsd(Number(rank.selfInvestmentMin) || 0)}</strong></span>
+                  <span>Direct ≥ <strong style={{ color: "rgba(176,255,224,0.85)" }}>{fmtUsd(Number(rank.directBusinessMin) || 0)}</strong></span>
+                  <span>Team ≥ <strong style={{ color: "rgba(176,255,224,0.85)" }}>{fmtUsd(Number(rank.teamBusinessMin) || 0)}</strong></span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 mt-2">
                   <span className="text-xs font-semibold" style={{ color: "rgba(52,211,153,0.9)" }}>
                     🎁 {fmtUsd(Number(rank.rewardMonthlyAmount) || 0)}/mo × {rank.rewardMonths} mo = {fmtUsd((Number(rank.rewardMonthlyAmount) || 0) * (rank.rewardMonths || 0))}
                   </span>
-                  <span className="text-[11px]" style={{ color: "rgba(194,210,255,0.4)" }}>
+                  <span className="text-[11px]" style={{ color: "rgba(176,255,224,0.4)" }}>
                     Legs {rank.legTopPct}/{rank.legSecondPct}/{rank.legRestPct}
                   </span>
                 </div>
@@ -294,7 +294,7 @@ export default function AdminRanks() {
                 <button
                   onClick={() => openEdit(rank)}
                   className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                  style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }}
+                  style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }}
                   title="Edit"
                 >
                   <Pencil size={13} />
@@ -318,13 +318,13 @@ export default function AdminRanks() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{ background: "rgba(0,5,15,0.8)", backdropFilter: "blur(6px)" }}>
           <div
             className="w-full max-w-lg rounded-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto"
-            style={{ background: "rgba(4,14,28,0.98)", border: "1px solid rgba(91,140,255,0.22)", boxShadow: "0 24px 80px rgba(0,0,0,0.7)" }}
+            style={{ background: "rgba(4,14,28,0.98)", border: "1px solid rgba(0,255,148,0.22)", boxShadow: "0 24px 80px rgba(0,0,0,0.7)" }}
           >
             <div className="flex items-center justify-between">
               <h2 className="font-bold text-base" style={{ ...ORBITRON, color: TEAL }}>
                 {editId ? "Edit Rank" : "New Rank"}
               </h2>
-              <button onClick={closeForm} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", color: "rgba(194,210,255,0.6)" }}>
+              <button onClick={closeForm} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", color: "rgba(176,255,224,0.6)" }}>
                 <X size={14} />
               </button>
             </div>
@@ -343,8 +343,8 @@ export default function AdminRanks() {
             </div>
 
             {/* Qualification requirements */}
-            <div className="rounded-xl p-4 space-y-4" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
-              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(194,210,255,0.4)" }}>Qualification Requirements</p>
+            <div className="rounded-xl p-4 space-y-4" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.10)" }}>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(176,255,224,0.4)" }}>Qualification Requirements</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <NumField label="Self Investment ($)" value={form.selfInvestmentMin} onChange={n => setForm(f => f && ({ ...f, selfInvestmentMin: n }))} step="0.01" />
                 <NumField label="Direct Business ($)" hint="Sum of directs' own invest" value={form.directBusinessMin} onChange={n => setForm(f => f && ({ ...f, directBusinessMin: n }))} step="0.01" />
@@ -353,8 +353,8 @@ export default function AdminRanks() {
             </div>
 
             {/* Balanced leg caps */}
-            <div className="rounded-xl p-4 space-y-4" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}>
-              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(194,210,255,0.4)" }}>Balanced Leg Caps (% of team requirement)</p>
+            <div className="rounded-xl p-4 space-y-4" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.10)" }}>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(176,255,224,0.4)" }}>Balanced Leg Caps (% of team requirement)</p>
               <div className="grid grid-cols-3 gap-3">
                 <NumField label="Top Leg %" value={form.legTopPct} onChange={n => setForm(f => f && ({ ...f, legTopPct: Math.round(n) }))} />
                 <NumField label="Second Leg %" value={form.legSecondPct} onChange={n => setForm(f => f && ({ ...f, legSecondPct: Math.round(n) }))} />
@@ -372,7 +372,7 @@ export default function AdminRanks() {
                 <NumField label="Monthly Amount ($)" value={form.rewardMonthlyAmount} onChange={n => setForm(f => f && ({ ...f, rewardMonthlyAmount: n }))} step="0.01" />
                 <NumField label="Number of Months" value={form.rewardMonths} onChange={n => setForm(f => f && ({ ...f, rewardMonths: Math.max(0, Math.round(n)) }))} />
               </div>
-              <p className="text-[11px]" style={{ color: "rgba(194,210,255,0.45)" }}>
+              <p className="text-[11px]" style={{ color: "rgba(176,255,224,0.45)" }}>
                 Total payout: <strong style={{ color: "rgba(52,211,153,0.9)" }}>{fmtUsd(form.rewardMonthlyAmount * form.rewardMonths)}</strong> credited to the Withdraw Wallet over {form.rewardMonths} months.
               </p>
             </div>
@@ -381,7 +381,7 @@ export default function AdminRanks() {
               <button
                 onClick={closeForm}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(194,210,255,0.6)" }}
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(176,255,224,0.6)" }}
               >
                 Cancel
               </button>
@@ -390,8 +390,8 @@ export default function AdminRanks() {
                 disabled={saving || !form.name}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
                 style={{
-                  background: "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(61,92,224,0.10))",
-                  border: "1px solid rgba(91,140,255,0.4)",
+                  background: "linear-gradient(135deg, rgba(0,255,148,0.22), rgba(0,204,119,0.10))",
+                  border: "1px solid rgba(0,255,148,0.4)",
                   color: TEAL,
                 }}
               >
@@ -407,11 +407,11 @@ export default function AdminRanks() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,5,15,0.85)", backdropFilter: "blur(6px)" }}>
           <div className="w-full max-w-sm rounded-2xl p-6 space-y-4" style={{ background: "rgba(4,14,28,0.98)", border: "1px solid rgba(248,113,113,0.3)" }}>
             <h3 className="font-bold text-sm" style={{ color: "rgba(248,113,113,0.9)" }}>Delete Rank?</h3>
-            <p className="text-xs" style={{ color: "rgba(194,210,255,0.5)" }}>
+            <p className="text-xs" style={{ color: "rgba(176,255,224,0.5)" }}>
               This will permanently remove the rank. Users currently at this rank will lose their rank assignment.
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-medium" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(194,210,255,0.6)" }}>
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-medium" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(176,255,224,0.6)" }}>
                 Cancel
               </button>
               <button

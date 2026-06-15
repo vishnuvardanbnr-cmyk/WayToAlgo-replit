@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { Gift, Award, CheckCircle, RotateCcw, ChevronDown, ChevronRight, Users, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const ORBITRON: React.CSSProperties = { fontFamily: "'Sora', sans-serif" };
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 
 function getToken() { return localStorage.getItem("waytoalgo_token"); }
 function authHeaders() {
@@ -50,12 +50,12 @@ function RewardedBadge({ rewardedAt, note }: { rewardedAt: string | null; note: 
       <CheckCircle size={14} style={{ color: "#34d399" }} />
       <span className="text-xs font-semibold" style={{ color: "#34d399" }}>Rewarded</span>
       {rewardedAt && (
-        <span className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>
+        <span className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
           {formatDate(rewardedAt)}
         </span>
       )}
       {note && (
-        <span className="text-xs italic" style={{ color: "rgba(194,210,255,0.4)" }}>— {note}</span>
+        <span className="text-xs italic" style={{ color: "rgba(176,255,224,0.4)" }}>— {note}</span>
       )}
     </div>
   );
@@ -64,7 +64,7 @@ function RewardedBadge({ rewardedAt, note }: { rewardedAt: string | null; note: 
 function ScheduleDetails({ schedule, promotedToRank }: { schedule: RewardSchedule | null; promotedToRank: string | null }) {
   if (!schedule) {
     return (
-      <div className="mt-1 text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
+      <div className="mt-1 text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
         No monthly reward configured for this rank
       </div>
     );
@@ -74,13 +74,13 @@ function ScheduleDetails({ schedule, promotedToRank }: { schedule: RewardSchedul
 
   const STATUS: Record<string, { label: string; color: string }> = {
     active: { label: "Active — receiving rewards", color: "#34d399" },
-    completed: { label: "Completed — all months paid", color: "#5B8CFF" },
+    completed: { label: "Completed — all months paid", color: "#00FF94" },
     superseded: {
       label: promotedToRank ? `Promoted to ${promotedToRank} — rewards stopped` : "Promoted — rewards stopped",
       color: "#fbbf24",
     },
   };
-  const meta = STATUS[status] ?? { label: status, color: "rgba(194,210,255,0.6)" };
+  const meta = STATUS[status] ?? { label: status, color: "rgba(176,255,224,0.6)" };
 
   return (
     <div className="mt-2 space-y-1.5">
@@ -93,18 +93,18 @@ function ScheduleDetails({ schedule, promotedToRank }: { schedule: RewardSchedul
         </span>
       </div>
       {/* Progress bar */}
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.10)" }}>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(0,255,148,0.10)" }}>
         <div
           className="h-full rounded-full transition-all"
           style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${meta.color}aa, ${meta.color})` }}
         />
       </div>
-      <div className="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs" style={{ color: "rgba(194,210,255,0.55)" }}>
-        <span>Months rewarded: <strong style={{ color: "rgba(194,210,255,0.9)" }}>{monthsPaid}/{totalMonths}</strong></span>
-        <span>Remaining: <strong style={{ color: remaining > 0 && status === "active" ? "#34d399" : "rgba(194,210,255,0.9)" }}>{remaining}</strong></span>
-        <span>Paid out: <strong style={{ color: "rgba(194,210,255,0.9)" }}>${totalPaid.toFixed(0)}</strong> <span style={{ color: "rgba(194,210,255,0.4)" }}>(${monthlyAmount.toFixed(0)}/mo)</span></span>
+      <div className="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs" style={{ color: "rgba(176,255,224,0.55)" }}>
+        <span>Months rewarded: <strong style={{ color: "rgba(176,255,224,0.9)" }}>{monthsPaid}/{totalMonths}</strong></span>
+        <span>Remaining: <strong style={{ color: remaining > 0 && status === "active" ? "#34d399" : "rgba(176,255,224,0.9)" }}>{remaining}</strong></span>
+        <span>Paid out: <strong style={{ color: "rgba(176,255,224,0.9)" }}>${totalPaid.toFixed(0)}</strong> <span style={{ color: "rgba(176,255,224,0.4)" }}>(${monthlyAmount.toFixed(0)}/mo)</span></span>
         {status === "active" && nextPayoutAt && (
-          <span>Next payout: <strong style={{ color: "rgba(194,210,255,0.9)" }}>{formatDate(nextPayoutAt)}</strong></span>
+          <span>Next payout: <strong style={{ color: "rgba(176,255,224,0.9)" }}>{formatDate(nextPayoutAt)}</strong></span>
         )}
       </div>
     </div>
@@ -148,19 +148,19 @@ function UserRow({
     <div
       className="rounded-xl p-3 transition-all"
       style={{
-        background: user.rewarded ? "rgba(52,211,153,0.05)" : "rgba(91,140,255,0.03)",
-        border: user.rewarded ? "1px solid rgba(52,211,153,0.18)" : "1px solid rgba(91,140,255,0.08)",
+        background: user.rewarded ? "rgba(52,211,153,0.05)" : "rgba(0,255,148,0.03)",
+        border: user.rewarded ? "1px solid rgba(52,211,153,0.18)" : "1px solid rgba(0,255,148,0.08)",
       }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-sm" style={{ color: "rgba(194,210,255,0.9)" }}>{user.name}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.15)", color: TEAL }}>
+            <span className="font-semibold text-sm" style={{ color: "rgba(176,255,224,0.9)" }}>{user.name}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.15)", color: TEAL }}>
               {user.referralCode}
             </span>
           </div>
-          <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{user.email} · {user.phone}</div>
+          <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{user.email} · {user.phone}</div>
           {extraInfo}
           {user.rewarded && (
             <div className="mt-1.5">
@@ -179,7 +179,7 @@ function UserRow({
                     onChange={e => setNote(e.target.value)}
                     placeholder="Note (optional)"
                     className="text-xs px-2 py-1.5 rounded-lg outline-none"
-                    style={{ background: "rgba(3,12,26,0.8)", border: "1px solid rgba(91,140,255,0.2)", color: "rgba(194,210,255,0.9)", width: "140px" }}
+                    style={{ background: "rgba(3,12,26,0.8)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.9)", width: "140px" }}
                     onKeyDown={e => e.key === "Enter" && handleMark()}
                   />
                   <button
@@ -194,7 +194,7 @@ function UserRow({
                   <button
                     onClick={() => { setShowNote(false); setNote(""); }}
                     className="text-xs px-2 py-1.5 rounded-lg"
-                    style={{ color: "rgba(194,210,255,0.4)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                    style={{ color: "rgba(176,255,224,0.4)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
                   >
                     Cancel
                   </button>
@@ -255,7 +255,7 @@ function OfferSection({ group, onRefresh }: { group: OfferGroup; onRefresh: () =
   }, [onRefresh, toast]);
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(91,140,255,0.12)" }}>
+    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(0,255,148,0.12)" }}>
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-3 p-4 text-left transition-all"
@@ -263,8 +263,8 @@ function OfferSection({ group, onRefresh }: { group: OfferGroup; onRefresh: () =
       >
         <span className="text-2xl">{group.offer.emoji}</span>
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.9)" }}>{group.offer.title}</div>
-          <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.9)" }}>{group.offer.title}</div>
+          <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
             🎁 {group.offer.reward}
             {group.offer.endDate && <span className="ml-2">· ends {new Date(group.offer.endDate).toLocaleDateString()}</span>}
           </div>
@@ -272,20 +272,20 @@ function OfferSection({ group, onRefresh }: { group: OfferGroup; onRefresh: () =
         <div className="flex items-center gap-3 shrink-0">
           <div className="text-right">
             <div className="text-sm font-bold" style={{ color: TEAL }}>{group.eligible.length}</div>
-            <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>eligible</div>
+            <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>eligible</div>
           </div>
           <div className="text-right">
             <div className="text-sm font-bold" style={{ color: "#34d399" }}>{rewardedCount}</div>
-            <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>rewarded</div>
+            <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>rewarded</div>
           </div>
-          {open ? <ChevronDown size={16} style={{ color: "rgba(194,210,255,0.4)" }} /> : <ChevronRight size={16} style={{ color: "rgba(194,210,255,0.4)" }} />}
+          {open ? <ChevronDown size={16} style={{ color: "rgba(176,255,224,0.4)" }} /> : <ChevronRight size={16} style={{ color: "rgba(176,255,224,0.4)" }} />}
         </div>
       </button>
 
       {open && (
         <div className="p-4 pt-2 space-y-2" style={{ background: "rgba(3,12,26,0.6)" }}>
           {group.eligible.length === 0 ? (
-            <div className="text-center py-6 text-sm" style={{ color: "rgba(194,210,255,0.35)" }}>
+            <div className="text-center py-6 text-sm" style={{ color: "rgba(176,255,224,0.35)" }}>
               No eligible users yet
             </div>
           ) : (
@@ -298,9 +298,9 @@ function OfferSection({ group, onRefresh }: { group: OfferGroup; onRefresh: () =
                 onMark={(uid, note) => mark(uid, "offer", group.offer.id, note)}
                 onUnmark={(uid) => unmark(uid, "offer", group.offer.id)}
                 extraInfo={
-                  <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: "rgba(194,210,255,0.45)" }}>
-                    <span>Self: <strong style={{ color: "rgba(194,210,255,0.75)" }}>${u.totalInvested.toFixed(0)}</strong></span>
-                    <span>Team: <strong style={{ color: "rgba(194,210,255,0.75)" }}>${u.teamBusiness.toFixed(0)}</strong></span>
+                  <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: "rgba(176,255,224,0.45)" }}>
+                    <span>Self: <strong style={{ color: "rgba(176,255,224,0.75)" }}>${u.totalInvested.toFixed(0)}</strong></span>
+                    <span>Team: <strong style={{ color: "rgba(176,255,224,0.75)" }}>${u.teamBusiness.toFixed(0)}</strong></span>
                   </div>
                 }
               />
@@ -343,7 +343,7 @@ function RankSection({ group, onRefresh }: { group: RankGroup; onRefresh: () => 
   }, [onRefresh, toast]);
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(91,140,255,0.12)" }}>
+    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(0,255,148,0.12)" }}>
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-3 p-4 text-left transition-all"
@@ -356,26 +356,26 @@ function RankSection({ group, onRefresh }: { group: RankGroup; onRefresh: () => 
           {group.rank.rankNumber}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.9)" }}>{group.rank.name}</div>
-          <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>🎁 {group.rank.reward}</div>
+          <div className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.9)" }}>{group.rank.name}</div>
+          <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>🎁 {group.rank.reward}</div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <div className="text-right">
             <div className="text-sm font-bold" style={{ color: TEAL }}>{group.achievers.length}</div>
-            <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>achieved</div>
+            <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>achieved</div>
           </div>
           <div className="text-right">
             <div className="text-sm font-bold" style={{ color: "#34d399" }}>{rewardedCount}</div>
-            <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>rewarded</div>
+            <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>rewarded</div>
           </div>
-          {open ? <ChevronDown size={16} style={{ color: "rgba(194,210,255,0.4)" }} /> : <ChevronRight size={16} style={{ color: "rgba(194,210,255,0.4)" }} />}
+          {open ? <ChevronDown size={16} style={{ color: "rgba(176,255,224,0.4)" }} /> : <ChevronRight size={16} style={{ color: "rgba(176,255,224,0.4)" }} />}
         </div>
       </button>
 
       {open && (
         <div className="p-4 pt-2 space-y-2" style={{ background: "rgba(3,12,26,0.6)" }}>
           {group.achievers.length === 0 ? (
-            <div className="text-center py-6 text-sm" style={{ color: "rgba(194,210,255,0.35)" }}>
+            <div className="text-center py-6 text-sm" style={{ color: "rgba(176,255,224,0.35)" }}>
               No achievers yet
             </div>
           ) : (
@@ -389,8 +389,8 @@ function RankSection({ group, onRefresh }: { group: RankGroup; onRefresh: () => 
                 onUnmark={(uid) => unmark(uid, "rank", group.rank.id)}
                 extraInfo={
                   <>
-                    <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: "rgba(194,210,255,0.45)" }}>
-                      <span>Invested: <strong style={{ color: "rgba(194,210,255,0.75)" }}>${u.totalInvested.toFixed(0)}</strong></span>
+                    <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: "rgba(176,255,224,0.45)" }}>
+                      <span>Invested: <strong style={{ color: "rgba(176,255,224,0.75)" }}>${u.totalInvested.toFixed(0)}</strong></span>
                     </div>
                     <ScheduleDetails schedule={u.schedule} promotedToRank={u.promotedToRank} />
                   </>
@@ -437,18 +437,18 @@ export default function AdminRewards() {
         <div
           className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
           style={{
-            background: "linear-gradient(135deg, rgba(91,140,255,0.2), rgba(61,92,224,0.08))",
-            border: "1px solid rgba(91,140,255,0.35)",
-            boxShadow: "0 0 20px rgba(91,140,255,0.18)",
+            background: "linear-gradient(135deg, rgba(0,255,148,0.2), rgba(0,204,119,0.08))",
+            border: "1px solid rgba(0,255,148,0.35)",
+            boxShadow: "0 0 20px rgba(0,255,148,0.18)",
           }}
         >
           <Gift size={20} style={{ color: TEAL }} />
         </div>
         <div>
-          <h1 className="text-xl md:text-2xl font-bold" style={{ ...ORBITRON, background: "linear-gradient(135deg,#C2D2FF,#5B8CFF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+          <h1 className="text-xl md:text-2xl font-bold" style={{ ...ORBITRON, background: "linear-gradient(135deg,#B0FFE0,#00FF94)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
             Rewards Hub
           </h1>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <p className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
             Track offer eligibility and rank achievers · mark physical rewards as given
           </p>
         </div>
@@ -464,14 +464,14 @@ export default function AdminRewards() {
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="rounded-xl p-3" style={GLASS}>
             <Icon size={16} className="mb-2" style={{ color }} />
-            <div className="text-xl font-bold" style={{ color: "rgba(194,210,255,0.9)" }}>{loading ? "—" : value}</div>
-            <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{label}</div>
+            <div className="text-xl font-bold" style={{ color: "rgba(176,255,224,0.9)" }}>{loading ? "—" : value}</div>
+            <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{label}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-5 rounded-xl p-1" style={{ background: "rgba(3,12,26,0.6)", border: "1px solid rgba(91,140,255,0.10)" }}>
+      <div className="flex gap-1 mb-5 rounded-xl p-1" style={{ background: "rgba(3,12,26,0.6)", border: "1px solid rgba(0,255,148,0.10)" }}>
         {([
           { id: "offers" as Tab, label: "Offer Eligible", icon: Gift },
           { id: "ranks" as Tab, label: "Rank Achievers", icon: Award },
@@ -481,9 +481,9 @@ export default function AdminRewards() {
             onClick={() => setTab(id)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-all"
             style={{
-              background: tab === id ? "rgba(91,140,255,0.12)" : "transparent",
-              border: tab === id ? "1px solid rgba(91,140,255,0.25)" : "1px solid transparent",
-              color: tab === id ? TEAL : "rgba(194,210,255,0.45)",
+              background: tab === id ? "rgba(0,255,148,0.12)" : "transparent",
+              border: tab === id ? "1px solid rgba(0,255,148,0.25)" : "1px solid transparent",
+              color: tab === id ? TEAL : "rgba(176,255,224,0.45)",
             }}
           >
             <Icon size={14} />
@@ -495,15 +495,15 @@ export default function AdminRewards() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="rounded-2xl h-20 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+            <div key={i} className="rounded-2xl h-20 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
           ))}
         </div>
       ) : tab === "offers" ? (
         <div className="space-y-4">
           {offerGroups.length === 0 ? (
-            <div className="rounded-2xl py-16 text-center" style={{ background: "rgba(10,14,30,0.5)", border: "1px dashed rgba(91,140,255,0.15)" }}>
-              <Gift size={32} className="mx-auto mb-3" style={{ color: "rgba(91,140,255,0.3)" }} />
-              <p className="text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>No active offers. Create offers in the Offers section.</p>
+            <div className="rounded-2xl py-16 text-center" style={{ background: "rgba(10,14,30,0.5)", border: "1px dashed rgba(0,255,148,0.15)" }}>
+              <Gift size={32} className="mx-auto mb-3" style={{ color: "rgba(0,255,148,0.3)" }} />
+              <p className="text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>No active offers. Create offers in the Offers section.</p>
             </div>
           ) : (
             offerGroups.map(g => (
@@ -514,9 +514,9 @@ export default function AdminRewards() {
       ) : (
         <div className="space-y-4">
           {rankGroups.length === 0 ? (
-            <div className="rounded-2xl py-16 text-center" style={{ background: "rgba(10,14,30,0.5)", border: "1px dashed rgba(91,140,255,0.15)" }}>
-              <Award size={32} className="mx-auto mb-3" style={{ color: "rgba(91,140,255,0.3)" }} />
-              <p className="text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>No ranks configured yet. Create ranks in Rank Management.</p>
+            <div className="rounded-2xl py-16 text-center" style={{ background: "rgba(10,14,30,0.5)", border: "1px dashed rgba(0,255,148,0.15)" }}>
+              <Award size={32} className="mx-auto mb-3" style={{ color: "rgba(0,255,148,0.3)" }} />
+              <p className="text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>No ranks configured yet. Create ranks in Rank Management.</p>
             </div>
           ) : (
             rankGroups.map(g => (

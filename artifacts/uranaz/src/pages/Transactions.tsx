@@ -17,11 +17,11 @@ import {
   Receipt,
 } from "lucide-react";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const GLASS = {
   background: "rgba(10,14,30,0.65)",
   backdropFilter: "blur(14px)",
-  border: "1px solid rgba(91,140,255,0.10)",
+  border: "1px solid rgba(0,255,148,0.10)",
 } as const;
 
 const typeFilters = [
@@ -87,8 +87,8 @@ function TxDetailModal({ record, onClose }: { record: any; onClose: () => void }
         className="w-full max-w-sm rounded-3xl overflow-hidden"
         style={{
           background: "linear-gradient(170deg, rgba(4,16,32,0.99) 0%, rgba(2,10,22,0.99) 100%)",
-          border: "1px solid rgba(91,140,255,0.16)",
-          boxShadow: "0 8px 60px rgba(6,8,20,0.9), 0 0 0 1px rgba(91,140,255,0.06)",
+          border: "1px solid rgba(0,255,148,0.16)",
+          boxShadow: "0 8px 60px rgba(6,8,20,0.9), 0 0 0 1px rgba(0,255,148,0.06)",
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -130,9 +130,9 @@ function TxDetailModal({ record, onClose }: { record: any; onClose: () => void }
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:brightness-125"
-            style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.09)" }}
+            style={{ background: "rgba(176,255,224,0.06)", border: "1px solid rgba(176,255,224,0.09)" }}
           >
-            <X size={14} style={{ color: "rgba(194,210,255,0.45)" }} />
+            <X size={14} style={{ color: "rgba(176,255,224,0.45)" }} />
           </button>
         </div>
 
@@ -144,7 +144,7 @@ function TxDetailModal({ record, onClose }: { record: any; onClose: () => void }
             border: `1px solid ${cfg.color}20`,
           }}
         >
-          <div className="text-xs mb-2 uppercase tracking-widest" style={{ color: "rgba(194,210,255,0.35)" }}>
+          <div className="text-xs mb-2 uppercase tracking-widest" style={{ color: "rgba(176,255,224,0.35)" }}>
             Amount Received
           </div>
           <div
@@ -162,7 +162,7 @@ function TxDetailModal({ record, onClose }: { record: any; onClose: () => void }
         </div>
 
         {/* Divider */}
-        <div className="mx-5 mb-4 h-px" style={{ background: "rgba(91,140,255,0.07)" }} />
+        <div className="mx-5 mb-4 h-px" style={{ background: "rgba(0,255,148,0.07)" }} />
 
         {/* Detail rows */}
         <div className="px-5 pb-6 space-y-0">
@@ -170,17 +170,17 @@ function TxDetailModal({ record, onClose }: { record: any; onClose: () => void }
             <div
               key={row.label}
               className="flex items-center justify-between py-3"
-              style={{ borderBottom: i < rows.length - 1 ? "1px solid rgba(91,140,255,0.05)" : "none" }}
+              style={{ borderBottom: i < rows.length - 1 ? "1px solid rgba(0,255,148,0.05)" : "none" }}
             >
               <div className="flex items-center gap-2.5">
-                <row.icon size={12} style={{ color: "rgba(194,210,255,0.28)" }} />
-                <span className="text-xs" style={{ color: "rgba(194,210,255,0.42)" }}>{row.label}</span>
+                <row.icon size={12} style={{ color: "rgba(176,255,224,0.28)" }} />
+                <span className="text-xs" style={{ color: "rgba(176,255,224,0.42)" }}>{row.label}</span>
               </div>
               <span
                 className="text-xs font-semibold text-right max-w-[55%] break-all leading-relaxed"
                 style={{
                   color: row.label === "Amount"         ? cfg.color
-                       : row.label === "Transaction ID" ? "rgba(194,210,255,0.55)"
+                       : row.label === "Transaction ID" ? "rgba(176,255,224,0.55)"
                        : "rgba(200,240,255,0.85)",
                   fontFamily: row.mono ? "monospace" : "inherit",
                 }}
@@ -229,7 +229,7 @@ export default function Transactions() {
         className="text-xl font-bold"
         style={{
           fontFamily: "'Sora', sans-serif",
-          background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+          background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
@@ -260,11 +260,11 @@ export default function Transactions() {
                 boxShadow: `0 0 14px ${f.color}20`,
               } : {
                 background: "rgba(10,14,30,0.55)",
-                border: "1px solid rgba(91,140,255,0.09)",
-                color: "rgba(194,210,255,0.38)",
+                border: "1px solid rgba(0,255,148,0.09)",
+                color: "rgba(176,255,224,0.38)",
               }}
             >
-              <f.icon size={11} style={active ? { color: f.color } : { color: "rgba(194,210,255,0.28)" }} />
+              <f.icon size={11} style={active ? { color: f.color } : { color: "rgba(176,255,224,0.28)" }} />
               {f.label}
             </button>
           );
@@ -278,14 +278,14 @@ export default function Transactions() {
             <div
               key={i}
               className="rounded-2xl h-[76px] animate-pulse"
-              style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.07)" }}
+              style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.07)" }}
             />
           ))}
         </div>
       ) : !incomeData?.records?.length ? (
         <div className="rounded-2xl p-14 text-center" style={GLASS}>
-          <ArrowDownLeft size={36} className="mx-auto mb-3" style={{ color: "rgba(194,210,255,0.12)" }} />
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.28)" }}>No transactions yet</p>
+          <ArrowDownLeft size={36} className="mx-auto mb-3" style={{ color: "rgba(176,255,224,0.12)" }} />
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.28)" }}>No transactions yet</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -323,7 +323,7 @@ export default function Transactions() {
                   {record.description && (
                     <div
                       className="text-sm font-medium truncate leading-snug"
-                      style={{ color: "rgba(194,210,255,0.75)" }}
+                      style={{ color: "rgba(176,255,224,0.75)" }}
                     >
                       {record.description}
                     </div>
@@ -332,13 +332,13 @@ export default function Transactions() {
                   <div className="flex items-center gap-1.5 mt-1">
                     {record.fromUserName && (
                       <>
-                        <span className="text-xs" style={{ color: "rgba(194,210,255,0.38)" }}>
+                        <span className="text-xs" style={{ color: "rgba(176,255,224,0.38)" }}>
                           {record.fromUserName}
                         </span>
-                        <span style={{ color: "rgba(194,210,255,0.18)" }}>·</span>
+                        <span style={{ color: "rgba(176,255,224,0.18)" }}>·</span>
                       </>
                     )}
-                    <span className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>
+                    <span className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>
                       {formatDate(record.createdAt)}
                     </span>
                   </div>

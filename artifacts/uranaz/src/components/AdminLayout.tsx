@@ -5,7 +5,7 @@ import {
   Settings, MessageCircle, Award, Bell, Shield, Menu, X, ArrowLeft, Scale, Star, Gift,
 } from "lucide-react";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 
 const NAV_ITEMS = [
   { href: "/admin",              label: "Dashboard",         sub: "Overview & stats",            icon: LayoutDashboard },
@@ -39,15 +39,15 @@ function NavList({ location, onNavigate }: { location: string; onNavigate?: () =
               className="group rounded-xl px-3 py-2.5 flex items-center gap-3 cursor-pointer transition-all"
               style={{
                 background: active
-                  ? "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))"
+                  ? "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,255,148,0.06))"
                   : "transparent",
                 border: active
-                  ? "1px solid rgba(91,140,255,0.32)"
+                  ? "1px solid rgba(0,255,148,0.32)"
                   : "1px solid transparent",
-                boxShadow: active ? "0 0 18px rgba(91,140,255,0.10)" : "none",
+                boxShadow: active ? "0 0 18px rgba(0,255,148,0.10)" : "none",
               }}
               onMouseEnter={(e) => {
-                if (!active) (e.currentTarget as HTMLElement).style.background = "rgba(91,140,255,0.05)";
+                if (!active) (e.currentTarget as HTMLElement).style.background = "rgba(0,255,148,0.05)";
               }}
               onMouseLeave={(e) => {
                 if (!active) (e.currentTarget as HTMLElement).style.background = "transparent";
@@ -56,9 +56,9 @@ function NavList({ location, onNavigate }: { location: string; onNavigate?: () =
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                 style={{
-                  background: active ? "rgba(91,140,255,0.15)" : "rgba(91,140,255,0.06)",
-                  border: `1px solid ${active ? "rgba(91,140,255,0.35)" : "rgba(91,140,255,0.12)"}`,
-                  color: active ? TEAL : "rgba(194,210,255,0.55)",
+                  background: active ? "rgba(0,255,148,0.15)" : "rgba(0,255,148,0.06)",
+                  border: `1px solid ${active ? "rgba(0,255,148,0.35)" : "rgba(0,255,148,0.12)"}`,
+                  color: active ? TEAL : "rgba(176,255,224,0.55)",
                 }}
               >
                 <Icon size={15} />
@@ -66,11 +66,11 @@ function NavList({ location, onNavigate }: { location: string; onNavigate?: () =
               <div className="min-w-0 flex-1">
                 <div
                   className="text-sm font-semibold truncate"
-                  style={{ color: active ? TEAL : "rgba(194,210,255,0.85)" }}
+                  style={{ color: active ? TEAL : "rgba(176,255,224,0.85)" }}
                 >
                   {label}
                 </div>
-                <div className="text-[10px] truncate" style={{ color: "rgba(194,210,255,0.4)" }}>
+                <div className="text-[10px] truncate" style={{ color: "rgba(176,255,224,0.4)" }}>
                   {sub}
                 </div>
               </div>
@@ -102,7 +102,7 @@ function SidebarShell({ location, onNavigate }: { location: string; onNavigate?:
             className="text-sm font-bold tracking-widest"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -110,7 +110,7 @@ function SidebarShell({ location, onNavigate }: { location: string; onNavigate?:
           >
             ADMIN PANEL
           </div>
-          <div className="text-[10px]" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="text-[10px]" style={{ color: "rgba(176,255,224,0.4)" }}>
             WaytoAlgo
           </div>
         </div>
@@ -118,7 +118,7 @@ function SidebarShell({ location, onNavigate }: { location: string; onNavigate?:
 
       <div
         className="mx-3 mb-3 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(91,140,255,0.18), transparent)" }}
+        style={{ background: "linear-gradient(90deg, transparent, rgba(0,255,148,0.18), transparent)" }}
       />
 
       {/* Items */}
@@ -127,22 +127,22 @@ function SidebarShell({ location, onNavigate }: { location: string; onNavigate?:
       </div>
 
       {/* Footer */}
-      <div className="px-3 pb-4 pt-2" style={{ borderTop: "1px solid rgba(91,140,255,0.08)" }}>
+      <div className="px-3 pb-4 pt-2" style={{ borderTop: "1px solid rgba(0,255,148,0.08)" }}>
         <Link href="/dashboard" onClick={onNavigate}>
           <div
             className="rounded-xl px-3 py-2.5 flex items-center gap-2 cursor-pointer transition-all"
             style={{
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(255,255,255,0.06)",
-              color: "rgba(194,210,255,0.6)",
+              color: "rgba(176,255,224,0.6)",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "rgba(91,140,255,0.25)";
+              (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,255,148,0.25)";
               (e.currentTarget as HTMLElement).style.color = TEAL;
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)";
-              (e.currentTarget as HTMLElement).style.color = "rgba(194,210,255,0.6)";
+              (e.currentTarget as HTMLElement).style.color = "rgba(176,255,224,0.6)";
             }}
           >
             <ArrowLeft size={14} />
@@ -180,7 +180,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           background: "rgba(2, 10, 20, 0.85)",
           backdropFilter: "blur(18px) saturate(1.5)",
           WebkitBackdropFilter: "blur(18px) saturate(1.5)",
-          borderRight: "1px solid rgba(91,140,255,0.12)",
+          borderRight: "1px solid rgba(0,255,148,0.12)",
         }}
       >
         <SidebarShell location={location} />
@@ -193,7 +193,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           background: "rgba(2, 10, 20, 0.92)",
           backdropFilter: "blur(16px) saturate(1.4)",
           WebkitBackdropFilter: "blur(16px) saturate(1.4)",
-          borderBottom: "1px solid rgba(91,140,255,0.10)",
+          borderBottom: "1px solid rgba(0,255,148,0.10)",
         }}
       >
         <button
@@ -201,8 +201,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           onClick={() => setOpen(true)}
           className="w-9 h-9 rounded-xl flex items-center justify-center"
           style={{
-            background: "rgba(91,140,255,0.10)",
-            border: "1px solid rgba(91,140,255,0.22)",
+            background: "rgba(0,255,148,0.10)",
+            border: "1px solid rgba(0,255,148,0.22)",
             color: TEAL,
           }}
           aria-label="Open admin menu"
@@ -213,7 +213,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.7)" }}>
             Admin Panel
           </div>
-          <div className="text-sm font-bold truncate" style={{ color: "rgba(194,210,255,0.9)" }}>
+          <div className="text-sm font-bold truncate" style={{ color: "rgba(176,255,224,0.9)" }}>
             {currentItem?.label ?? "Dashboard"}
           </div>
         </div>
@@ -236,7 +236,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           background: "rgba(2, 10, 20, 0.97)",
           backdropFilter: "blur(20px) saturate(1.6)",
           WebkitBackdropFilter: "blur(20px) saturate(1.6)",
-          borderRight: "1px solid rgba(91,140,255,0.18)",
+          borderRight: "1px solid rgba(0,255,148,0.18)",
           boxShadow: "8px 0 40px rgba(0,0,0,0.6)",
           transform: open ? "translateX(0)" : "translateX(-100%)",
         }}
@@ -248,7 +248,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           style={{
             background: "rgba(255,255,255,0.04)",
             border: "1px solid rgba(255,255,255,0.06)",
-            color: "rgba(194,210,255,0.7)",
+            color: "rgba(176,255,224,0.7)",
           }}
         >
           <X size={15} />

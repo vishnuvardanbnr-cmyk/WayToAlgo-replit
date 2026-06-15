@@ -16,11 +16,11 @@ import {
 
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const GLASS = {
   background: "rgba(10,14,30,0.65)",
   backdropFilter: "blur(14px)",
-  border: "1px solid rgba(91,140,255,0.12)",
+  border: "1px solid rgba(0,255,148,0.12)",
 } as const;
 
 type Mode = "buy" | "sell";
@@ -295,9 +295,9 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
     <div className="space-y-4">
       {/* Preview notice — shown until the deployed contract address is set */}
       {!configured && (
-        <div className="flex gap-2.5 px-4 py-3 rounded-2xl" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.2)" }}>
+        <div className="flex gap-2.5 px-4 py-3 rounded-2xl" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.2)" }}>
           <Sparkles size={15} className="shrink-0 mt-0.5" style={{ color: TEAL }} />
-          <p className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.7)" }}>
+          <p className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.7)" }}>
             <span style={{ color: TEAL, fontWeight: 700 }}>Preview mode.</span> This is exactly how the live Buy/Sell screen will look. Prices, balances and trading turn on automatically once the deployed contract address is added.
           </p>
         </div>
@@ -309,7 +309,7 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))", border: "1px solid rgba(91,140,255,0.28)" }}
+              style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,255,148,0.06))", border: "1px solid rgba(0,255,148,0.28)" }}
             >
               <Coins size={18} style={{ color: TEAL }} />
             </div>
@@ -317,51 +317,51 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
               <div className="font-bold tracking-wide" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.85rem" }}>
                 {symbol} Token
               </div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>On-chain · BNB Smart Chain</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>On-chain · BNB Smart Chain</div>
             </div>
           </div>
           <button
             onClick={() => refreshChain()}
             disabled={loadingChain}
             className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.09)" }}
+            style={{ background: "rgba(176,255,224,0.06)", border: "1px solid rgba(176,255,224,0.09)" }}
             title="Refresh"
           >
-            <RefreshCw size={13} className={loadingChain ? "animate-spin" : ""} style={{ color: "rgba(194,210,255,0.5)" }} />
+            <RefreshCw size={13} className={loadingChain ? "animate-spin" : ""} style={{ color: "rgba(176,255,224,0.5)" }} />
           </button>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)" }}>
-            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.12)" }}>
+            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
               <TrendingUp size={11} /> Buy Price
             </div>
             <div className="font-bold text-sm" style={{ color: TEAL }}>{priceUsdt} USDT</div>
           </div>
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(194,210,255,0.04)", border: "1px solid rgba(194,210,255,0.1)" }}>
-            <div className="text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Sell Price</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(176,255,224,0.04)", border: "1px solid rgba(176,255,224,0.1)" }}>
+            <div className="text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>Sell Price</div>
             <div className="font-bold text-sm" style={{ color: "rgba(200,240,255,0.85)" }}>{sellPriceUsdt} USDT</div>
           </div>
         </div>
 
         {/* Token-wide on-chain stats */}
         <div className="grid grid-cols-3 gap-2 mt-2">
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(194,210,255,0.04)", border: "1px solid rgba(194,210,255,0.1)" }}>
-            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(176,255,224,0.04)", border: "1px solid rgba(176,255,224,0.1)" }}>
+            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
               <Droplet size={11} /> Liquidity
             </div>
             <div className="font-bold text-sm truncate" style={{ color: "rgba(200,240,255,0.85)" }}>
-              {liquidityUsdt}<span className="text-xs font-normal" style={{ color: "rgba(194,210,255,0.4)" }}> USDT</span>
+              {liquidityUsdt}<span className="text-xs font-normal" style={{ color: "rgba(176,255,224,0.4)" }}> USDT</span>
             </div>
           </div>
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(194,210,255,0.04)", border: "1px solid rgba(194,210,255,0.1)" }}>
-            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(176,255,224,0.04)", border: "1px solid rgba(176,255,224,0.1)" }}>
+            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
               <Layers size={11} /> Supply
             </div>
             <div className="font-bold text-sm truncate" style={{ color: "rgba(200,240,255,0.85)" }}>{supplyDisplay}</div>
           </div>
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(194,210,255,0.04)", border: "1px solid rgba(194,210,255,0.1)" }}>
-            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(176,255,224,0.04)", border: "1px solid rgba(176,255,224,0.1)" }}>
+            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
               <Users size={11} /> Holders
             </div>
             <div className="font-bold text-sm truncate" style={{ color: "rgba(200,240,255,0.85)" }}>{holdersDisplay}</div>
@@ -376,9 +376,9 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
             onClick={connect}
             className="w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2"
             style={{
-              background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814",
+              background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A",
               fontFamily: "'Sora', sans-serif", fontSize: "0.75rem", letterSpacing: "0.05em",
-              boxShadow: "0 0 24px rgba(91,140,255,0.25)",
+              boxShadow: "0 0 24px rgba(0,255,148,0.25)",
             }}
           >
             <Wallet size={15} /> Connect Wallet
@@ -389,17 +389,17 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#34d399", boxShadow: "0 0 6px #34d399" }} />
-                <span className="text-xs font-mono" style={{ color: "rgba(194,210,255,0.55)" }}>
+                <span className="text-xs font-mono" style={{ color: "rgba(176,255,224,0.55)" }}>
                   {account.slice(0, 6)}…{account.slice(-4)}
                 </span>
               </div>
-              <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
+              <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
                 {symbol}: <span style={{ color: "rgba(200,240,255,0.8)", fontWeight: 600 }}>{formatUnits18(tokenBal, 4)}</span>
               </div>
             </div>
 
             {/* buy/sell switch */}
-            <div className="flex gap-1.5 p-1 rounded-xl mb-4" style={{ background: "rgba(0,20,40,0.5)", border: "1px solid rgba(91,140,255,0.1)" }}>
+            <div className="flex gap-1.5 p-1 rounded-xl mb-4" style={{ background: "rgba(0,20,40,0.5)", border: "1px solid rgba(0,255,148,0.1)" }}>
               {(["buy", "sell"] as Mode[]).map(m => (
                 <button
                   key={m}
@@ -407,9 +407,9 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
                   disabled={busy}
                   className="flex-1 py-2 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                   style={{
-                    background: mode === m ? (m === "buy" ? "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(91,140,255,0.08))" : "linear-gradient(135deg, rgba(248,113,113,0.2), rgba(248,113,113,0.07))") : "transparent",
-                    border: mode === m ? `1px solid ${m === "buy" ? "rgba(91,140,255,0.4)" : "rgba(248,113,113,0.4)"}` : "1px solid transparent",
-                    color: mode === m ? (m === "buy" ? TEAL : "#f87171") : "rgba(194,210,255,0.4)",
+                    background: mode === m ? (m === "buy" ? "linear-gradient(135deg, rgba(0,255,148,0.22), rgba(0,255,148,0.08))" : "linear-gradient(135deg, rgba(248,113,113,0.2), rgba(248,113,113,0.07))") : "transparent",
+                    border: mode === m ? `1px solid ${m === "buy" ? "rgba(0,255,148,0.4)" : "rgba(248,113,113,0.4)"}` : "1px solid transparent",
+                    color: mode === m ? (m === "buy" ? TEAL : "#f87171") : "rgba(176,255,224,0.4)",
                     textTransform: "uppercase", letterSpacing: "0.05em",
                   }}
                 >
@@ -421,7 +421,7 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
             {/* amount input */}
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs" style={{ color: "rgba(194,210,255,0.55)" }}>
+                <label className="text-xs" style={{ color: "rgba(176,255,224,0.55)" }}>
                   You pay ({balLabel})
                 </label>
                 <button
@@ -441,7 +441,7 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
                   onChange={e => setAmount(e.target.value)}
                   disabled={busy}
                   className="w-full px-4 py-3 pr-20 rounded-xl text-sm outline-none disabled:opacity-50"
-                  style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(91,140,255,0.22)", color: "rgba(194,210,255,0.9)" }}
+                  style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(0,255,148,0.22)", color: "rgba(176,255,224,0.9)" }}
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold" style={{ color: TEAL }}>{balLabel}</span>
               </div>
@@ -449,32 +449,32 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
 
             {/* estimated output */}
             <div className="flex items-center justify-center my-1">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.15)" }}>
-                <ArrowDownUp size={13} style={{ color: "rgba(194,210,255,0.5)" }} />
+              <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.15)" }}>
+                <ArrowDownUp size={13} style={{ color: "rgba(176,255,224,0.5)" }} />
               </div>
             </div>
 
-            <div className="mb-4 rounded-xl px-4 py-3" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.1)" }}>
-              <div className="text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <div className="mb-4 rounded-xl px-4 py-3" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.1)" }}>
+              <div className="text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
                 You receive (estimated)
               </div>
               <div className="font-bold text-base" style={{ color: mode === "buy" ? TEAL : "#34d399" }}>
                 {mode === "buy"
                   ? (netBuyTokens !== null ? formatUnits18(netBuyTokens, 4) : "—")
                   : (quoteOut !== null ? formatUnits18(quoteOut, 4) : "—")}{" "}
-                <span className="text-xs font-normal" style={{ color: "rgba(194,210,255,0.45)" }}>
+                <span className="text-xs font-normal" style={{ color: "rgba(176,255,224,0.45)" }}>
                   {mode === "buy" ? symbol : "USDT"}
                 </span>
               </div>
               {mode === "buy" && activeReferralBps > 0 && grossBuy !== null && (
-                <div className="flex items-center gap-1.5 text-xs mt-1.5" style={{ color: "rgba(194,210,255,0.45)" }}>
+                <div className="flex items-center gap-1.5 text-xs mt-1.5" style={{ color: "rgba(176,255,224,0.45)" }}>
                   <Users size={11} style={{ color: TEAL }} />
                   <span>
                     {formatUnits18(referralTokens, 4)} {symbol} ({referralPct.toFixed(2)}%) shared to your upline team
                   </span>
                 </div>
               )}
-              <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.3)" }}>
+              <div className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.3)" }}>
                 Includes the contract's 10% spread · 1% slippage protection
                 {mode === "buy" && activeReferralBps > 0 ? " · referral reward" : ""}
               </div>
@@ -485,8 +485,8 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
               <div
                 className="flex items-center gap-3 px-4 py-3 rounded-xl mb-3"
                 style={{
-                  background: stage === "success" ? "rgba(52,211,153,0.06)" : stage === "failed" ? "rgba(248,113,113,0.06)" : "rgba(91,140,255,0.06)",
-                  border: `1px solid ${stage === "success" ? "rgba(52,211,153,0.3)" : stage === "failed" ? "rgba(248,113,113,0.3)" : "rgba(91,140,255,0.2)"}`,
+                  background: stage === "success" ? "rgba(52,211,153,0.06)" : stage === "failed" ? "rgba(248,113,113,0.06)" : "rgba(0,255,148,0.06)",
+                  border: `1px solid ${stage === "success" ? "rgba(52,211,153,0.3)" : stage === "failed" ? "rgba(248,113,113,0.3)" : "rgba(0,255,148,0.2)"}`,
                 }}
               >
                 {busy && <RefreshCw size={14} className="animate-spin shrink-0" style={{ color: TEAL }} />}
@@ -494,10 +494,10 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
                 {stage === "failed" && <XCircle size={14} className="shrink-0" style={{ color: "rgba(248,113,113,0.9)" }} />}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium" style={{
-                    color: stage === "success" ? "rgba(52,211,153,0.95)" : stage === "failed" ? "rgba(248,113,113,0.9)" : "rgba(194,210,255,0.85)",
+                    color: stage === "success" ? "rgba(52,211,153,0.95)" : stage === "failed" ? "rgba(248,113,113,0.9)" : "rgba(176,255,224,0.85)",
                   }}>{STAGE_LABEL[stage]}</p>
                   {errorMsg && stage === "failed" && (
-                    <p className="text-xs mt-0.5 break-words" style={{ color: "rgba(194,210,255,0.4)" }}>{errorMsg}</p>
+                    <p className="text-xs mt-0.5 break-words" style={{ color: "rgba(176,255,224,0.4)" }}>{errorMsg}</p>
                   )}
                 </div>
                 {txHash && (
@@ -519,13 +519,13 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
               className="w-full py-3.5 rounded-2xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{
                 background: !configured
-                  ? "rgba(194,210,255,0.08)"
+                  ? "rgba(176,255,224,0.08)"
                   : mode === "buy"
-                    ? "linear-gradient(135deg, #5B8CFF, #3D5CE0)"
+                    ? "linear-gradient(135deg, #00FF94, #00CC77)"
                     : "linear-gradient(135deg, #f87171, #dc4f4f)",
-                color: !configured ? "rgba(194,210,255,0.6)" : mode === "buy" ? "#060814" : "#fff",
+                color: !configured ? "rgba(176,255,224,0.6)" : mode === "buy" ? "#050C0A" : "#fff",
                 fontFamily: "'Sora', sans-serif", fontSize: "0.75rem", letterSpacing: "0.05em",
-                boxShadow: !configured ? "none" : mode === "buy" ? "0 0 24px rgba(91,140,255,0.25)" : "0 0 24px rgba(248,113,113,0.2)",
+                boxShadow: !configured ? "none" : mode === "buy" ? "0 0 24px rgba(0,255,148,0.25)" : "0 0 24px rgba(248,113,113,0.2)",
               }}
             >
               {!configured ? (

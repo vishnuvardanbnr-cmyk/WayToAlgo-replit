@@ -47,9 +47,9 @@ async function fetchRegistrationInfo(): Promise<RegistrationInfo> {
 
 interface Props { onLogin: (user: any) => void; }
 
-const TEAL = "#5B8CFF";
-const LABEL_STYLE = { color: "rgba(194,210,255,0.7)", fontSize: "0.8rem", letterSpacing: "0.05em" };
-const INPUT_STYLE = { background: "rgba(0,20,40,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" };
+const TEAL = "#00FF94";
+const LABEL_STYLE = { color: "rgba(176,255,224,0.7)", fontSize: "0.8rem", letterSpacing: "0.05em" };
+const INPUT_STYLE = { background: "rgba(0,20,40,0.6)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" };
 
 async function checkOtpRequired(): Promise<{ registrationOtp: boolean; withdrawalOtp: boolean }> {
   const res = await fetch("/api/auth/otp-required");
@@ -234,7 +234,7 @@ export default function Register({ onLogin }: Props) {
             className="text-2xl font-bold mb-1"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -242,7 +242,7 @@ export default function Register({ onLogin }: Props) {
           >
             {step === "otp" ? "Verify Email" : "Create Account"}
           </h1>
-          <p style={{ color: "rgba(194,210,255,0.5)", fontSize: "0.875rem" }}>
+          <p style={{ color: "rgba(176,255,224,0.5)", fontSize: "0.875rem" }}>
             {step === "otp"
               ? `We sent a code to ${formData?.email}`
               : "Join WaytoAlgo and start earning"}
@@ -256,7 +256,7 @@ export default function Register({ onLogin }: Props) {
             backdropFilter: "blur(24px) saturate(1.5)",
             WebkitBackdropFilter: "blur(24px) saturate(1.5)",
             border: "1px solid rgba(91, 140, 255, 0.20)",
-            boxShadow: "0 0 0 1px rgba(91,140,255,0.06) inset, 0 20px 60px rgba(0,0,0,0.5)",
+            boxShadow: "0 0 0 1px rgba(0,255,148,0.06) inset, 0 20px 60px rgba(0,0,0,0.5)",
           }}
         >
 
@@ -278,12 +278,12 @@ export default function Register({ onLogin }: Props) {
                         disabled={wallet.connecting}
                         className="w-full py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-60 flex items-center justify-center gap-2"
                         style={{
-                          background: "rgba(91,140,255,0.10)",
-                          border: "1px solid rgba(91,140,255,0.35)",
+                          background: "rgba(0,255,148,0.10)",
+                          border: "1px solid rgba(0,255,148,0.35)",
                           color: TEAL,
                           fontWeight: 700,
                           letterSpacing: "0.04em",
-                          boxShadow: "0 0 12px rgba(91,140,255,0.10)",
+                          boxShadow: "0 0 12px rgba(0,255,148,0.10)",
                         }}
                       >
                         <Wallet size={15} />
@@ -305,15 +305,15 @@ export default function Register({ onLogin }: Props) {
                         className="w-full h-10 rounded-xl px-3 flex items-center gap-2"
                         style={{
                           background: "rgba(0,20,40,0.6)",
-                          border: "1px solid rgba(91,140,255,0.35)",
+                          border: "1px solid rgba(0,255,148,0.35)",
                         }}
                       >
-                        <span className="truncate flex-1" style={{ fontFamily: "monospace", fontSize: "0.75rem", color: "rgba(194,210,255,0.85)" }}>
+                        <span className="truncate flex-1" style={{ fontFamily: "monospace", fontSize: "0.75rem", color: "rgba(176,255,224,0.85)" }}>
                           {connectedAddress}
                         </span>
                         <span
                           className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full"
-                          style={{ background: "rgba(91,140,255,0.15)", color: TEAL, border: "1px solid rgba(91,140,255,0.3)", letterSpacing: "0.02em" }}
+                          style={{ background: "rgba(0,255,148,0.15)", color: TEAL, border: "1px solid rgba(0,255,148,0.3)", letterSpacing: "0.02em" }}
                         >
                           Connected
                         </span>
@@ -322,7 +322,7 @@ export default function Register({ onLogin }: Props) {
                           onClick={() => { setConnectedAddress(""); setWalletExists(false); }}
                           className="shrink-0 w-5 h-5 flex items-center justify-center rounded-full transition-colors hover:bg-white/10"
                           title="Disconnect wallet"
-                          style={{ color: "rgba(194,210,255,0.35)" }}
+                          style={{ color: "rgba(176,255,224,0.35)" }}
                         >
                           ✕
                         </button>
@@ -346,8 +346,8 @@ export default function Register({ onLogin }: Props) {
                     data-testid="banner-first-admin"
                     className="flex items-start gap-3 p-3 rounded-xl"
                     style={{
-                      background: "rgba(91,140,255,0.08)",
-                      border: "1px solid rgba(91,140,255,0.25)",
+                      background: "rgba(0,255,148,0.08)",
+                      border: "1px solid rgba(0,255,148,0.25)",
                     }}
                   >
                     <ShieldCheck size={18} style={{ color: TEAL, flexShrink: 0, marginTop: 2 }} />
@@ -355,7 +355,7 @@ export default function Register({ onLogin }: Props) {
                       <div className="text-xs font-semibold" style={{ color: TEAL, letterSpacing: "0.04em" }}>
                         FIRST ACCOUNT — ADMIN ACCESS
                       </div>
-                      <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.65)" }}>
+                      <p className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.65)" }}>
                         You are the first user on this platform. This account will be created as the
                         admin and a referral code is not required.
                       </p>
@@ -398,7 +398,7 @@ export default function Register({ onLogin }: Props) {
                             className="w-full h-9 rounded-md px-3 flex items-center justify-between text-sm"
                             style={field.value
                               ? INPUT_STYLE
-                              : { ...INPUT_STYLE, color: "rgba(194,210,255,0.4)" }}
+                              : { ...INPUT_STYLE, color: "rgba(176,255,224,0.4)" }}
                           >
                             {field.value
                               ? (() => {
@@ -406,7 +406,7 @@ export default function Register({ onLogin }: Props) {
                                   return c ? `${c.name} (${c.dialCode})` : field.value;
                                 })()
                               : "Search country…"}
-                            <ChevronsUpDown size={14} style={{ color: "rgba(91,140,255,0.5)", flexShrink: 0 }} />
+                            <ChevronsUpDown size={14} style={{ color: "rgba(0,255,148,0.5)", flexShrink: 0 }} />
                           </button>
                         </FormControl>
                       </PopoverTrigger>
@@ -414,15 +414,15 @@ export default function Register({ onLogin }: Props) {
                         className="p-0 w-[var(--radix-popover-trigger-width)]"
                         style={{
                           background: "rgba(10,14,30,0.97)",
-                          border: "1px solid rgba(91,140,255,0.25)",
-                          color: "rgba(194,210,255,0.9)",
+                          border: "1px solid rgba(0,255,148,0.25)",
+                          color: "rgba(176,255,224,0.9)",
                           backdropFilter: "blur(24px)",
                         }}
                         align="start"
                         sideOffset={4}
                       >
                         <Command
-                          style={{ background: "transparent", color: "rgba(194,210,255,0.9)" }}
+                          style={{ background: "transparent", color: "rgba(176,255,224,0.9)" }}
                           filter={(value, search) => {
                             const c = COUNTRY_BY_ISO2[value];
                             if (!c) return 0;
@@ -435,10 +435,10 @@ export default function Register({ onLogin }: Props) {
                           <CommandInput
                             placeholder="Type to search…"
                             className="text-sm"
-                            style={{ color: "rgba(194,210,255,0.9)" }}
+                            style={{ color: "rgba(176,255,224,0.9)" }}
                           />
                           <CommandList className="max-h-56">
-                            <CommandEmpty style={{ color: "rgba(194,210,255,0.45)" }}>
+                            <CommandEmpty style={{ color: "rgba(176,255,224,0.45)" }}>
                               No country found.
                             </CommandEmpty>
                             {COUNTRIES.map((c) => (
@@ -451,11 +451,11 @@ export default function Register({ onLogin }: Props) {
                                   setCountryOpen(false);
                                 }}
                                 className="cursor-pointer flex items-center justify-between gap-2"
-                                style={{ color: "rgba(194,210,255,0.85)" }}
+                                style={{ color: "rgba(176,255,224,0.85)" }}
                               >
                                 <span className="flex items-center gap-2">
                                   <span>{c.name}</span>
-                                  <span style={{ color: "rgba(194,210,255,0.4)", fontSize: "0.75rem" }}>
+                                  <span style={{ color: "rgba(176,255,224,0.4)", fontSize: "0.75rem" }}>
                                     {c.dialCode}
                                   </span>
                                 </span>
@@ -486,9 +486,9 @@ export default function Register({ onLogin }: Props) {
                           aria-label="Country dial code"
                           className="flex items-center px-3 text-sm select-none"
                           style={{
-                            background: "rgba(91,140,255,0.10)",
-                            color: selectedCountry ? TEAL : "rgba(194,210,255,0.4)",
-                            borderRight: "1px solid rgba(91,140,255,0.18)",
+                            background: "rgba(0,255,148,0.10)",
+                            color: selectedCountry ? TEAL : "rgba(176,255,224,0.4)",
+                            borderRight: "1px solid rgba(0,255,148,0.18)",
                             fontWeight: 600,
                             minWidth: 64,
                             justifyContent: "center",
@@ -510,7 +510,7 @@ export default function Register({ onLogin }: Props) {
                           name={field.name}
                           ref={field.ref}
                           className="flex-1 bg-transparent px-3 text-sm focus:outline-none disabled:opacity-60"
-                          style={{ color: "rgba(194,210,255,0.9)" }}
+                          style={{ color: "rgba(176,255,224,0.9)" }}
                         />
                       </div>
                     </FormControl>
@@ -562,7 +562,7 @@ export default function Register({ onLogin }: Props) {
                           {...field}
                           style={{
                             ...INPUT_STYLE,
-                            ...(ref ? { opacity: 0.75, cursor: "not-allowed", borderColor: "rgba(91,140,255,0.35)" } : {}),
+                            ...(ref ? { opacity: 0.75, cursor: "not-allowed", borderColor: "rgba(0,255,148,0.35)" } : {}),
                           }}
                         />
                       </FormControl>
@@ -577,11 +577,11 @@ export default function Register({ onLogin }: Props) {
                   disabled={registerMutation.isPending || sending || !connectedAddress || walletExists}
                   className="w-full py-2.5 rounded-xl font-semibold transition-all duration-200 disabled:opacity-60 mt-2"
                   style={{
-                    background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                    color: "#060814",
+                    background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                    color: "#050C0A",
                     fontWeight: 700,
                     letterSpacing: "0.04em",
-                    boxShadow: "0 0 20px rgba(91,140,255,0.35), 0 4px 16px rgba(0,0,0,0.4)",
+                    boxShadow: "0 0 20px rgba(0,255,148,0.35), 0 4px 16px rgba(0,0,0,0.4)",
                   }}
                 >
                   {sending ? "Sending OTP..." : registerMutation.isPending ? "Creating account..." : "Create Account"}
@@ -595,10 +595,10 @@ export default function Register({ onLogin }: Props) {
             <div className="space-y-5">
               <div
                 className="flex items-center gap-3 p-3 rounded-xl"
-                style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.14)" }}
+                style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.14)" }}
               >
                 <Mail size={18} style={{ color: TEAL, flexShrink: 0 }} />
-                <p className="text-xs" style={{ color: "rgba(194,210,255,0.6)" }}>
+                <p className="text-xs" style={{ color: "rgba(176,255,224,0.6)" }}>
                   Enter the 6-digit code sent to <span style={{ color: TEAL }}>{formData?.email}</span>
                 </p>
               </div>
@@ -616,7 +616,7 @@ export default function Register({ onLogin }: Props) {
                   className="w-full rounded-xl px-3 py-3 text-center text-2xl font-bold tracking-[0.4em] focus:outline-none"
                   style={{
                     background: "rgba(0,20,40,0.7)",
-                    border: "1px solid rgba(91,140,255,0.25)",
+                    border: "1px solid rgba(0,255,148,0.25)",
                     color: TEAL,
                     letterSpacing: "0.4em",
                   }}
@@ -629,10 +629,10 @@ export default function Register({ onLogin }: Props) {
                 disabled={registerMutation.isPending || otp.length !== 6}
                 className="w-full py-2.5 rounded-xl font-bold transition-all disabled:opacity-60"
                 style={{
-                  background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                  color: "#060814",
+                  background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                  color: "#050C0A",
                   letterSpacing: "0.04em",
-                  boxShadow: "0 0 20px rgba(91,140,255,0.35)",
+                  boxShadow: "0 0 20px rgba(0,255,148,0.35)",
                 }}
               >
                 {registerMutation.isPending ? "Verifying..." : "Verify & Create Account"}
@@ -643,7 +643,7 @@ export default function Register({ onLogin }: Props) {
                   type="button"
                   onClick={() => { setStep("form"); setOtp(""); }}
                   className="flex items-center gap-1.5 text-xs"
-                  style={{ color: "rgba(194,210,255,0.4)" }}
+                  style={{ color: "rgba(176,255,224,0.4)" }}
                 >
                   <ArrowLeft size={12} /> Back
                 </button>
@@ -662,11 +662,11 @@ export default function Register({ onLogin }: Props) {
 
           {step === "form" && (
             <>
-              <div className="mt-5 text-center text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>
+              <div className="mt-5 text-center text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>
                 Already have an account?{" "}
                 <Link href="/login" style={{ color: TEAL, fontWeight: 600 }} className="hover:underline">Sign In</Link>
               </div>
-              <div className="mt-3 text-xs text-center" style={{ color: "rgba(194,210,255,0.3)" }}>
+              <div className="mt-3 text-xs text-center" style={{ color: "rgba(176,255,224,0.3)" }}>
                 By registering, you agree to our{" "}
                 <Link href="/terms" style={{ color: TEAL }} className="hover:underline">Terms</Link> and{" "}
                 <Link href="/privacy" style={{ color: TEAL }} className="hover:underline">Privacy Policy</Link>

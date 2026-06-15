@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Monitor, Smartphone, Shield } from "lucide-react";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 
 const PUBLIC_PATHS = ["/", "/login", "/register", "/terms", "/privacy"];
 
@@ -30,7 +30,7 @@ function BlockShell({
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center px-6 py-10"
-      style={{ background: "#060814" }}
+      style={{ background: "#050C0A" }}
     >
       <div
         className="w-full max-w-md rounded-3xl p-8 text-center"

@@ -60,56 +60,56 @@
   --button-outline: rgba(0,0,0,.12);
   --badge-outline: rgba(0,0,0,.06);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(91,140,255,0.06);
-  --elevate-2: rgba(91,140,255,0.10);
+  --elevate-1: rgba(0,255,148,0.06);
+  --elevate-2: rgba(0,255,148,0.10);
 
-  /* === WAYTOALGO THEME === */
-  /* Deep space background — nearly black with cool blue tint */
-  --background: 225 55% 5%;
-  --foreground: 222 55% 92%;
+  /* === EMERALD MATRIX THEME === */
+  /* Deep black with subtle green tint */
+  --background: 158 55% 4%;
+  --foreground: 152 40% 88%;
 
-  --border: 224 35% 18%;
+  --border: 152 30% 16%;
   /* Glass card surfaces */
-  --card: 224 45% 8%;
-  --card-foreground: 222 50% 88%;
-  --card-border: 224 40% 22%;
+  --card: 158 45% 7%;
+  --card-foreground: 152 35% 85%;
+  --card-border: 152 35% 20%;
 
-  --sidebar: 225 50% 6%;
-  --sidebar-foreground: 222 50% 88%;
-  --sidebar-border: 224 35% 18%;
-  --sidebar-primary: 222 90% 66%;
-  --sidebar-primary-foreground: 224 60% 8%;
-  --sidebar-accent: 224 40% 12%;
-  --sidebar-accent-foreground: 222 50% 88%;
-  --sidebar-ring: 222 90% 66%;
+  --sidebar: 158 50% 5%;
+  --sidebar-foreground: 152 35% 85%;
+  --sidebar-border: 152 30% 16%;
+  --sidebar-primary: 152 100% 50%;
+  --sidebar-primary-foreground: 158 60% 6%;
+  --sidebar-accent: 155 40% 11%;
+  --sidebar-accent-foreground: 152 35% 85%;
+  --sidebar-ring: 152 100% 50%;
 
-  --popover: 224 45% 8%;
-  --popover-foreground: 222 50% 88%;
-  --popover-border: 224 40% 22%;
+  --popover: 158 45% 7%;
+  --popover-foreground: 152 35% 85%;
+  --popover-border: 152 35% 20%;
 
-  /* WaytoAlgo teal/cyan — #5B8CFF */
-  --primary: 222 90% 66%;
-  --primary-foreground: 224 60% 8%;
+  /* Neon green — #00FF94 */
+  --primary: 152 100% 50%;
+  --primary-foreground: 158 60% 6%;
 
-  --secondary: 224 40% 12%;
-  --secondary-foreground: 222 50% 88%;
+  --secondary: 155 40% 11%;
+  --secondary-foreground: 152 35% 85%;
 
-  --muted: 224 38% 11%;
-  --muted-foreground: 222 28% 60%;
+  --muted: 155 38% 10%;
+  --muted-foreground: 152 25% 55%;
 
-  --accent: 222 90% 66%;
-  --accent-foreground: 224 60% 8%;
+  --accent: 152 100% 50%;
+  --accent-foreground: 158 60% 6%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 224 35% 15%;
-  --ring: 222 90% 66%;
+  --input: 155 35% 13%;
+  --ring: 152 100% 50%;
 
-  --chart-1: 222 90% 66%;
+  --chart-1: 152 100% 50%;
   --chart-2: 165 80% 55%;
-  --chart-3: 220 80% 60%;
-  --chart-4: 270 70% 65%;
+  --chart-3: 140 80% 60%;
+  --chart-4: 180 70% 55%;
   --chart-5: 0 84% 60%;
 
   --app-font-sans: 'Inter', sans-serif;
@@ -117,14 +117,14 @@
   --app-font-mono: Menlo, monospace;
   --radius: .75rem;
 
-  --shadow-2xs: 0px 2px 8px 0px rgba(0,0,0,0.6);
-  --shadow-xs: 0px 2px 8px 0px rgba(0,0,0,0.6);
-  --shadow-sm: 0px 4px 12px 0px rgba(0,0,0,0.7);
-  --shadow: 0px 4px 20px 0px rgba(91,140,255,0.08),0px 4px 16px rgba(0,0,0,0.6);
-  --shadow-md: 0px 8px 24px 0px rgba(91,140,255,0.10),0px 8px 24px rgba(0,0,0,0.6);
-  --shadow-lg: 0px 12px 40px 0px rgba(91,140,255,0.12),0px 12px 32px rgba(0,0,0,0.7);
-  --shadow-xl: 0px 20px 60px 0px rgba(91,140,255,0.15),0px 20px 48px rgba(0,0,0,0.7);
-  --shadow-2xl: 0px 32px 80px 0px rgba(91,140,255,0.18),0px 32px 64px rgba(0,0,0,0.8);
+  --shadow-2xs: 0px 2px 8px 0px rgba(0,0,0,0.7);
+  --shadow-xs:  0px 2px 8px 0px rgba(0,0,0,0.7);
+  --shadow-sm:  0px 4px 12px 0px rgba(0,0,0,0.8);
+  --shadow:     0px 4px 20px 0px rgba(0,255,148,0.07), 0px 4px 16px rgba(0,0,0,0.7);
+  --shadow-md:  0px 8px 24px 0px rgba(0,255,148,0.09), 0px 8px 24px rgba(0,0,0,0.7);
+  --shadow-lg:  0px 12px 40px 0px rgba(0,255,148,0.11), 0px 12px 32px rgba(0,0,0,0.8);
+  --shadow-xl:  0px 20px 60px 0px rgba(0,255,148,0.13), 0px 20px 48px rgba(0,0,0,0.8);
+  --shadow-2xl: 0px 32px 80px 0px rgba(0,255,148,0.16), 0px 32px 64px rgba(0,0,0,0.85);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -136,14 +136,14 @@
   --accent-border: hsl(var(--accent));
   --destructive-border: hsl(var(--destructive));
 
-  /* WaytoAlgo color tokens */
-  --uranus-teal: #5B8CFF;
-  --uranus-teal-dim: #3D5CE0;
-  --uranus-ice: #C2D2FF;
-  --uranus-ring: rgba(91, 140, 255, 0.18);
-  --uranus-glow: rgba(91, 140, 255, 0.25);
-  --uranus-nebula: rgba(100, 60, 200, 0.12);
-  --space-black: #060814;
+  /* Emerald Matrix color tokens */
+  --uranus-teal:   #00FF94;
+  --uranus-teal-dim: #00CC77;
+  --uranus-ice:    #B0FFE0;
+  --uranus-ring:   rgba(0, 255, 148, 0.18);
+  --uranus-glow:   rgba(0, 255, 148, 0.25);
+  --uranus-nebula: rgba(0, 204, 119, 0.10);
+  --space-black:   #050C0A;
 }
 
 /* ======================================
@@ -168,8 +168,8 @@
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(91,140,255,0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(91,140,255,0.045) 1px, transparent 1px);
+    linear-gradient(rgba(0,255,148,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,148,0.04) 1px, transparent 1px);
   background-size: 56px 56px;
   -webkit-mask-image: radial-gradient(ellipse 90% 75% at 50% 25%, #000 35%, transparent 100%);
           mask-image: radial-gradient(ellipse 90% 75% at 50% 25%, #000 35%, transparent 100%);
@@ -188,7 +188,7 @@
   height: 640px;
   top: -240px;
   right: -160px;
-  background: radial-gradient(circle, rgba(91,140,255,0.16) 0%, rgba(61,92,224,0.08) 45%, transparent 70%);
+  background: radial-gradient(circle, rgba(0,255,148,0.13) 0%, rgba(0,204,119,0.06) 45%, transparent 70%);
   animation: glow-drift 16s ease-in-out infinite;
 }
 
@@ -197,14 +197,14 @@
   height: 480px;
   bottom: -180px;
   left: -140px;
-  background: radial-gradient(circle, rgba(61,92,224,0.12) 0%, rgba(91,140,255,0.05) 50%, transparent 70%);
+  background: radial-gradient(circle, rgba(0,204,119,0.10) 0%, rgba(0,255,148,0.04) 50%, transparent 70%);
   animation: glow-drift 22s ease-in-out infinite;
   animation-delay: -8s;
 }
 
 @keyframes glow-drift {
   0%, 100% { opacity: 0.65; transform: scale(1); }
-  50%      { opacity: 1;    transform: scale(1.07); }
+  50%       { opacity: 1;    transform: scale(1.07); }
 }
 
 .app-sheen {
@@ -212,7 +212,7 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(ellipse 100% 55% at 50% -12%, rgba(91,140,255,0.06) 0%, transparent 60%);
+  background: radial-gradient(ellipse 100% 55% at 50% -12%, rgba(0,255,148,0.05) 0%, transparent 60%);
 }
 
 
@@ -220,102 +220,100 @@
    GLASSMORPHISM CARDS
    ====================================== */
 .glass-card {
-  background: rgba(12, 16, 34, 0.65);
+  background: rgba(5, 18, 12, 0.65);
   backdrop-filter: blur(16px) saturate(1.4);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border: 1px solid rgba(91, 140, 255, 0.15);
+  border: 1px solid rgba(0, 255, 148, 0.12);
   box-shadow:
-    0 0 0 1px rgba(91, 140, 255, 0.05) inset,
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 60px rgba(91, 140, 255, 0.04);
+    0 0 0 1px rgba(0, 255, 148, 0.04) inset,
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(0, 255, 148, 0.03);
 }
 
 .glass-card-bright {
-  background: rgba(16, 20, 40, 0.75);
+  background: rgba(8, 22, 15, 0.75);
   backdrop-filter: blur(20px) saturate(1.5);
   -webkit-backdrop-filter: blur(20px) saturate(1.5);
-  border: 1px solid rgba(91, 140, 255, 0.25);
+  border: 1px solid rgba(0, 255, 148, 0.22);
   box-shadow:
-    0 0 0 1px rgba(91, 140, 255, 0.08) inset,
-    0 8px 40px rgba(0, 0, 0, 0.5),
-    0 0 80px rgba(91, 140, 255, 0.06);
+    0 0 0 1px rgba(0, 255, 148, 0.07) inset,
+    0 8px 40px rgba(0, 0, 0, 0.55),
+    0 0 80px rgba(0, 255, 148, 0.05);
 }
 
 /* ======================================
-   TEAL GRADIENT TEXT
+   GRADIENT TEXT
    ====================================== */
 .uranus-text {
-  background: linear-gradient(135deg, #C2D2FF 0%, #5B8CFF 40%, #3D5CE0 70%, #5B8CFF 100%);
+  background: linear-gradient(135deg, #B0FFE0 0%, #00FF94 40%, #00CC77 70%, #00FF94 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .uranus-text-gold {
-  background: linear-gradient(135deg, #5B8CFF 0%, #C2D2FF 50%, #5B8CFF 100%);
+  background: linear-gradient(135deg, #00FF94 0%, #B0FFE0 50%, #00FF94 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Keep old gold-text for legacy use */
 .gold-text {
-  background: linear-gradient(135deg, #5B8CFF 0%, #C2D2FF 50%, #5B8CFF 100%);
+  background: linear-gradient(135deg, #00FF94 0%, #B0FFE0 50%, #00FF94 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 /* ======================================
-   WAYTOALGO GLOW EFFECTS
+   GLOW EFFECTS
    ====================================== */
 .uranus-glow {
   box-shadow:
-    0 0 20px rgba(91, 140, 255, 0.30),
-    0 0 60px rgba(91, 140, 255, 0.12),
-    0 0 120px rgba(91, 140, 255, 0.06);
+    0 0 20px rgba(0, 255, 148, 0.30),
+    0 0 60px rgba(0, 255, 148, 0.10),
+    0 0 120px rgba(0, 255, 148, 0.05);
 }
 
 .uranus-glow-sm {
   box-shadow:
-    0 0 12px rgba(91, 140, 255, 0.25),
-    0 0 30px rgba(91, 140, 255, 0.08);
+    0 0 12px rgba(0, 255, 148, 0.22),
+    0 0 30px rgba(0, 255, 148, 0.07);
 }
 
-/* Legacy gold-glow → now teal */
 .gold-glow {
   box-shadow:
-    0 0 20px rgba(91, 140, 255, 0.28),
-    0 0 50px rgba(91, 140, 255, 0.10);
+    0 0 20px rgba(0, 255, 148, 0.25),
+    0 0 50px rgba(0, 255, 148, 0.08);
 }
 
 /* ======================================
-   SHIMMER BORDER (teal)
+   SHIMMER BORDER
    ====================================== */
 .shimmer-border {
   border: 1px solid;
   border-image: linear-gradient(135deg,
-    rgba(91,140,255,0.7),
-    rgba(91,140,255,0.1),
-    rgba(194,210,255,0.5)
+    rgba(0,255,148,0.7),
+    rgba(0,255,148,0.1),
+    rgba(176,255,224,0.5)
   ) 1;
 }
 
 /* ======================================
-   TEAL PROGRESS BAR / LINE
+   PROGRESS BAR
    ====================================== */
 .uranus-progress {
-  background: linear-gradient(90deg, #3D5CE0 0%, #5B8CFF 50%, #C2D2FF 100%);
-  box-shadow: 0 0 8px rgba(91,140,255,0.6);
+  background: linear-gradient(90deg, #00CC77 0%, #00FF94 50%, #B0FFE0 100%);
+  box-shadow: 0 0 8px rgba(0,255,148,0.55);
 }
 
 /* ======================================
-   SCROLLBAR — space themed
+   SCROLLBAR
    ====================================== */
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: rgba(6, 8, 20, 0.8); }
-::-webkit-scrollbar-thumb { background: rgba(91, 140, 255, 0.25); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(91, 140, 255, 0.45); }
+::-webkit-scrollbar-track { background: rgba(5, 12, 10, 0.8); }
+::-webkit-scrollbar-thumb { background: rgba(0, 255, 148, 0.22); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 255, 148, 0.42); }
 
 /* ======================================
    BOTTOM NAV SAFE AREA
@@ -329,7 +327,7 @@
    ====================================== */
 .nav-active {
   color: var(--uranus-teal);
-  text-shadow: 0 0 12px rgba(91,140,255,0.6);
+  text-shadow: 0 0 12px rgba(0,255,148,0.55);
 }
 
 /* ======================================

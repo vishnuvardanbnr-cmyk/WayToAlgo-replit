@@ -1,7 +1,7 @@
 import { useListRanks, useGetMyRankProgress } from "@workspace/api-client-react";
 import { Award, Gift, CheckCircle, TrendingUp, Users, Calendar } from "lucide-react";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const GREEN = "#34d399";
 
 const rankGradients = [
@@ -9,7 +9,7 @@ const rankGradients = [
   { from: "#6b7280", to: "#9ca3af" },
   { from: "#d97706", to: "#fbbf24" },
   { from: "#7c3aed", to: "#a78bfa" },
-  { from: "#0891b2", to: "#5B8CFF" },
+  { from: "#0891b2", to: "#00FF94" },
 ];
 
 function fmtUsd(n: number) {
@@ -23,11 +23,11 @@ function ProgressBar({ label, current, required, icon }: { label: string; curren
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs flex items-center gap-1.5" style={{ color: "rgba(194,210,255,0.6)" }}>
+        <span className="text-xs flex items-center gap-1.5" style={{ color: "rgba(176,255,224,0.6)" }}>
           {icon}{label}
         </span>
-        <span className="text-xs font-semibold" style={{ color: met ? GREEN : "rgba(194,210,255,0.85)" }}>
-          {fmtUsd(current)} <span style={{ color: "rgba(194,210,255,0.35)" }}>/ {fmtUsd(required)}</span>
+        <span className="text-xs font-semibold" style={{ color: met ? GREEN : "rgba(176,255,224,0.85)" }}>
+          {fmtUsd(current)} <span style={{ color: "rgba(176,255,224,0.35)" }}>/ {fmtUsd(required)}</span>
           {met && <CheckCircle size={11} className="inline ml-1 -mt-0.5" style={{ color: GREEN }} />}
         </span>
       </div>
@@ -36,7 +36,7 @@ function ProgressBar({ label, current, required, icon }: { label: string; curren
           className="h-full rounded-full transition-all"
           style={{
             width: `${pct}%`,
-            background: met ? `linear-gradient(90deg, ${GREEN}, #10b981)` : `linear-gradient(90deg, ${TEAL}, #3D5CE0)`,
+            background: met ? `linear-gradient(90deg, ${GREEN}, #10b981)` : `linear-gradient(90deg, ${TEAL}, #00CC77)`,
           }}
         />
       </div>
@@ -61,7 +61,7 @@ export default function Ranks({ user: _user }: { user: any }) {
         className="text-xl font-bold"
         style={{
           fontFamily: "'Sora', sans-serif",
-          background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+          background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
@@ -74,23 +74,23 @@ export default function Ranks({ user: _user }: { user: any }) {
       <div
         className="rounded-2xl p-5 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(91,140,255,0.12), rgba(100,60,200,0.06))",
-          border: "1px solid rgba(91,140,255,0.28)",
+          background: "linear-gradient(135deg, rgba(0,255,148,0.12), rgba(0,180,100,0.06))",
+          border: "1px solid rgba(0,255,148,0.28)",
         }}
       >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(91,140,255,0.16) 0%, transparent 60%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(0,255,148,0.16) 0%, transparent 60%)" }} />
         <div className="relative">
-          <div className="text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(194,210,255,0.45)" }}>Your Current Rank</div>
+          <div className="text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(176,255,224,0.45)" }}>Your Current Rank</div>
           <div
             className="text-2xl font-black mb-1"
             data-testid="text-current-rank"
-            style={{ fontFamily: "'Sora', sans-serif", color: "rgba(194,210,255,0.92)" }}
+            style={{ fontFamily: "'Sora', sans-serif", color: "rgba(176,255,224,0.92)" }}
           >
             {progress?.currentRank?.name ?? "Unranked"}
           </div>
           {progress?.nextRank && (
-            <div className="text-sm" style={{ color: "rgba(194,210,255,0.45)" }}>
-              Next: <span style={{ color: "rgba(194,210,255,0.85)", fontWeight: 600 }}>{progress.nextRank.name}</span>
+            <div className="text-sm" style={{ color: "rgba(176,255,224,0.45)" }}>
+              Next: <span style={{ color: "rgba(176,255,224,0.85)", fontWeight: 600 }}>{progress.nextRank.name}</span>
               {" "}— <span style={{ color: TEAL }}>{progress.nextRank.reward}</span>
             </div>
           )}
@@ -115,7 +115,7 @@ export default function Ranks({ user: _user }: { user: any }) {
             ].map(item => (
               <div key={item.label} className="rounded-lg p-2.5 text-center" style={{ background: "rgba(0,10,24,0.45)", border: "1px solid rgba(52,211,153,0.1)" }}>
                 <div className="font-bold text-sm" style={{ color: GREEN }}>{item.value}</div>
-                <div className="text-[10px]" style={{ color: "rgba(194,210,255,0.4)" }}>{item.label}</div>
+                <div className="text-[10px]" style={{ color: "rgba(176,255,224,0.4)" }}>{item.label}</div>
               </div>
             ))}
           </div>
@@ -123,22 +123,22 @@ export default function Ranks({ user: _user }: { user: any }) {
             <div className="h-full rounded-full" style={{ width: `${schedule.totalMonths > 0 ? Math.min(100, (schedule.monthsPaid / schedule.totalMonths) * 100) : 0}%`, background: `linear-gradient(90deg, ${GREEN}, #10b981)` }} />
           </div>
           {schedule.status === "active" && schedule.nextPayoutAt && (
-            <div className="text-xs flex items-center gap-1.5" style={{ color: "rgba(194,210,255,0.5)" }}>
-              <Calendar size={12} /> Next payout: <strong style={{ color: "rgba(194,210,255,0.8)" }}>{new Date(schedule.nextPayoutAt).toLocaleDateString()}</strong>
+            <div className="text-xs flex items-center gap-1.5" style={{ color: "rgba(176,255,224,0.5)" }}>
+              <Calendar size={12} /> Next payout: <strong style={{ color: "rgba(176,255,224,0.8)" }}>{new Date(schedule.nextPayoutAt).toLocaleDateString()}</strong>
             </div>
           )}
-          <p className="text-[11px] mt-2" style={{ color: "rgba(194,210,255,0.4)" }}>Rewards are credited to your Withdraw Wallet each month.</p>
+          <p className="text-[11px] mt-2" style={{ color: "rgba(176,255,224,0.4)" }}>Rewards are credited to your Withdraw Wallet each month.</p>
         </div>
       )}
 
       {/* Progress toward next/target rank */}
       {target && prog && (
-        <div className="rounded-2xl p-5 space-y-4" style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.12)" }}>
+        <div className="rounded-2xl p-5 space-y-4" style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.12)" }}>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold" style={{ color: "rgba(194,210,255,0.9)" }}>
+            <span className="text-sm font-bold" style={{ color: "rgba(176,255,224,0.9)" }}>
               {progress?.nextRank ? `Progress to ${target.name}` : `${target.name} Requirements`}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }}>
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }}>
               Rank #{target.rankNumber}
             </span>
           </div>
@@ -149,7 +149,7 @@ export default function Ranks({ user: _user }: { user: any }) {
               <ProgressBar key={leg.band} label={legLabels[leg.band] ?? leg.band} current={leg.current ?? 0} required={leg.required ?? 0} />
             ))}
           </div>
-          <p className="text-[11px]" style={{ color: "rgba(194,210,255,0.35)" }}>
+          <p className="text-[11px]" style={{ color: "rgba(176,255,224,0.35)" }}>
             Team business uses balanced legs: top {target.legTopPct}%, second {target.legSecondPct}%, other legs {target.legRestPct}% of the requirement.
           </p>
         </div>
@@ -159,7 +159,7 @@ export default function Ranks({ user: _user }: { user: any }) {
       {loadingRanks ? (
         <div className="space-y-3">
           {[1,2,3].map(i => (
-            <div key={i} className="rounded-xl h-28 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+            <div key={i} className="rounded-xl h-28 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
           ))}
         </div>
       ) : (
@@ -175,15 +175,15 @@ export default function Ranks({ user: _user }: { user: any }) {
                 className="rounded-2xl p-5 transition-all"
                 style={{
                   background: isCurrent
-                    ? "linear-gradient(135deg, rgba(91,140,255,0.10), rgba(61,92,224,0.05))"
+                    ? "linear-gradient(135deg, rgba(0,255,148,0.10), rgba(0,204,119,0.05))"
                     : "rgba(10,14,30,0.65)",
                   backdropFilter: "blur(14px)",
                   border: isCurrent
-                    ? "1px solid rgba(91,140,255,0.35)"
+                    ? "1px solid rgba(0,255,148,0.35)"
                     : isAchieved
                     ? "1px solid rgba(52,211,153,0.25)"
-                    : "1px solid rgba(91,140,255,0.08)",
-                  boxShadow: isCurrent ? "0 0 24px rgba(91,140,255,0.10)" : "none",
+                    : "1px solid rgba(0,255,148,0.08)",
+                  boxShadow: isCurrent ? "0 0 24px rgba(0,255,148,0.10)" : "none",
                 }}
               >
                 <div className="flex items-start gap-4">
@@ -198,18 +198,18 @@ export default function Ranks({ user: _user }: { user: any }) {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold" style={{ color: "rgba(194,210,255,0.9)" }}>{rank.name}</span>
+                      <span className="font-bold" style={{ color: "rgba(176,255,224,0.9)" }}>{rank.name}</span>
                       {isAchieved && <CheckCircle size={14} style={{ color: GREEN }} />}
                       {isCurrent && (
                         <span
                           className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                          style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.2)", color: TEAL }}
+                          style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.2)", color: TEAL }}
                         >
                           Next Goal
                         </span>
                       )}
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-0.5 text-xs mt-1.5" style={{ color: "rgba(194,210,255,0.45)" }}>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-0.5 text-xs mt-1.5" style={{ color: "rgba(176,255,224,0.45)" }}>
                       <span>Self ≥ {fmtUsd(rank.selfInvestmentMin)}</span>
                       <span>Direct ≥ {fmtUsd(rank.directBusinessMin)}</span>
                       <span>Team ≥ {fmtUsd(rank.teamBusinessMin)}</span>

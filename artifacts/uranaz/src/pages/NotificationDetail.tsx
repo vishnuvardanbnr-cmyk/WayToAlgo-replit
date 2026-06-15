@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 import { ArrowLeft, Bell, Pin, X, ExternalLink, Info, CheckCircle2, AlertTriangle, AlertOctagon, Megaphone, Sparkles, Clock, Tag, RotateCcw } from "lucide-react";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 
 interface Notice {
   id: number;
@@ -19,7 +19,7 @@ interface Notice {
 }
 
 const TYPE_STYLES: Record<Notice["type"], { color: string; bg: string; border: string; Icon: any; label: string; gradient: string }> = {
-  info:         { color: "#5B8CFF", bg: "rgba(91,140,255,0.10)",  border: "rgba(91,140,255,0.30)",  Icon: Info,         label: "Info",         gradient: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(61,92,224,0.10))" },
+  info:         { color: "#00FF94", bg: "rgba(0,255,148,0.10)",  border: "rgba(0,255,148,0.30)",  Icon: Info,         label: "Info",         gradient: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,204,119,0.10))" },
   success:      { color: "#34d399", bg: "rgba(52,211,153,0.10)",  border: "rgba(52,211,153,0.32)",  Icon: CheckCircle2, label: "Success",      gradient: "linear-gradient(135deg, rgba(52,211,153,0.18), rgba(16,185,129,0.10))" },
   warning:      { color: "#fbbf24", bg: "rgba(251,191,36,0.10)",  border: "rgba(251,191,36,0.32)",  Icon: AlertTriangle,label: "Warning",      gradient: "linear-gradient(135deg, rgba(251,191,36,0.18), rgba(245,158,11,0.10))" },
   critical:     { color: "#f87171", bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.32)", Icon: AlertOctagon, label: "Critical",     gradient: "linear-gradient(135deg, rgba(248,113,113,0.20), rgba(239,68,68,0.10))" },
@@ -28,8 +28,8 @@ const TYPE_STYLES: Record<Notice["type"], { color: string; bg: string; border: s
 };
 
 const PRIORITY_LABEL: Record<Notice["priority"], { color: string; bg: string; label: string }> = {
-  low:    { color: "rgba(194,210,255,0.5)", bg: "rgba(194,210,255,0.06)", label: "Low" },
-  normal: { color: TEAL,                    bg: "rgba(91,140,255,0.10)",  label: "Normal" },
+  low:    { color: "rgba(176,255,224,0.5)", bg: "rgba(176,255,224,0.06)", label: "Low" },
+  normal: { color: TEAL,                    bg: "rgba(0,255,148,0.10)",  label: "Normal" },
   high:   { color: "#fbbf24",               bg: "rgba(251,191,36,0.12)",  label: "High" },
   urgent: { color: "#f87171",               bg: "rgba(248,113,113,0.14)", label: "Urgent" },
 };
@@ -119,7 +119,7 @@ export default function NotificationDetail() {
   if (loading) {
     return (
       <div className="px-4 py-6 max-w-2xl mx-auto pb-24 md:pb-8">
-        <div className="rounded-2xl h-64 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+        <div className="rounded-2xl h-64 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
       </div>
     );
   }
@@ -129,18 +129,18 @@ export default function NotificationDetail() {
       <div className="px-4 py-6 max-w-2xl mx-auto pb-24 md:pb-8 space-y-5">
         <div className="flex items-center gap-3">
           <Link href="/notifications" className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-            style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" }}>
+            style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" }}>
             <ArrowLeft size={16} style={{ color: TEAL }} />
           </Link>
-          <h1 className="text-lg font-bold" style={{ color: "rgba(194,210,255,0.9)", fontFamily: "'Sora', sans-serif" }}>Not found</h1>
+          <h1 className="text-lg font-bold" style={{ color: "rgba(176,255,224,0.9)", fontFamily: "'Sora', sans-serif" }}>Not found</h1>
         </div>
         <div className="rounded-2xl p-10 text-center"
-          style={{ background: "rgba(10,14,30,0.65)", border: "1px dashed rgba(91,140,255,0.12)" }}>
-          <Bell size={28} className="mx-auto mb-3" style={{ color: "rgba(194,210,255,0.3)" }} />
-          <div className="text-sm font-medium" style={{ color: "rgba(194,210,255,0.6)" }}>This notification no longer exists</div>
-          <div className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>It may have expired or been removed</div>
+          style={{ background: "rgba(10,14,30,0.65)", border: "1px dashed rgba(0,255,148,0.12)" }}>
+          <Bell size={28} className="mx-auto mb-3" style={{ color: "rgba(176,255,224,0.3)" }} />
+          <div className="text-sm font-medium" style={{ color: "rgba(176,255,224,0.6)" }}>This notification no longer exists</div>
+          <div className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.35)" }}>It may have expired or been removed</div>
           <Link href="/notifications" className="inline-flex items-center gap-1.5 mt-5 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-            style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814" }}>
+            style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A" }}>
             <ArrowLeft size={14} /> Back to Notifications
           </Link>
         </div>
@@ -158,14 +158,14 @@ export default function NotificationDetail() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/notifications" className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-          style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" }}>
+          style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" }}>
           <ArrowLeft size={16} style={{ color: TEAL }} />
         </Link>
         <div className="flex-1">
-          <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "rgba(176,255,224,0.4)" }}>
             Notification
           </div>
-          <div className="text-xs" style={{ color: "rgba(194,210,255,0.55)" }}>
+          <div className="text-xs" style={{ color: "rgba(176,255,224,0.55)" }}>
             #{notice.id} · {timeAgo(notice.createdAt)}
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function NotificationDetail() {
           <div className="flex items-center gap-1.5">
             {notice.pinned && (
               <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"
-                style={{ background: "rgba(91,140,255,0.12)", color: TEAL, border: "1px solid rgba(91,140,255,0.28)" }}>
+                style={{ background: "rgba(0,255,148,0.12)", color: TEAL, border: "1px solid rgba(0,255,148,0.28)" }}>
                 <Pin size={9} /> Pinned
               </span>
             )}
@@ -222,7 +222,7 @@ export default function NotificationDetail() {
               <h1
                 className="text-xl sm:text-2xl font-bold leading-tight"
                 style={{
-                  color: "rgba(194,210,255,0.95)",
+                  color: "rgba(176,255,224,0.95)",
                   fontFamily: "'Sora', sans-serif",
                 }}
               >
@@ -234,7 +234,7 @@ export default function NotificationDetail() {
           {/* Message */}
           <div
             className="mt-5 text-sm sm:text-base leading-relaxed whitespace-pre-wrap"
-            style={{ color: "rgba(194,210,255,0.78)" }}
+            style={{ color: "rgba(176,255,224,0.78)" }}
           >
             {notice.message}
           </div>
@@ -250,7 +250,7 @@ export default function NotificationDetail() {
                   className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-bold transition-all"
                   style={{
                     background: `linear-gradient(135deg, ${s.color}, ${s.color}dd)`,
-                    color: "#060814",
+                    color: "#050C0A",
                     boxShadow: `0 0 24px ${s.bg}`,
                   }}
                 >
@@ -263,7 +263,7 @@ export default function NotificationDetail() {
                   className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-bold transition-all"
                   style={{
                     background: `linear-gradient(135deg, ${s.color}, ${s.color}dd)`,
-                    color: "#060814",
+                    color: "#050C0A",
                     boxShadow: `0 0 24px ${s.bg}`,
                   }}
                 >
@@ -278,25 +278,25 @@ export default function NotificationDetail() {
         {/* Meta footer */}
         <div
           className="px-5 sm:px-6 py-4 grid grid-cols-2 sm:grid-cols-3 gap-4"
-          style={{ borderTop: "1px solid rgba(91,140,255,0.08)", background: "rgba(2,8,18,0.6)" }}
+          style={{ borderTop: "1px solid rgba(0,255,148,0.08)", background: "rgba(2,8,18,0.6)" }}
         >
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1" style={{ color: "rgba(194,210,255,0.35)" }}>
+            <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1" style={{ color: "rgba(176,255,224,0.35)" }}>
               <Tag size={9} /> Type
             </div>
             <div className="text-xs font-semibold mt-1" style={{ color: s.color }}>{s.label}</div>
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1" style={{ color: "rgba(194,210,255,0.35)" }}>
+            <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1" style={{ color: "rgba(176,255,224,0.35)" }}>
               <AlertTriangle size={9} /> Priority
             </div>
             <div className="text-xs font-semibold mt-1 capitalize" style={{ color: pm.color }}>{pm.label}</div>
           </div>
           <div className="col-span-2 sm:col-span-1">
-            <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1" style={{ color: "rgba(194,210,255,0.35)" }}>
+            <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1" style={{ color: "rgba(176,255,224,0.35)" }}>
               <Clock size={9} /> Posted
             </div>
-            <div className="text-xs font-semibold mt-1" style={{ color: "rgba(194,210,255,0.7)" }}>{fmtFull(notice.createdAt)}</div>
+            <div className="text-xs font-semibold mt-1" style={{ color: "rgba(176,255,224,0.7)" }}>{fmtFull(notice.createdAt)}</div>
           </div>
         </div>
       </div>
@@ -306,7 +306,7 @@ export default function NotificationDetail() {
         <Link
           href="/notifications"
           className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-1.5"
-          style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}
+          style={{ background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.7)" }}
         >
           <ArrowLeft size={14} /> Back
         </Link>
@@ -315,7 +315,7 @@ export default function NotificationDetail() {
             <button
               onClick={restore}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-1.5"
-              style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.28)", color: TEAL }}
+              style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.28)", color: TEAL }}
             >
               <RotateCcw size={14} /> Mark Unread
             </button>

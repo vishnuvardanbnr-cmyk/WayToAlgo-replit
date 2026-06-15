@@ -8,12 +8,12 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const RED = "#f87171";
 const GREEN = "#34d399";
 const AMBER = "#fbbf24";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
-const INPUT_STYLE = { background: "rgba(0,15,30,0.7)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" };
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
+const INPUT_STYLE = { background: "rgba(0,15,30,0.7)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" };
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -58,7 +58,7 @@ export default function AdminUsers() {
             className="text-xl font-bold"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -66,7 +66,7 @@ export default function AdminUsers() {
           >
             Manage Users
           </h1>
-          <p className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <p className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
             Edit profile · block withdrawals · block P2P · adjust balances
           </p>
         </div>
@@ -76,20 +76,20 @@ export default function AdminUsers() {
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl p-3 text-center" style={GLASS}>
           <div className="text-lg font-bold" style={{ color: TEAL }}>{(users as any)?.total ?? userList.length}</div>
-          <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Total</div>
+          <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Total</div>
         </div>
         <div className="rounded-xl p-3 text-center" style={GLASS}>
           <div className="text-lg font-bold" style={{ color: GREEN }}>{userList.filter(u => u.isActive).length}</div>
-          <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Active</div>
+          <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Active</div>
         </div>
         <div className="rounded-xl p-3 text-center" style={GLASS}>
-          <div className="text-lg font-bold" style={{ color: blockedCount > 0 ? AMBER : "rgba(194,210,255,0.5)" }}>{blockedCount}</div>
-          <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Restricted</div>
+          <div className="text-lg font-bold" style={{ color: blockedCount > 0 ? AMBER : "rgba(176,255,224,0.5)" }}>{blockedCount}</div>
+          <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Restricted</div>
         </div>
       </div>
 
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(194,210,255,0.35)" }} />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(176,255,224,0.35)" }} />
         <Input
           data-testid="input-search"
           value={search}
@@ -102,12 +102,12 @@ export default function AdminUsers() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {[1,2,3,4].map(i => <div key={i} className="rounded-xl h-20 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />)}
+          {[1,2,3,4].map(i => <div key={i} className="rounded-xl h-20 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />)}
         </div>
       ) : !filtered.length ? (
         <div className="rounded-xl p-8 text-center" style={GLASS}>
-          <Users size={32} className="mx-auto mb-2" style={{ color: "rgba(194,210,255,0.2)" }} />
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.35)" }}>No users found</p>
+          <Users size={32} className="mx-auto mb-2" style={{ color: "rgba(176,255,224,0.2)" }} />
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.35)" }}>No users found</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -126,8 +126,8 @@ export default function AdminUsers() {
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0"
                       style={{
-                        background: "rgba(91,140,255,0.10)",
-                        border: "1px solid rgba(91,140,255,0.2)",
+                        background: "rgba(0,255,148,0.10)",
+                        border: "1px solid rgba(0,255,148,0.2)",
                         color: TEAL,
                       }}
                     >
@@ -135,11 +135,11 @@ export default function AdminUsers() {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <div className="font-semibold text-sm truncate" style={{ color: "rgba(194,210,255,0.85)" }}>{user.name}</div>
+                        <div className="font-semibold text-sm truncate" style={{ color: "rgba(176,255,224,0.85)" }}>{user.name}</div>
                         {user.isAdmin && <Shield size={12} style={{ color: "#f97316" }} className="shrink-0" />}
                       </div>
-                      <div className="text-xs truncate" style={{ color: "rgba(194,210,255,0.4)" }}>{user.email}</div>
-                      <div className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>{user.phone} · {user.country || "—"}</div>
+                      <div className="text-xs truncate" style={{ color: "rgba(176,255,224,0.4)" }}>{user.email}</div>
+                      <div className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>{user.phone} · {user.country || "—"}</div>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
@@ -172,19 +172,19 @@ export default function AdminUsers() {
                 </div>
                 <div
                   className="grid grid-cols-4 gap-2 mt-3 pt-3 text-center"
-                  style={{ borderTop: "1px solid rgba(91,140,255,0.07)" }}
+                  style={{ borderTop: "1px solid rgba(0,255,148,0.07)" }}
                 >
                   <div>
-                    <div className="font-semibold text-xs" style={{ color: "rgba(194,210,255,0.8)" }}>${user.walletBalance.toFixed(2)}</div>
-                    <div className="text-[10px]" style={{ color: "rgba(194,210,255,0.35)" }}>USDT</div>
+                    <div className="font-semibold text-xs" style={{ color: "rgba(176,255,224,0.8)" }}>${user.walletBalance.toFixed(2)}</div>
+                    <div className="text-[10px]" style={{ color: "rgba(176,255,224,0.35)" }}>USDT</div>
                   </div>
                   <div>
-                    <div className="font-semibold text-xs" style={{ color: "rgba(194,210,255,0.8)" }}>${user.totalInvested.toFixed(0)}</div>
-                    <div className="text-[10px]" style={{ color: "rgba(194,210,255,0.35)" }}>Invested</div>
+                    <div className="font-semibold text-xs" style={{ color: "rgba(176,255,224,0.8)" }}>${user.totalInvested.toFixed(0)}</div>
+                    <div className="text-[10px]" style={{ color: "rgba(176,255,224,0.35)" }}>Invested</div>
                   </div>
                   <div>
-                    <div className="font-semibold text-xs" style={{ color: "rgba(194,210,255,0.8)" }}>L{user.currentLevel}</div>
-                    <div className="text-[10px]" style={{ color: "rgba(194,210,255,0.35)" }}>Level</div>
+                    <div className="font-semibold text-xs" style={{ color: "rgba(176,255,224,0.8)" }}>L{user.currentLevel}</div>
+                    <div className="text-[10px]" style={{ color: "rgba(176,255,224,0.35)" }}>Level</div>
                   </div>
                   <div className="flex items-center justify-center">
                     <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: TEAL }}>
@@ -331,22 +331,22 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
         className="w-full md:max-w-lg max-h-[92vh] md:max-h-[85vh] rounded-t-2xl md:rounded-2xl overflow-hidden flex flex-col"
         style={{
           background: "rgba(5,15,28,0.96)",
-          border: "1px solid rgba(91,140,255,0.18)",
-          boxShadow: "0 -10px 60px rgba(91,140,255,0.10)",
+          border: "1px solid rgba(0,255,148,0.18)",
+          boxShadow: "0 -10px 60px rgba(0,255,148,0.10)",
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(91,140,255,0.10)" }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(0,255,148,0.10)" }}>
           <div className="flex items-center gap-3 min-w-0">
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0"
-              style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.25)", color: TEAL }}
+              style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.25)", color: TEAL }}
             >
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <div className="font-semibold text-sm truncate" style={{ color: "rgba(194,210,255,0.9)" }}>{user.name}</div>
-              <div className="text-xs truncate" style={{ color: "rgba(194,210,255,0.4)" }}>{user.email}</div>
+              <div className="font-semibold text-sm truncate" style={{ color: "rgba(176,255,224,0.9)" }}>{user.name}</div>
+              <div className="text-xs truncate" style={{ color: "rgba(176,255,224,0.4)" }}>{user.email}</div>
             </div>
           </div>
           <button
@@ -355,7 +355,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
             className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
           >
-            <X size={16} style={{ color: "rgba(194,210,255,0.7)" }} />
+            <X size={16} style={{ color: "rgba(176,255,224,0.7)" }} />
           </button>
         </div>
 
@@ -372,13 +372,13 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
               onClick={() => setTab(t.id)}
               className="flex-1 text-xs font-semibold py-2 rounded-lg transition-all"
               style={tab === t.id ? {
-                background: "rgba(91,140,255,0.15)",
-                border: "1px solid rgba(91,140,255,0.35)",
+                background: "rgba(0,255,148,0.15)",
+                border: "1px solid rgba(0,255,148,0.35)",
                 color: TEAL,
               } : {
                 background: "rgba(255,255,255,0.02)",
                 border: "1px solid rgba(255,255,255,0.05)",
-                color: "rgba(194,210,255,0.55)",
+                color: "rgba(176,255,224,0.55)",
               }}
             >
               {t.label}
@@ -442,7 +442,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                 />
                 {withdrawalBlocked && (
                   <div className="mt-2 ml-1">
-                    <p className="text-[10px] mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Reason shown to user (optional)</p>
+                    <p className="text-[10px] mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>Reason shown to user (optional)</p>
                     <input
                       data-testid="input-withdrawal-block-reason"
                       value={withdrawalBlockReason}
@@ -465,7 +465,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                 />
                 {p2pBlocked && (
                   <div className="mt-2 ml-1">
-                    <p className="text-[10px] mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Reason shown to user (optional)</p>
+                    <p className="text-[10px] mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>Reason shown to user (optional)</p>
                     <input
                       data-testid="input-p2p-block-reason"
                       value={p2pBlockReason}
@@ -488,7 +488,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                 />
                 {investmentBlocked && (
                   <div className="mt-2 ml-1">
-                    <p className="text-[10px] mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Reason shown to user (optional)</p>
+                    <p className="text-[10px] mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>Reason shown to user (optional)</p>
                     <input
                       data-testid="input-investment-block-reason"
                       value={investmentBlockReason}
@@ -511,7 +511,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                 />
                 {roiBlocked && (
                   <div className="mt-2 ml-1">
-                    <p className="text-[10px] mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Internal reason (optional)</p>
+                    <p className="text-[10px] mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>Internal reason (optional)</p>
                     <input
                       data-testid="input-roi-block-reason"
                       value={roiBlockReason}
@@ -539,21 +539,21 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
             <>
               {/* Balance cards */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(91,140,255,0.12)" }}>
-                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Deposit Balance (USDT)</div>
+                <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(0,255,148,0.12)" }}>
+                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>Deposit Balance (USDT)</div>
                   <div className="text-lg font-bold" style={{ color: TEAL }}>${liveUser.walletBalance.toFixed(2)}</div>
                 </div>
-                <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(91,140,255,0.12)" }}>
-                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Earnings Balance (USDT)</div>
+                <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(0,255,148,0.12)" }}>
+                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>Earnings Balance (USDT)</div>
                   <div className="text-lg font-bold" style={{ color: GREEN }}>${liveUser.totalEarnings.toFixed(2)}</div>
                 </div>
                 <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(167,139,250,0.18)" }}>
-                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>WTA Balance</div>
+                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>WTA Balance</div>
                   <div className="text-lg font-bold" style={{ color: "#a78bfa" }}>{liveUser.hyperCoinBalance.toFixed(4)} WTA</div>
                 </div>
-                <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.4)", border: "1px solid rgba(91,140,255,0.08)" }}>
-                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Total Invested</div>
-                  <div className="text-lg font-bold" style={{ color: "rgba(194,210,255,0.85)" }}>${liveUser.totalInvested.toFixed(2)}</div>
+                <div className="rounded-xl p-3" style={{ background: "rgba(0,15,30,0.4)", border: "1px solid rgba(0,255,148,0.08)" }}>
+                  <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>Total Invested</div>
+                  <div className="text-lg font-bold" style={{ color: "rgba(176,255,224,0.85)" }}>${liveUser.totalInvested.toFixed(2)}</div>
                 </div>
               </div>
 
@@ -562,7 +562,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                 type="button"
                 onClick={() => { setAddBalModal(true); setAddBalAmount(""); setAddBalNote(""); setAddBalCurrency("usdt"); }}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
-                style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.08))", border: "1px solid rgba(91,140,255,0.4)", color: TEAL }}
+                style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,255,148,0.08))", border: "1px solid rgba(0,255,148,0.4)", color: TEAL }}
               >
                 <Wallet size={14} /> Add Balance
               </button>
@@ -591,16 +591,16 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
             >
               <div
                 className="w-full max-w-sm mx-4 rounded-2xl p-5 space-y-4"
-                style={{ background: "rgba(5,15,28,0.98)", border: "1px solid rgba(91,140,255,0.22)", boxShadow: "0 0 40px rgba(91,140,255,0.12)" }}
+                style={{ background: "rgba(5,15,28,0.98)", border: "1px solid rgba(0,255,148,0.22)", boxShadow: "0 0 40px rgba(0,255,148,0.12)" }}
                 onClick={e => e.stopPropagation()}
               >
                 <div>
-                  <div className="font-bold text-sm mb-0.5" style={{ color: "rgba(194,210,255,0.9)" }}>Add Balance</div>
-                  <div className="text-[11px]" style={{ color: "rgba(194,210,255,0.45)" }}>to {liveUser.name}</div>
+                  <div className="font-bold text-sm mb-0.5" style={{ color: "rgba(176,255,224,0.9)" }}>Add Balance</div>
+                  <div className="text-[11px]" style={{ color: "rgba(176,255,224,0.45)" }}>to {liveUser.name}</div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold block mb-1.5" style={{ color: "rgba(194,210,255,0.6)" }}>Balance Type</label>
+                  <label className="text-xs font-semibold block mb-1.5" style={{ color: "rgba(176,255,224,0.6)" }}>Balance Type</label>
                   <div className="grid grid-cols-2 gap-2">
                     {([
                       { val: "usdt" as const, label: "Deposit Balance (USDT)", color: TEAL },
@@ -618,7 +618,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                         } : {
                           background: "rgba(255,255,255,0.03)",
                           border: "1px solid rgba(255,255,255,0.08)",
-                          color: "rgba(194,210,255,0.5)",
+                          color: "rgba(176,255,224,0.5)",
                         }}
                       >
                         {opt.label}
@@ -628,7 +628,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold block mb-1.5" style={{ color: "rgba(194,210,255,0.6)" }}>
+                  <label className="text-xs font-semibold block mb-1.5" style={{ color: "rgba(176,255,224,0.6)" }}>
                     Amount ({addBalCurrency === "usdt" ? "USDT" : "WTA"})
                   </label>
                   <Input
@@ -643,7 +643,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold block mb-1.5" style={{ color: "rgba(194,210,255,0.6)" }}>Note (optional)</label>
+                  <label className="text-xs font-semibold block mb-1.5" style={{ color: "rgba(176,255,224,0.6)" }}>Note (optional)</label>
                   <input
                     type="text"
                     placeholder="e.g. Bonus credit, manual adjustment…"
@@ -659,7 +659,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                     type="button"
                     onClick={() => setAddBalModal(false)}
                     className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(194,210,255,0.6)" }}
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(176,255,224,0.6)" }}
                   >
                     Cancel
                   </button>
@@ -668,7 +668,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                     onClick={handleAddBalance}
                     disabled={addBalLoading}
                     className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
-                    style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814" }}
+                    style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A" }}
                   >
                     {addBalLoading ? "Adding…" : "Add Balance"}
                   </button>
@@ -679,12 +679,12 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
         </div>
 
         {/* Footer */}
-        <div className="flex gap-2 px-5 py-4" style={{ borderTop: "1px solid rgba(91,140,255,0.10)" }}>
+        <div className="flex gap-2 px-5 py-4" style={{ borderTop: "1px solid rgba(0,255,148,0.10)" }}>
           <button
             data-testid="button-cancel"
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(194,210,255,0.7)" }}
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(176,255,224,0.7)" }}
           >
             Cancel
           </button>
@@ -693,7 +693,7 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
             onClick={handleSave}
             disabled={updateUser.isPending}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.25), rgba(91,140,255,0.10))", border: "1px solid rgba(91,140,255,0.45)", color: TEAL }}
+            style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.25), rgba(0,255,148,0.10))", border: "1px solid rgba(0,255,148,0.45)", color: TEAL }}
           >
             <Save size={14} />
             {updateUser.isPending ? "Saving…" : "Save changes"}
@@ -709,18 +709,18 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-xs font-semibold mb-1.5 block" style={{ color: "rgba(194,210,255,0.65)" }}>{label}</label>
+      <label className="text-xs font-semibold mb-1.5 block" style={{ color: "rgba(176,255,224,0.65)" }}>{label}</label>
       {children}
-      {hint && <p className="text-[10px] mt-1" style={{ color: "rgba(194,210,255,0.35)" }}>{hint}</p>}
+      {hint && <p className="text-[10px] mt-1" style={{ color: "rgba(176,255,224,0.35)" }}>{hint}</p>}
     </div>
   );
 }
 
 function ReadOnly({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl px-3 py-2" style={{ background: "rgba(0,15,30,0.4)", border: "1px solid rgba(91,140,255,0.08)" }}>
-      <div className="text-[10px] uppercase tracking-wide" style={{ color: "rgba(194,210,255,0.35)" }}>{label}</div>
-      <div className="text-sm font-medium truncate" style={{ color: "rgba(194,210,255,0.85)" }}>{value}</div>
+    <div className="rounded-xl px-3 py-2" style={{ background: "rgba(0,15,30,0.4)", border: "1px solid rgba(0,255,148,0.08)" }}>
+      <div className="text-[10px] uppercase tracking-wide" style={{ color: "rgba(176,255,224,0.35)" }}>{label}</div>
+      <div className="text-sm font-medium truncate" style={{ color: "rgba(176,255,224,0.85)" }}>{value}</div>
     </div>
   );
 }
@@ -741,13 +741,13 @@ function Toggle({
     <div className="rounded-xl p-3 flex items-start gap-3" style={GLASS}>
       {icon && (
         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-          style={{ background: value ? onBg : "rgba(91,140,255,0.06)", border: `1px solid ${value ? onBorder : "rgba(91,140,255,0.15)"}`, color: value ? onColor : "rgba(194,210,255,0.5)" }}>
+          style={{ background: value ? onBg : "rgba(0,255,148,0.06)", border: `1px solid ${value ? onBorder : "rgba(0,255,148,0.15)"}`, color: value ? onColor : "rgba(176,255,224,0.5)" }}>
           {icon}
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.9)" }}>{label}</div>
-        {description && <div className="text-[11px] mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>{description}</div>}
+        <div className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.9)" }}>{label}</div>
+        {description && <div className="text-[11px] mt-0.5" style={{ color: "rgba(176,255,224,0.45)" }}>{description}</div>}
       </div>
       <button
         data-testid={testId}
@@ -764,7 +764,7 @@ function Toggle({
           className="absolute top-0.5 w-4 h-4 rounded-full transition-all"
           style={{
             left: value ? "22px" : "2px",
-            background: value ? onColor : "rgba(194,210,255,0.5)",
+            background: value ? onColor : "rgba(176,255,224,0.5)",
             boxShadow: value ? `0 0 8px ${onColor}` : "none",
           }}
         />

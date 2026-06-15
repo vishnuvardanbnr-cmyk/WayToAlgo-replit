@@ -1,8 +1,8 @@
 import { useGetAdminStats } from "@workspace/api-client-react";
 import { Users, TrendingUp, Wallet, DollarSign, Shield, Activity } from "lucide-react";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 
 function StatCard({ label, value, icon: Icon, accent }: { label: string; value: string | number | undefined; icon: any; accent?: string }) {
   return (
@@ -10,14 +10,14 @@ function StatCard({ label, value, icon: Icon, accent }: { label: string; value: 
       <div
         className="w-9 h-9 rounded-lg flex items-center justify-center mb-3"
         style={{
-          background: accent ? `${accent}1A` : "rgba(91,140,255,0.10)",
-          border: `1px solid ${accent ? `${accent}40` : "rgba(91,140,255,0.18)"}`,
+          background: accent ? `${accent}1A` : "rgba(0,255,148,0.10)",
+          border: `1px solid ${accent ? `${accent}40` : "rgba(0,255,148,0.18)"}`,
         }}
       >
         <Icon size={17} style={{ color: accent ?? TEAL }} />
       </div>
-      <div className="text-2xl font-bold" style={{ color: "rgba(194,210,255,0.9)" }}>{value ?? "—"}</div>
-      <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{label}</div>
+      <div className="text-2xl font-bold" style={{ color: "rgba(176,255,224,0.9)" }}>{value ?? "—"}</div>
+      <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{label}</div>
     </div>
   );
 }
@@ -33,7 +33,7 @@ export default function Admin() {
             className="text-xl md:text-2xl font-bold"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -41,7 +41,7 @@ export default function Admin() {
           >
             Admin Dashboard
           </h1>
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.4)" }}>
             WaytoAlgo platform overview
           </p>
         </div>
@@ -60,13 +60,13 @@ export default function Admin() {
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[1,2,3,4,5,6,7,8].map(i => (
-            <div key={i} className="rounded-xl h-24 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+            <div key={i} className="rounded-xl h-24 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
           ))}
         </div>
       ) : (
         <>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.45)" }}>
+            <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(176,255,224,0.45)" }}>
               Activity
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -78,7 +78,7 @@ export default function Admin() {
           </div>
 
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(194,210,255,0.45)" }}>
+            <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(176,255,224,0.45)" }}>
               Volume
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -92,12 +92,12 @@ export default function Admin() {
           <div className="rounded-xl p-4 flex items-start gap-3" style={GLASS}>
             <div
               className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }}
+              style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }}
             >
               <Shield size={16} />
             </div>
-            <div className="min-w-0 text-sm" style={{ color: "rgba(194,210,255,0.7)" }}>
-              <span className="font-semibold" style={{ color: "rgba(194,210,255,0.9)" }}>Welcome, Admin.</span>{" "}
+            <div className="min-w-0 text-sm" style={{ color: "rgba(176,255,224,0.7)" }}>
+              <span className="font-semibold" style={{ color: "rgba(176,255,224,0.9)" }}>Welcome, Admin.</span>{" "}
               Use the menu on the left to manage users, investments, withdrawals, support tickets, offers, notices, and platform settings.
             </div>
           </div>

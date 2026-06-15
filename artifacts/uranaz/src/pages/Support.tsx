@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MessageCircle, Plus, Send, ChevronLeft, Clock, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 
 function getToken() { return localStorage.getItem("waytoalgo_token") || ""; }
 
@@ -13,7 +13,7 @@ function getWsUrl() {
 }
 
 const statusConfig: Record<string, { color: string; bg: string; label: string; icon: any }> = {
-  open:        { color: TEAL,       bg: "rgba(91,140,255,0.10)",  label: "Open",        icon: AlertCircle },
+  open:        { color: TEAL,       bg: "rgba(0,255,148,0.10)",  label: "Open",        icon: AlertCircle },
   in_progress: { color: "#fbbf24",  bg: "rgba(251,191,36,0.10)",  label: "In Progress", icon: Clock },
   closed:      { color: "#6b7280",  bg: "rgba(107,114,128,0.10)", label: "Closed",      icon: CheckCircle },
 };
@@ -131,13 +131,13 @@ export default function Support({ user }: { user: any }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {(view === "chat" || view === "new") && (
-            <button onClick={() => { setView("list"); setActiveTicket(null); }} style={{ color: "rgba(194,210,255,0.5)" }}>
+            <button onClick={() => { setView("list"); setActiveTicket(null); }} style={{ color: "rgba(176,255,224,0.5)" }}>
               <ChevronLeft size={20} />
             </button>
           )}
           <h1 className="text-xl font-bold" style={{
             fontFamily: "'Sora', sans-serif",
-            background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+            background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
           }}>
             {view === "list" ? "Support" : view === "new" ? "New Ticket" : activeTicket?.subject}
@@ -147,7 +147,7 @@ export default function Support({ user }: { user: any }) {
           <button
             onClick={() => setView("new")}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold"
-            style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814" }}
+            style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A" }}
           >
             <Plus size={15} /> New Ticket
           </button>
@@ -159,13 +159,13 @@ export default function Support({ user }: { user: any }) {
         <>
           {loadingTickets ? (
             <div className="space-y-3">
-              {[1,2,3].map(i => <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />)}
+              {[1,2,3].map(i => <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />)}
             </div>
           ) : tickets.length === 0 ? (
             <div className="rounded-2xl p-12 text-center" style={GLASS}>
-              <MessageCircle size={36} className="mx-auto mb-3" style={{ color: "rgba(194,210,255,0.2)" }} />
-              <p className="font-semibold text-sm" style={{ color: "rgba(194,210,255,0.5)" }}>No support tickets yet</p>
-              <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.3)" }}>Create a ticket and our team will help you</p>
+              <MessageCircle size={36} className="mx-auto mb-3" style={{ color: "rgba(176,255,224,0.2)" }} />
+              <p className="font-semibold text-sm" style={{ color: "rgba(176,255,224,0.5)" }}>No support tickets yet</p>
+              <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.3)" }}>Create a ticket and our team will help you</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -177,15 +177,15 @@ export default function Support({ user }: { user: any }) {
                     onClick={() => openTicket(ticket)}
                     className="w-full text-left rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all"
                     style={{ ...GLASS }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(91,140,255,0.22)")}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(91,140,255,0.10)")}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,255,148,0.22)")}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,255,148,0.10)")}
                   >
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: cfg.bg, border: `1px solid ${cfg.color}33` }}>
                       <cfg.icon size={16} style={{ color: cfg.color }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold truncate" style={{ color: "rgba(194,210,255,0.85)" }}>{ticket.subject}</div>
-                      <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>{formatDate(ticket.updatedAt)}</div>
+                      <div className="text-sm font-semibold truncate" style={{ color: "rgba(176,255,224,0.85)" }}>{ticket.subject}</div>
+                      <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>{formatDate(ticket.updatedAt)}</div>
                     </div>
                     <span className="text-xs font-semibold px-2 py-1 rounded-full shrink-0" style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}33` }}>
                       {cfg.label}
@@ -202,32 +202,32 @@ export default function Support({ user }: { user: any }) {
       {view === "new" && (
         <div className="rounded-2xl p-5 space-y-4" style={GLASS}>
           <div>
-            <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(194,210,255,0.5)" }}>Subject *</label>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(176,255,224,0.5)" }}>Subject *</label>
             <input
               type="text"
               value={newSubject}
               onChange={e => setNewSubject(e.target.value)}
               placeholder="Describe your issue briefly"
               className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
-              style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" }}
+              style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" }}
             />
           </div>
           <div>
-            <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(194,210,255,0.5)" }}>Message (Optional)</label>
+            <label className="text-xs font-medium block mb-1.5" style={{ color: "rgba(176,255,224,0.5)" }}>Message (Optional)</label>
             <textarea
               value={newMessage}
               onChange={e => setNewMessage(e.target.value)}
               rows={4}
               placeholder="Provide more details..."
               className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none"
-              style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" }}
+              style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" }}
             />
           </div>
           <button
             onClick={createTicket}
             disabled={creating}
             className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-60"
-            style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814", boxShadow: "0 0 20px rgba(91,140,255,0.3)" }}
+            style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A", boxShadow: "0 0 20px rgba(0,255,148,0.3)" }}
           >
             {creating ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             {creating ? "Creating..." : "Submit Ticket"}
@@ -245,10 +245,10 @@ export default function Support({ user }: { user: any }) {
                 {cfg.label}
               </span>
             ); })()}
-            <span className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>Ticket #{activeTicket.id}</span>
+            <span className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>Ticket #{activeTicket.id}</span>
             <div className="ml-auto flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full" style={{ background: wsReady ? "#34d399" : "#6b7280" }} />
-              <span className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>{wsReady ? "Live" : "Connecting..."}</span>
+              <span className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>{wsReady ? "Live" : "Connecting..."}</span>
             </div>
           </div>
 
@@ -256,7 +256,7 @@ export default function Support({ user }: { user: any }) {
           <div className="flex-1 overflow-y-auto space-y-3 pr-1 mb-3">
             {messages.length === 0 && (
               <div className="text-center py-8">
-                <p className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>No messages yet. Start the conversation!</p>
+                <p className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>No messages yet. Start the conversation!</p>
               </div>
             )}
             {messages.map(msg => (
@@ -264,8 +264,8 @@ export default function Support({ user }: { user: any }) {
                 <div
                   className="max-w-xs rounded-2xl px-4 py-2.5 text-sm"
                   style={msg.isAdmin
-                    ? { background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)", borderBottomLeftRadius: "4px" }
-                    : { background: "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(61,92,224,0.15))", border: "1px solid rgba(91,140,255,0.25)", color: "#C2D2FF", borderBottomRightRadius: "4px" }
+                    ? { background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)", borderBottomLeftRadius: "4px" }
+                    : { background: "linear-gradient(135deg, rgba(0,255,148,0.22), rgba(0,204,119,0.15))", border: "1px solid rgba(0,255,148,0.25)", color: "#B0FFE0", borderBottomRightRadius: "4px" }
                   }
                 >
                   {msg.isAdmin && (
@@ -281,7 +281,7 @@ export default function Support({ user }: { user: any }) {
 
           {/* Input */}
           {activeTicket.status === "closed" ? (
-            <div className="rounded-xl p-3 text-center text-sm" style={{ background: "rgba(107,114,128,0.10)", border: "1px solid rgba(107,114,128,0.2)", color: "rgba(194,210,255,0.4)" }}>
+            <div className="rounded-xl p-3 text-center text-sm" style={{ background: "rgba(107,114,128,0.10)", border: "1px solid rgba(107,114,128,0.2)", color: "rgba(176,255,224,0.4)" }}>
               This ticket is closed
             </div>
           ) : (
@@ -293,13 +293,13 @@ export default function Support({ user }: { user: any }) {
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                 placeholder="Type a message..."
                 className="flex-1 rounded-xl px-4 py-2.5 text-sm focus:outline-none"
-                style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.9)" }}
+                style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.9)" }}
               />
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || !wsReady}
                 className="w-11 h-11 rounded-xl flex items-center justify-center transition-all disabled:opacity-40"
-                style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#060814" }}
+                style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#050C0A" }}
               >
                 <Send size={16} />
               </button>

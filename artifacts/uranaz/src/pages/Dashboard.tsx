@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import DashboardTokenCard from "@/components/DashboardTokenCard";
 import DashboardCapBar from "@/components/DashboardCapBar";
 
-const TEAL = "#5B8CFF";
-const TEAL_DIM = "rgba(91,140,255,0.55)";
+const TEAL = "#00FF94";
+const TEAL_DIM = "rgba(0,255,148,0.55)";
 
 function StatCard({ label, value, sub, icon: Icon, accent }: any) {
   return (
@@ -14,14 +14,14 @@ function StatCard({ label, value, sub, icon: Icon, accent }: any) {
       className="rounded-xl p-4 transition-all duration-200"
       style={{
         background: accent
-          ? "linear-gradient(135deg, rgba(91,140,255,0.10), rgba(61,92,224,0.05))"
+          ? "linear-gradient(135deg, rgba(0,255,148,0.10), rgba(0,204,119,0.05))"
           : "rgba(10,14,30,0.65)",
         backdropFilter: "blur(12px)",
         border: accent
-          ? "1px solid rgba(91,140,255,0.25)"
-          : "1px solid rgba(91,140,255,0.10)",
+          ? "1px solid rgba(0,255,148,0.25)"
+          : "1px solid rgba(0,255,148,0.10)",
         boxShadow: accent
-          ? "0 0 20px rgba(91,140,255,0.08), inset 0 0 0 1px rgba(91,140,255,0.06)"
+          ? "0 0 20px rgba(0,255,148,0.08), inset 0 0 0 1px rgba(0,255,148,0.06)"
           : "0 4px 16px rgba(0,0,0,0.3)",
       }}
     >
@@ -29,15 +29,15 @@ function StatCard({ label, value, sub, icon: Icon, accent }: any) {
         <div
           className="w-9 h-9 rounded-lg flex items-center justify-center"
           style={{
-            background: accent ? "rgba(91,140,255,0.12)" : "rgba(255,255,255,0.04)",
-            border: `1px solid ${accent ? "rgba(91,140,255,0.2)" : "rgba(255,255,255,0.06)"}`,
+            background: accent ? "rgba(0,255,148,0.12)" : "rgba(255,255,255,0.04)",
+            border: `1px solid ${accent ? "rgba(0,255,148,0.2)" : "rgba(255,255,255,0.06)"}`,
           }}
         >
-          <Icon size={17} style={{ color: accent ? TEAL : "rgba(194,210,255,0.4)" }} />
+          <Icon size={17} style={{ color: accent ? TEAL : "rgba(176,255,224,0.4)" }} />
         </div>
       </div>
-      <div className="text-xl font-bold" style={{ color: "rgba(194,210,255,0.92)" }}>{value}</div>
-      <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{label}</div>
+      <div className="text-xl font-bold" style={{ color: "rgba(176,255,224,0.92)" }}>{value}</div>
+      <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{label}</div>
       {sub && <div className="text-xs mt-1" style={{ color: TEAL_DIM }}>{sub}</div>}
     </div>
   );
@@ -66,12 +66,12 @@ export default function Dashboard({ user }: { user: any }) {
       {/* Welcome */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold" style={{ color: "rgba(194,210,255,0.6)" }}>Welcome back,</h1>
+          <h1 className="text-lg font-semibold" style={{ color: "rgba(176,255,224,0.6)" }}>Welcome back,</h1>
           <p
             className="text-xl font-bold"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -86,28 +86,28 @@ export default function Dashboard({ user }: { user: any }) {
       <div
         className="rounded-2xl p-6 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(91,140,255,0.12) 0%, rgba(61,92,224,0.06) 50%, rgba(100,60,200,0.06) 100%)",
-          border: "1px solid rgba(91,140,255,0.28)",
-          boxShadow: "0 0 40px rgba(91,140,255,0.10), 0 8px 40px rgba(0,0,0,0.4)",
+          background: "linear-gradient(135deg, rgba(0,255,148,0.12) 0%, rgba(0,204,119,0.06) 50%, rgba(0,180,100,0.06) 100%)",
+          border: "1px solid rgba(0,255,148,0.28)",
+          boxShadow: "0 0 40px rgba(0,255,148,0.10), 0 8px 40px rgba(0,0,0,0.4)",
         }}
       >
         {/* Inner glow highlight */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse at top right, rgba(91,140,255,0.18) 0%, transparent 65%)",
+            background: "radial-gradient(ellipse at top right, rgba(0,255,148,0.18) 0%, transparent 65%)",
           }}
         />
         {/* Ring arc decoration */}
         <div
           className="absolute -right-12 -top-12 w-40 h-40 rounded-full pointer-events-none"
           style={{
-            border: "1px solid rgba(91,140,255,0.15)",
-            boxShadow: "0 0 0 16px rgba(91,140,255,0.04), 0 0 0 32px rgba(91,140,255,0.02)",
+            border: "1px solid rgba(0,255,148,0.15)",
+            boxShadow: "0 0 0 16px rgba(0,255,148,0.04), 0 0 0 32px rgba(0,255,148,0.02)",
           }}
         />
         <div className="relative">
-          <div className="text-xs mb-1 tracking-widest uppercase" style={{ color: "rgba(194,210,255,0.5)" }}>
+          <div className="text-xs mb-1 tracking-widest uppercase" style={{ color: "rgba(176,255,224,0.5)" }}>
             Withdraw Wallet
           </div>
           <div
@@ -115,7 +115,7 @@ export default function Dashboard({ user }: { user: any }) {
             data-testid="text-balance"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF, #3D5CE0)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94, #00CC77)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -134,14 +134,14 @@ export default function Dashboard({ user }: { user: any }) {
                 className="rounded-xl p-3"
                 style={{
                   background: "rgba(0,10,20,0.4)",
-                  border: "1px solid rgba(91,140,255,0.10)",
+                  border: "1px solid rgba(0,255,148,0.10)",
                 }}
               >
-                <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>{item.label}</div>
+                <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>{item.label}</div>
                 <div
                   className="font-bold text-sm mt-0.5"
                   data-testid={item.testId}
-                  style={{ color: "rgba(194,210,255,0.85)" }}
+                  style={{ color: "rgba(176,255,224,0.85)" }}
                 >
                   {item.prefix}{item.value?.toFixed(2) ?? "—"}
                 </div>
@@ -151,7 +151,7 @@ export default function Dashboard({ user }: { user: any }) {
           {/* WTA row */}
           {(summary?.wtaEarningsTotal ?? 0) > 0 && (
             <div className="mt-2 rounded-xl p-3" style={{ background: "rgba(0,10,20,0.4)", border: "1px solid rgba(168,85,247,0.15)" }}>
-              <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>WTA Tokens Earned</div>
+              <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>WTA Tokens Earned</div>
               <div className="font-bold text-sm mt-0.5" style={{ color: "#c084fc" }}>
                 {summary?.wtaEarningsTotal?.toFixed(4)} WTA
               </div>
@@ -184,7 +184,7 @@ export default function Dashboard({ user }: { user: any }) {
       {summary && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-sm tracking-wide" style={{ color: "rgba(194,210,255,0.8)" }}>
+            <h2 className="font-semibold text-sm tracking-wide" style={{ color: "rgba(176,255,224,0.8)" }}>
               Income Breakdown
             </h2>
             <Link href="/income" className="text-xs flex items-center gap-1" style={{ color: TEAL }}>
@@ -196,7 +196,7 @@ export default function Dashboard({ user }: { user: any }) {
             style={{
               background: "rgba(10,14,30,0.65)",
               backdropFilter: "blur(12px)",
-              border: "1px solid rgba(91,140,255,0.10)",
+              border: "1px solid rgba(0,255,148,0.10)",
             }}
           >
             {[
@@ -209,14 +209,14 @@ export default function Dashboard({ user }: { user: any }) {
                 key={item.label}
                 className="flex items-center justify-between px-4 py-3"
                 style={{
-                  borderTop: idx > 0 ? "1px solid rgba(91,140,255,0.07)" : "none",
+                  borderTop: idx > 0 ? "1px solid rgba(0,255,148,0.07)" : "none",
                 }}
               >
                 <div className="flex items-center gap-2">
                   <CheckCircle size={13} style={{ color: item.isWta ? "#c084fc" : TEAL }} />
-                  <span className="text-sm" style={{ color: "rgba(194,210,255,0.7)" }}>{item.label}</span>
+                  <span className="text-sm" style={{ color: "rgba(176,255,224,0.7)" }}>{item.label}</span>
                 </div>
-                <span className="font-semibold text-sm" style={{ color: item.isWta ? "#c084fc" : "rgba(194,210,255,0.85)" }}>
+                <span className="font-semibold text-sm" style={{ color: item.isWta ? "#c084fc" : "rgba(176,255,224,0.85)" }}>
                   {item.isWta
                     ? `${item.value.toFixed(4)} WTA`
                     : `$${item.value.toFixed(2)}`}
@@ -261,12 +261,12 @@ export default function Dashboard({ user }: { user: any }) {
             className="rounded-2xl overflow-hidden relative"
             style={{
               background: "linear-gradient(155deg, rgba(4,16,32,0.97) 0%, rgba(2,10,22,0.97) 100%)",
-              border: "1px solid rgba(91,140,255,0.22)",
-              boxShadow: "0 0 40px rgba(91,140,255,0.07)",
+              border: "1px solid rgba(0,255,148,0.22)",
+              boxShadow: "0 0 40px rgba(0,255,148,0.07)",
             }}
           >
-            <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #5B8CFF, #a855f7, transparent)" }} />
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(91,140,255,0.07) 0%, rgba(168,85,247,0.04) 50%, transparent 70%)" }} />
+            <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #00FF94, #a855f7, transparent)" }} />
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top right, rgba(0,255,148,0.07) 0%, rgba(168,85,247,0.04) 50%, transparent 70%)" }} />
 
             <div className="relative p-5 space-y-4">
               {/* Header */}
@@ -274,7 +274,7 @@ export default function Dashboard({ user }: { user: any }) {
                 <div className="flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
-                    style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.20)" }}
+                    style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.20)" }}
                   >
                     {offer.emoji}
                   </div>
@@ -283,7 +283,7 @@ export default function Dashboard({ user }: { user: any }) {
                       className="font-bold text-sm"
                       style={{
                         fontFamily: "'Sora', sans-serif",
-                        background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+                        background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent",
                         backgroundClip: "text",
@@ -292,7 +292,7 @@ export default function Dashboard({ user }: { user: any }) {
                       {offer.title}
                     </div>
                     {offer.subtitle && (
-                      <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>{offer.subtitle}</div>
+                      <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>{offer.subtitle}</div>
                     )}
                   </div>
                 </div>
@@ -310,9 +310,9 @@ export default function Dashboard({ user }: { user: any }) {
               {offer.reward && (
                 <div
                   className="px-3 py-2.5 rounded-xl"
-                  style={{ background: "rgba(91,140,255,0.05)", border: "1px solid rgba(91,140,255,0.10)" }}
+                  style={{ background: "rgba(0,255,148,0.05)", border: "1px solid rgba(0,255,148,0.10)" }}
                 >
-                  <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>🎁 Reward</div>
+                  <div className="text-xs mb-1" style={{ color: "rgba(176,255,224,0.4)" }}>🎁 Reward</div>
                   <div className="text-sm font-bold leading-snug" style={{ color: TEAL }}>{offer.reward}</div>
                 </div>
               )}
@@ -329,25 +329,25 @@ export default function Dashboard({ user }: { user: any }) {
                           <div className="flex items-center gap-1.5">
                             {done
                               ? <CheckCircle size={12} style={{ color: "rgba(52,211,153,0.85)" }} />
-                              : <div className="w-3 h-3 rounded-full" style={{ border: "1.5px solid rgba(91,140,255,0.3)" }} />
+                              : <div className="w-3 h-3 rounded-full" style={{ border: "1.5px solid rgba(0,255,148,0.3)" }} />
                             }
-                            <span className="text-xs font-medium" style={{ color: done ? "rgba(194,210,255,0.75)" : "rgba(194,210,255,0.5)" }}>
+                            <span className="text-xs font-medium" style={{ color: done ? "rgba(176,255,224,0.75)" : "rgba(176,255,224,0.5)" }}>
                               {c.label}
                             </span>
                           </div>
                           <span className="text-xs font-bold" style={{ color: done ? "rgba(52,211,153,0.9)" : TEAL }}>
-                            {c.fmt(c.current)} <span style={{ color: "rgba(194,210,255,0.3)", fontWeight: 400 }}>/ {c.fmt(c.target)}</span>
+                            {c.fmt(c.current)} <span style={{ color: "rgba(176,255,224,0.3)", fontWeight: 400 }}>/ {c.fmt(c.target)}</span>
                           </span>
                         </div>
-                        <div className="w-full rounded-full h-1.5" style={{ background: "rgba(91,140,255,0.07)" }}>
+                        <div className="w-full rounded-full h-1.5" style={{ background: "rgba(0,255,148,0.07)" }}>
                           <div
                             className="h-1.5 rounded-full transition-all duration-700"
                             style={{
                               width: `${pct}%`,
                               background: done
                                 ? "linear-gradient(90deg, rgba(52,211,153,0.8), rgba(52,211,153,0.6))"
-                                : "linear-gradient(90deg, #5B8CFF, #3D5CE0)",
-                              boxShadow: done ? "0 0 8px rgba(52,211,153,0.4)" : "0 0 8px rgba(91,140,255,0.4)",
+                                : "linear-gradient(90deg, #00FF94, #00CC77)",
+                              boxShadow: done ? "0 0 8px rgba(52,211,153,0.4)" : "0 0 8px rgba(0,255,148,0.4)",
                             }}
                           />
                         </div>
@@ -363,11 +363,11 @@ export default function Dashboard({ user }: { user: any }) {
                   <div
                     className="flex-1 flex items-center justify-between px-3 py-2 rounded-xl"
                     style={{
-                      background: countdown.expired ? "rgba(248,113,113,0.07)" : "rgba(91,140,255,0.06)",
-                      border: `1px solid ${countdown.expired ? "rgba(248,113,113,0.2)" : "rgba(91,140,255,0.12)"}`,
+                      background: countdown.expired ? "rgba(248,113,113,0.07)" : "rgba(0,255,148,0.06)",
+                      border: `1px solid ${countdown.expired ? "rgba(248,113,113,0.2)" : "rgba(0,255,148,0.12)"}`,
                     }}
                   >
-                    <span className="text-xs" style={{ color: "rgba(194,210,255,0.45)" }}>
+                    <span className="text-xs" style={{ color: "rgba(176,255,224,0.45)" }}>
                       {countdown.expired ? "Offer ended" : "Offer ends"}
                     </span>
                     <span className="text-xs font-bold" style={{ color: countdown.expired ? "rgba(248,113,113,0.8)" : TEAL }}>
@@ -379,8 +379,8 @@ export default function Dashboard({ user }: { user: any }) {
                   onClick={() => setDetailOffer({ offer, criteria, allDone, countdown })}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
                   style={{
-                    background: "rgba(91,140,255,0.08)",
-                    border: "1px solid rgba(91,140,255,0.18)",
+                    background: "rgba(0,255,148,0.08)",
+                    border: "1px solid rgba(0,255,148,0.18)",
                     color: TEAL,
                     whiteSpace: "nowrap",
                   }}
@@ -408,7 +408,7 @@ export default function Dashboard({ user }: { user: any }) {
               className="w-full max-w-lg rounded-t-3xl overflow-hidden"
               style={{
                 background: "linear-gradient(180deg, rgba(4,16,34,0.99) 0%, rgba(6,8,20,0.99) 100%)",
-                border: "1px solid rgba(91,140,255,0.20)",
+                border: "1px solid rgba(0,255,148,0.20)",
                 borderBottom: "none",
                 maxHeight: "90vh",
                 overflowY: "auto",
@@ -417,11 +417,11 @@ export default function Dashboard({ user }: { user: any }) {
             >
               {/* Drag handle */}
               <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full" style={{ background: "rgba(91,140,255,0.2)" }} />
+                <div className="w-10 h-1 rounded-full" style={{ background: "rgba(0,255,148,0.2)" }} />
               </div>
 
               {/* Top accent */}
-              <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #5B8CFF, #a855f7, transparent)" }} />
+              <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #00FF94, #a855f7, transparent)" }} />
 
               <div className="p-6 space-y-5">
                 {/* Header */}
@@ -429,7 +429,7 @@ export default function Dashboard({ user }: { user: any }) {
                   <div className="flex items-center gap-4">
                     <div
                       className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
-                      style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.22)" }}
+                      style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.22)" }}
                     >
                       {offer.emoji}
                     </div>
@@ -438,7 +438,7 @@ export default function Dashboard({ user }: { user: any }) {
                         className="font-bold text-lg leading-tight"
                         style={{
                           fontFamily: "'Sora', sans-serif",
-                          background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+                          background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                           backgroundClip: "text",
@@ -447,7 +447,7 @@ export default function Dashboard({ user }: { user: any }) {
                         {offer.title}
                       </div>
                       {offer.subtitle && (
-                        <div className="text-sm mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>{offer.subtitle}</div>
+                        <div className="text-sm mt-0.5" style={{ color: "rgba(176,255,224,0.45)" }}>{offer.subtitle}</div>
                       )}
                     </div>
                   </div>
@@ -464,11 +464,11 @@ export default function Dashboard({ user }: { user: any }) {
                 {/* Overall progress ring summary */}
                 <div
                   className="flex items-center gap-4 px-4 py-3 rounded-2xl"
-                  style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.10)" }}
+                  style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.10)" }}
                 >
                   <div className="relative w-14 h-14 flex-shrink-0">
                     <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-                      <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(91,140,255,0.08)" strokeWidth="5" />
+                      <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(0,255,148,0.08)" strokeWidth="5" />
                       <circle
                         cx="28" cy="28" r="22" fill="none"
                         stroke={allDone ? "rgba(52,211,153,0.8)" : TEAL}
@@ -484,10 +484,10 @@ export default function Dashboard({ user }: { user: any }) {
                     </div>
                   </div>
                   <div>
-                    <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>
+                    <div className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.85)" }}>
                       {completedCount} of {criteria.length} criteria met
                     </div>
-                    <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>
+                    <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.35)" }}>
                       {allDone ? "You qualify for this offer!" : `${criteria.length - completedCount} remaining to qualify`}
                     </div>
                   </div>
@@ -498,11 +498,11 @@ export default function Dashboard({ user }: { user: any }) {
                   <div
                     className="px-4 py-4 rounded-2xl"
                     style={{
-                      background: "linear-gradient(135deg, rgba(91,140,255,0.08), rgba(61,92,224,0.04))",
-                      border: "1px solid rgba(91,140,255,0.18)",
+                      background: "linear-gradient(135deg, rgba(0,255,148,0.08), rgba(0,204,119,0.04))",
+                      border: "1px solid rgba(0,255,148,0.18)",
                     }}
                   >
-                    <div className="text-xs font-medium mb-2 tracking-wide uppercase" style={{ color: "rgba(194,210,255,0.4)" }}>🎁 Your Reward</div>
+                    <div className="text-xs font-medium mb-2 tracking-wide uppercase" style={{ color: "rgba(176,255,224,0.4)" }}>🎁 Your Reward</div>
                     <div className="text-base font-bold leading-snug" style={{ color: TEAL }}>{offer.reward}</div>
                   </div>
                 )}
@@ -510,7 +510,7 @@ export default function Dashboard({ user }: { user: any }) {
                 {/* Criteria breakdown */}
                 {criteria.length > 0 && (
                   <div>
-                    <div className="text-xs font-medium mb-3 tracking-wide uppercase" style={{ color: "rgba(194,210,255,0.4)" }}>Requirements</div>
+                    <div className="text-xs font-medium mb-3 tracking-wide uppercase" style={{ color: "rgba(176,255,224,0.4)" }}>Requirements</div>
                     <div className="space-y-4">
                       {(criteria as any[]).map((c: any, i: number) => {
                         const pct = Math.min(100, c.target > 0 ? (c.current / c.target) * 100 : 0);
@@ -522,16 +522,16 @@ export default function Dashboard({ user }: { user: any }) {
                                 <div
                                   className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                                   style={{
-                                    background: done ? "rgba(52,211,153,0.15)" : "rgba(91,140,255,0.08)",
-                                    border: `1.5px solid ${done ? "rgba(52,211,153,0.5)" : "rgba(91,140,255,0.25)"}`,
+                                    background: done ? "rgba(52,211,153,0.15)" : "rgba(0,255,148,0.08)",
+                                    border: `1.5px solid ${done ? "rgba(52,211,153,0.5)" : "rgba(0,255,148,0.25)"}`,
                                   }}
                                 >
                                   {done
                                     ? <CheckCircle size={11} style={{ color: "rgba(52,211,153,0.9)" }} />
-                                    : <span className="text-xs font-bold" style={{ color: "rgba(91,140,255,0.5)" }}>{i + 1}</span>
+                                    : <span className="text-xs font-bold" style={{ color: "rgba(0,255,148,0.5)" }}>{i + 1}</span>
                                   }
                                 </div>
-                                <span className="text-sm font-medium" style={{ color: done ? "rgba(194,210,255,0.85)" : "rgba(194,210,255,0.55)" }}>
+                                <span className="text-sm font-medium" style={{ color: done ? "rgba(176,255,224,0.85)" : "rgba(176,255,224,0.55)" }}>
                                   {c.label}
                                 </span>
                               </div>
@@ -539,24 +539,24 @@ export default function Dashboard({ user }: { user: any }) {
                                 <span className="text-sm font-black" style={{ color: done ? "rgba(52,211,153,0.9)" : TEAL }}>
                                   {c.fmt(c.current)}
                                 </span>
-                                <span className="text-xs ml-1" style={{ color: "rgba(194,210,255,0.3)" }}>/ {c.fmt(c.target)}</span>
+                                <span className="text-xs ml-1" style={{ color: "rgba(176,255,224,0.3)" }}>/ {c.fmt(c.target)}</span>
                               </div>
                             </div>
-                            <div className="w-full rounded-full h-2" style={{ background: "rgba(91,140,255,0.07)" }}>
+                            <div className="w-full rounded-full h-2" style={{ background: "rgba(0,255,148,0.07)" }}>
                               <div
                                 className="h-2 rounded-full transition-all duration-700"
                                 style={{
                                   width: `${pct}%`,
                                   background: done
                                     ? "linear-gradient(90deg, rgba(52,211,153,0.8), rgba(52,211,153,0.5))"
-                                    : "linear-gradient(90deg, #5B8CFF, #3D5CE0)",
-                                  boxShadow: done ? "0 0 10px rgba(52,211,153,0.35)" : "0 0 10px rgba(91,140,255,0.35)",
+                                    : "linear-gradient(90deg, #00FF94, #00CC77)",
+                                  boxShadow: done ? "0 0 10px rgba(52,211,153,0.35)" : "0 0 10px rgba(0,255,148,0.35)",
                                 }}
                               />
                             </div>
                             <div className="flex justify-between mt-1">
-                              <span className="text-xs" style={{ color: "rgba(194,210,255,0.2)" }}>0</span>
-                              <span className="text-xs" style={{ color: "rgba(194,210,255,0.2)" }}>{c.fmt(c.target)}</span>
+                              <span className="text-xs" style={{ color: "rgba(176,255,224,0.2)" }}>0</span>
+                              <span className="text-xs" style={{ color: "rgba(176,255,224,0.2)" }}>{c.fmt(c.target)}</span>
                             </div>
                           </div>
                         );
@@ -570,12 +570,12 @@ export default function Dashboard({ user }: { user: any }) {
                   <div
                     className="flex items-center justify-between px-4 py-3 rounded-xl"
                     style={{
-                      background: countdown.expired ? "rgba(248,113,113,0.07)" : "rgba(91,140,255,0.06)",
-                      border: `1px solid ${countdown.expired ? "rgba(248,113,113,0.2)" : "rgba(91,140,255,0.12)"}`,
+                      background: countdown.expired ? "rgba(248,113,113,0.07)" : "rgba(0,255,148,0.06)",
+                      border: `1px solid ${countdown.expired ? "rgba(248,113,113,0.2)" : "rgba(0,255,148,0.12)"}`,
                     }}
                   >
                     <div>
-                      <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>{countdown.expired ? "This offer has ended" : "Time remaining"}</div>
+                      <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>{countdown.expired ? "This offer has ended" : "Time remaining"}</div>
                       <div className="font-black text-base mt-0.5" style={{ color: countdown.expired ? "rgba(248,113,113,0.8)" : TEAL }}>
                         {countdown.text}
                       </div>
@@ -591,9 +591,9 @@ export default function Dashboard({ user }: { user: any }) {
                   onClick={() => setDetailOffer(null)}
                   className="w-full py-3.5 rounded-2xl font-bold text-sm transition-all"
                   style={{
-                    background: "rgba(91,140,255,0.08)",
-                    border: "1px solid rgba(91,140,255,0.18)",
-                    color: "rgba(194,210,255,0.7)",
+                    background: "rgba(0,255,148,0.08)",
+                    border: "1px solid rgba(0,255,148,0.18)",
+                    color: "rgba(176,255,224,0.7)",
                   }}
                 >
                   Close
@@ -610,17 +610,17 @@ export default function Dashboard({ user }: { user: any }) {
           className="rounded-2xl overflow-hidden relative"
           style={{
             background: "linear-gradient(155deg, rgba(4,16,32,0.95) 0%, rgba(2,10,22,0.95) 100%)",
-            border: "1px solid rgba(91,140,255,0.16)",
-            boxShadow: "0 0 40px rgba(91,140,255,0.06)",
+            border: "1px solid rgba(0,255,148,0.16)",
+            boxShadow: "0 0 40px rgba(0,255,148,0.06)",
           }}
         >
           {/* Top accent line */}
-          <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #5B8CFF, transparent)" }} />
+          <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, #00FF94, transparent)" }} />
 
           {/* Ambient glow */}
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at top right, rgba(91,140,255,0.07) 0%, transparent 65%)" }}
+            style={{ background: "radial-gradient(ellipse at top right, rgba(0,255,148,0.07) 0%, transparent 65%)" }}
           />
 
           <div className="relative p-5">
@@ -629,13 +629,13 @@ export default function Dashboard({ user }: { user: any }) {
               <div className="flex items-center gap-2">
                 <div
                   className="w-8 h-8 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.22)" }}
+                  style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.22)" }}
                 >
                   <Award size={15} style={{ color: TEAL }} />
                 </div>
                 <span
                   className="font-bold text-xs tracking-widest uppercase"
-                  style={{ color: "rgba(194,210,255,0.55)", fontFamily: "'Sora', sans-serif" }}
+                  style={{ color: "rgba(176,255,224,0.55)", fontFamily: "'Sora', sans-serif" }}
                 >
                   Rank Progress
                 </span>
@@ -651,26 +651,26 @@ export default function Dashboard({ user }: { user: any }) {
             <div className="flex items-center gap-3 mb-4">
               {/* Current rank */}
               <div className="flex-1 rounded-xl p-3 text-center"
-                style={{ background: "rgba(0,10,24,0.6)", border: "1px solid rgba(91,140,255,0.08)" }}>
-                <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.32)" }}>Current</div>
-                <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.7)" }}>
+                style={{ background: "rgba(0,10,24,0.6)", border: "1px solid rgba(0,255,148,0.08)" }}>
+                <div className="text-xs mb-1" style={{ color: "rgba(176,255,224,0.32)" }}>Current</div>
+                <div className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.7)" }}>
                   {rankProgress.currentRank?.name ?? "Unranked"}
                 </div>
               </div>
 
               {/* Arrow */}
               <div className="flex flex-col items-center gap-0.5 shrink-0">
-                <ArrowRight size={16} style={{ color: "rgba(91,140,255,0.4)" }} />
+                <ArrowRight size={16} style={{ color: "rgba(0,255,148,0.4)" }} />
               </div>
 
               {/* Next rank */}
               <div className="flex-1 rounded-xl p-3 text-center"
                 style={{
-                  background: "linear-gradient(135deg, rgba(91,140,255,0.10), rgba(61,92,224,0.05))",
-                  border: "1px solid rgba(91,140,255,0.22)",
-                  boxShadow: "0 0 16px rgba(91,140,255,0.06)",
+                  background: "linear-gradient(135deg, rgba(0,255,148,0.10), rgba(0,204,119,0.05))",
+                  border: "1px solid rgba(0,255,148,0.22)",
+                  boxShadow: "0 0 16px rgba(0,255,148,0.06)",
                 }}>
-                <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.38)" }}>Next Rank</div>
+                <div className="text-xs mb-1" style={{ color: "rgba(176,255,224,0.38)" }}>Next Rank</div>
                 <div className="font-bold text-sm" style={{ color: TEAL }}>
                   {rankProgress.nextRank.name}
                 </div>
@@ -680,16 +680,16 @@ export default function Dashboard({ user }: { user: any }) {
             {/* Reward banner */}
             <div
               className="flex items-center gap-2.5 rounded-xl px-4 py-3 mb-4"
-              style={{ background: "rgba(91,140,255,0.05)", border: "1px solid rgba(91,140,255,0.12)" }}
+              style={{ background: "rgba(0,255,148,0.05)", border: "1px solid rgba(0,255,148,0.12)" }}
             >
               <div
                 className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                style={{ background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.2)" }}
+                style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.2)" }}
               >
                 <Award size={13} style={{ color: TEAL }} />
               </div>
               <div className="min-w-0">
-                <div className="text-xs" style={{ color: "rgba(194,210,255,0.38)" }}>Reward upon achieving</div>
+                <div className="text-xs" style={{ color: "rgba(176,255,224,0.38)" }}>Reward upon achieving</div>
                 <div className="font-bold text-sm truncate" style={{ color: TEAL }}>
                   {rankProgress.nextRank.reward}
                 </div>
@@ -703,10 +703,10 @@ export default function Dashboard({ user }: { user: any }) {
               <button
                 className="w-full py-2.5 rounded-xl text-sm font-bold transition-all"
                 style={{
-                  background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-                  color: "#060814",
+                  background: "linear-gradient(135deg, #00FF94, #00CC77)",
+                  color: "#050C0A",
                   letterSpacing: "0.03em",
-                  boxShadow: "0 0 20px rgba(91,140,255,0.25)",
+                  boxShadow: "0 0 20px rgba(0,255,148,0.25)",
                 }}
               >
                 View Full Rank Journey

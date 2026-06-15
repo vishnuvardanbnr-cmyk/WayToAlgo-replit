@@ -40,7 +40,7 @@ export default function TopNav({ user, onLogout }: Props) {
         backdropFilter: "blur(20px) saturate(1.6)",
         WebkitBackdropFilter: "blur(20px) saturate(1.6)",
         borderBottom: "1px solid rgba(91, 140, 255, 0.12)",
-        boxShadow: "0 1px 0 rgba(91,140,255,0.06), 0 4px 24px rgba(0,0,0,0.5)",
+        boxShadow: "0 1px 0 rgba(0,255,148,0.06), 0 4px 24px rgba(0,0,0,0.5)",
       }}
     >
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -49,11 +49,11 @@ export default function TopNav({ user, onLogout }: Props) {
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
             style={{
-              background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-              boxShadow: "0 0 14px rgba(91,140,255,0.35)",
+              background: "linear-gradient(135deg, #00FF94, #00CC77)",
+              boxShadow: "0 0 14px rgba(0,255,148,0.35)",
             }}
           >
-            <span style={{ color: "#060814", fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: "0.95rem" }}>W</span>
+            <span style={{ color: "#050C0A", fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: "0.95rem" }}>W</span>
           </div>
           <span
             style={{
@@ -61,7 +61,7 @@ export default function TopNav({ user, onLogout }: Props) {
               fontWeight: 700,
               fontSize: "1.05rem",
               letterSpacing: "0.01em",
-              color: "#C2D2FF",
+              color: "#B0FFE0",
             }}
           >
             WaytoAlgo
@@ -78,10 +78,10 @@ export default function TopNav({ user, onLogout }: Props) {
                 href={href}
                 className="px-3 py-1.5 rounded-lg transition-all duration-200 font-medium"
                 style={{
-                  color: active ? "#5B8CFF" : "rgba(194,210,255,0.55)",
-                  background: active ? "rgba(91,140,255,0.08)" : "transparent",
-                  textShadow: active ? "0 0 10px rgba(91,140,255,0.5)" : "none",
-                  border: active ? "1px solid rgba(91,140,255,0.18)" : "1px solid transparent",
+                  color: active ? "#00FF94" : "rgba(176,255,224,0.55)",
+                  background: active ? "rgba(0,255,148,0.08)" : "transparent",
+                  textShadow: active ? "0 0 10px rgba(0,255,148,0.5)" : "none",
+                  border: active ? "1px solid rgba(0,255,148,0.18)" : "1px solid transparent",
                 }}
               >
                 {label}
@@ -111,17 +111,17 @@ export default function TopNav({ user, onLogout }: Props) {
             data-testid="link-support"
             className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
             style={{
-              background: "rgba(91,140,255,0.06)",
-              border: "1px solid rgba(91,140,255,0.18)",
-              color: "rgba(194,210,255,0.55)",
+              background: "rgba(0,255,148,0.06)",
+              border: "1px solid rgba(0,255,148,0.18)",
+              color: "rgba(176,255,224,0.55)",
             }}
             onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-              (e.currentTarget as HTMLAnchorElement).style.color = "#5B8CFF";
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(91,140,255,0.45)";
+              (e.currentTarget as HTMLAnchorElement).style.color = "#00FF94";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(0,255,148,0.45)";
             }}
             onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
-              (e.currentTarget as HTMLAnchorElement).style.color = "rgba(194,210,255,0.55)";
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(91,140,255,0.18)";
+              (e.currentTarget as HTMLAnchorElement).style.color = "rgba(176,255,224,0.55)";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(0,255,148,0.18)";
             }}
           >
             <HeadphonesIcon size={15} />
@@ -131,10 +131,10 @@ export default function TopNav({ user, onLogout }: Props) {
             data-testid="link-profile"
             className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
             style={{
-              background: "linear-gradient(135deg, rgba(91,140,255,0.25), rgba(61,92,224,0.15))",
-              border: "1px solid rgba(91,140,255,0.35)",
-              color: "#5B8CFF",
-              boxShadow: "0 0 10px rgba(91,140,255,0.2)",
+              background: "linear-gradient(135deg, rgba(0,255,148,0.25), rgba(0,204,119,0.15))",
+              border: "1px solid rgba(0,255,148,0.35)",
+              color: "#00FF94",
+              boxShadow: "0 0 10px rgba(0,255,148,0.2)",
             }}
           >
             {user?.name?.charAt(0)?.toUpperCase() || "U"}
@@ -143,9 +143,9 @@ export default function TopNav({ user, onLogout }: Props) {
             data-testid="button-logout"
             onClick={handleLogout}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-            style={{ color: "rgba(194,210,255,0.4)" }}
+            style={{ color: "rgba(176,255,224,0.4)" }}
             onMouseEnter={e => (e.currentTarget.style.color = "#f87171")}
-            onMouseLeave={e => (e.currentTarget.style.color = "rgba(194,210,255,0.4)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "rgba(176,255,224,0.4)")}
           >
             <LogOut size={15} />
           </button>

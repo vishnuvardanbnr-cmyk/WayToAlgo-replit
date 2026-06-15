@@ -4,11 +4,11 @@ import { TrendingUp, Coins, CheckCircle, XCircle, Clock, RefreshCw, Shield, Wall
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ethers } from "ethers";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const GREEN = "#34d399";
 const AMBER = "#fbbf24";
 const RED = "#f87171";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 
 const BSC_CHAIN_ID = "0x38";
 const BSC_CHAIN_PARAMS = {
@@ -219,7 +219,7 @@ function PendingAllocations() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Coins size={16} style={{ color: GREEN }} />
-          <span className="font-semibold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>
+          <span className="font-semibold text-sm" style={{ color: "rgba(176,255,224,0.85)" }}>
             Pending Token Allocations
           </span>
           {!isLoading && (
@@ -239,7 +239,7 @@ function PendingAllocations() {
           <button
             onClick={() => refetch()}
             className="p-1.5 rounded-lg transition-opacity hover:opacity-70"
-            style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.15)" }}
+            style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.15)" }}
           >
             <RefreshCw size={13} style={{ color: TEAL }} />
           </button>
@@ -270,7 +270,7 @@ function PendingAllocations() {
               onClick={() => settleMany(Array.from(selected))}
               disabled={!connectedAddr || isAnyBusy}
               className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)", color: "#fff", boxShadow: "0 0 16px rgba(91,140,255,0.25)" }}
+              style={{ background: "linear-gradient(135deg, #00FF94, #00CC77)", color: "#fff", boxShadow: "0 0 16px rgba(0,255,148,0.25)" }}
             >
               Settle Selected ({selected.size}) · ${selectedUsdt.toFixed(2)}
             </button>
@@ -291,7 +291,7 @@ function PendingAllocations() {
       {/* Info box */}
       <div
         className="rounded-xl p-3 text-xs"
-        style={{ background: "rgba(91,140,255,0.05)", border: "1px solid rgba(91,140,255,0.12)", color: "rgba(194,210,255,0.55)" }}
+        style={{ background: "rgba(0,255,148,0.05)", border: "1px solid rgba(0,255,148,0.12)", color: "rgba(176,255,224,0.55)" }}
       >
         <strong style={{ color: TEAL }}>How it works:</strong> Connect your MetaMask wallet (BSC mainnet). For each settlement, you'll approve USDT → buy WTA tokens → they transfer directly to the user's wallet. Referral commissions are distributed on-chain automatically by the contract.
       </div>
@@ -299,23 +299,23 @@ function PendingAllocations() {
       {/* Pending rows */}
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2].map(i => <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(91,140,255,0.04)" }} />)}
+          {[1, 2].map(i => <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(0,255,148,0.04)" }} />)}
         </div>
       ) : rows.length === 0 ? (
         <div className="rounded-xl p-5 text-center" style={{ background: "rgba(52,211,153,0.04)", border: "1px solid rgba(52,211,153,0.10)" }}>
           <CheckCircle size={24} className="mx-auto mb-1.5" style={{ color: "rgba(52,211,153,0.4)" }} />
-          <p className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>No pending allocations — all tokens settled</p>
+          <p className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>No pending allocations — all tokens settled</p>
         </div>
       ) : (
         <>
           <div className="flex items-center gap-2 px-1 py-1 cursor-pointer select-none" onClick={toggleAll}>
             <div
               className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0"
-              style={{ background: allSelected ? TEAL : "rgba(91,140,255,0.08)", border: `1px solid ${allSelected ? TEAL : "rgba(91,140,255,0.25)"}` }}
+              style={{ background: allSelected ? TEAL : "rgba(0,255,148,0.08)", border: `1px solid ${allSelected ? TEAL : "rgba(0,255,148,0.25)"}` }}
             >
               {allSelected && <CheckCircle size={10} style={{ color: "#fff" }} />}
             </div>
-            <span className="text-xs" style={{ color: "rgba(194,210,255,0.45)" }}>
+            <span className="text-xs" style={{ color: "rgba(176,255,224,0.45)" }}>
               {allSelected ? "Deselect all" : `Select all ${rows.length}`}
             </span>
           </div>
@@ -342,11 +342,11 @@ function PendingAllocations() {
                       ? "rgba(52,211,153,0.05)"
                       : status.phase === "failed"
                         ? "rgba(248,113,113,0.05)"
-                        : isSelected ? "rgba(91,140,255,0.08)" : "rgba(251,191,36,0.04)",
+                        : isSelected ? "rgba(0,255,148,0.08)" : "rgba(251,191,36,0.04)",
                     border: `1px solid ${
                       status.phase === "done" ? "rgba(52,211,153,0.2)"
                       : status.phase === "failed" ? "rgba(248,113,113,0.2)"
-                      : isSelected ? "rgba(91,140,255,0.25)" : "rgba(251,191,36,0.12)"
+                      : isSelected ? "rgba(0,255,148,0.25)" : "rgba(251,191,36,0.12)"
                     }`,
                     cursor: busy || status.phase === "done" ? "default" : "pointer",
                   }}
@@ -360,7 +360,7 @@ function PendingAllocations() {
                   ) : (
                     <div
                       className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{ background: isSelected ? TEAL : "rgba(91,140,255,0.08)", border: `1px solid ${isSelected ? TEAL : "rgba(91,140,255,0.25)"}` }}
+                      style={{ background: isSelected ? TEAL : "rgba(0,255,148,0.08)", border: `1px solid ${isSelected ? TEAL : "rgba(0,255,148,0.25)"}` }}
                     >
                       {isSelected && <CheckCircle size={10} style={{ color: "#fff" }} />}
                     </div>
@@ -368,9 +368,9 @@ function PendingAllocations() {
 
                   {/* User info */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold truncate" style={{ color: "rgba(194,210,255,0.85)" }}>{row.userName}</div>
-                    <div className="text-xs truncate" style={{ color: "rgba(194,210,255,0.4)" }}>{row.userEmail}</div>
-                    <div className="text-xs mt-0.5 font-mono" style={{ color: hasWallet ? "rgba(194,210,255,0.3)" : RED }}>
+                    <div className="text-sm font-semibold truncate" style={{ color: "rgba(176,255,224,0.85)" }}>{row.userName}</div>
+                    <div className="text-xs truncate" style={{ color: "rgba(176,255,224,0.4)" }}>{row.userEmail}</div>
+                    <div className="text-xs mt-0.5 font-mono" style={{ color: hasWallet ? "rgba(176,255,224,0.3)" : RED }}>
                       {hasWallet ? `${row.walletAddress.slice(0, 8)}…${row.walletAddress.slice(-6)}` : "⚠ No wallet address"}
                     </div>
 
@@ -398,14 +398,14 @@ function PendingAllocations() {
                         <span className="text-xs" style={{ color: AMBER }}>pending</span>
                       </div>
                     )}
-                    <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.3)" }}>{formatDate(row.createdAt)}</div>
+                    <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.3)" }}>{formatDate(row.createdAt)}</div>
                   </div>
 
                   {/* Settle button */}
                   {status.phase !== "done" && (
                     <button
                       className="ml-1 px-2.5 py-1.5 rounded-lg text-xs font-bold flex-shrink-0 transition-all disabled:opacity-50"
-                      style={{ background: busy ? "rgba(91,140,255,0.15)" : "linear-gradient(135deg, #34d399, #059669)", color: "#fff" }}
+                      style={{ background: busy ? "rgba(0,255,148,0.15)" : "linear-gradient(135deg, #34d399, #059669)", color: "#fff" }}
                       disabled={busy || !connectedAddr || !hasWallet}
                       onClick={e => { e.stopPropagation(); settleOne(row.id); }}
                       title={!connectedAddr ? "Connect MetaMask first" : !hasWallet ? "User has no wallet address" : "Settle via MetaMask"}
@@ -438,7 +438,7 @@ export default function AdminInvestments() {
           className="text-xl font-bold"
           style={{
             fontFamily: "'Sora', sans-serif",
-            background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+            background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -448,7 +448,7 @@ export default function AdminInvestments() {
         </h1>
         <span
           className="text-xs px-2.5 py-1 rounded-full font-semibold"
-          style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.2)", color: TEAL }}
+          style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.2)", color: TEAL }}
         >
           {data?.total ?? 0}
         </span>
@@ -460,11 +460,11 @@ export default function AdminInvestments() {
           { label: "Total Invested", value: `$${totalInvested.toFixed(0)}`, color: TEAL },
           { label: "Active",         value: activeCount,                    color: GREEN },
           { label: "Safe Invest",    value: safeCount,                      color: AMBER },
-          { label: "Completed",      value: investments.filter(i => i.status !== "active").length, color: "rgba(194,210,255,0.45)" },
+          { label: "Completed",      value: investments.filter(i => i.status !== "active").length, color: "rgba(176,255,224,0.45)" },
         ].map(item => (
           <div key={item.label} className="rounded-xl p-4 text-center" style={GLASS}>
             <div className="font-bold text-lg" style={{ color: item.color }}>{item.value}</div>
-            <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.35)" }}>{item.label}</div>
+            <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.35)" }}>{item.label}</div>
           </div>
         ))}
       </div>
@@ -478,13 +478,13 @@ export default function AdminInvestments() {
       {isLoading ? (
         <div className="space-y-3">
           {[1,2,3].map(i => (
-            <div key={i} className="rounded-xl h-24 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+            <div key={i} className="rounded-xl h-24 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
           ))}
         </div>
       ) : !investments.length ? (
         <div className="rounded-xl p-8 text-center" style={GLASS}>
-          <TrendingUp size={32} className="mx-auto mb-2" style={{ color: "rgba(194,210,255,0.2)" }} />
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.35)" }}>No investments yet</p>
+          <TrendingUp size={32} className="mx-auto mb-2" style={{ color: "rgba(176,255,224,0.2)" }} />
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.35)" }}>No investments yet</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -493,14 +493,14 @@ export default function AdminInvestments() {
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>{(inv as any).userName ?? `User #${inv.userId}`}</span>
+                    <span className="font-semibold text-sm" style={{ color: "rgba(176,255,224,0.85)" }}>{(inv as any).userName ?? `User #${inv.userId}`}</span>
                     {(inv as any).investmentType === "safe" && (
                       <span className="text-xs px-1.5 py-0.5 rounded font-semibold flex items-center gap-1" style={{ background: "rgba(52,211,153,0.10)", border: "1px solid rgba(52,211,153,0.22)", color: GREEN }}>
                         <Shield size={9} /> Safe
                       </span>
                     )}
                   </div>
-                  <div className="text-xs capitalize" style={{ color: "rgba(194,210,255,0.4)" }}>
+                  <div className="text-xs capitalize" style={{ color: "rgba(176,255,224,0.4)" }}>
                     {inv.planTier.replace("tier", "Tier ")}
                   </div>
                 </div>
@@ -513,9 +513,9 @@ export default function AdminInvestments() {
                       border: "1px solid rgba(52,211,153,0.22)",
                       color: GREEN,
                     } : {
-                      background: "rgba(194,210,255,0.05)",
-                      border: "1px solid rgba(194,210,255,0.10)",
-                      color: "rgba(194,210,255,0.4)",
+                      background: "rgba(176,255,224,0.05)",
+                      border: "1px solid rgba(176,255,224,0.10)",
+                      color: "rgba(176,255,224,0.4)",
                     }}
                   >
                     {inv.status}
@@ -524,7 +524,7 @@ export default function AdminInvestments() {
               </div>
               <div
                 className="grid grid-cols-4 gap-2 pt-2 text-center"
-                style={{ borderTop: "1px solid rgba(91,140,255,0.07)" }}
+                style={{ borderTop: "1px solid rgba(0,255,148,0.07)" }}
               >
                 {[
                   { label: "Daily",    value: `${(inv.dailyRate * 100).toFixed(1)}%` },
@@ -533,8 +533,8 @@ export default function AdminInvestments() {
                   { label: "Started",  value: formatDate(inv.startDate) },
                 ].map(item => (
                   <div key={item.label}>
-                    <div className="text-xs font-semibold" style={{ color: "rgba(194,210,255,0.75)" }}>{item.value}</div>
-                    <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>{item.label}</div>
+                    <div className="text-xs font-semibold" style={{ color: "rgba(176,255,224,0.75)" }}>{item.value}</div>
+                    <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>{item.label}</div>
                   </div>
                 ))}
               </div>

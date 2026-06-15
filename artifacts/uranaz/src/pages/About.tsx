@@ -26,14 +26,14 @@ export default function About() {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden" style={{ background: "#060814" }}>
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: "#050C0A" }}>
 
       {/* Background grid */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
         style={{
-          backgroundImage: `linear-gradient(rgba(91,140,255,0.025) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(91,140,255,0.025) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(0,255,148,0.025) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(0,255,148,0.025) 1px, transparent 1px)`,
           backgroundSize: "60px 60px",
         }}
       />
@@ -42,7 +42,7 @@ export default function About() {
         <div style={{
           position: "absolute", top: "-20%", right: "-15%",
           width: 600, height: 600, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(91,140,255,0.06) 0%, transparent 65%)",
+          background: "radial-gradient(circle, rgba(0,255,148,0.06) 0%, transparent 65%)",
         }} />
         <div style={{
           position: "absolute", bottom: "-10%", left: "-10%",
@@ -59,9 +59,9 @@ export default function About() {
           onClick={() => window.history.back()}
           className="flex items-center gap-2 mb-8 px-3 py-2 rounded-xl text-sm font-medium transition-all hover:brightness-125"
           style={{
-            background: "rgba(91,140,255,0.06)",
-            border: "1px solid rgba(91,140,255,0.15)",
-            color: "rgba(194,210,255,0.6)",
+            background: "rgba(0,255,148,0.06)",
+            border: "1px solid rgba(0,255,148,0.15)",
+            color: "rgba(176,255,224,0.6)",
           }}
         >
           <ArrowLeft size={15} />
@@ -70,14 +70,14 @@ export default function About() {
 
         {/* Page heading */}
         <div className="text-center mb-8">
-          <div className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: "rgba(91,140,255,0.5)" }}>
+          <div className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: "rgba(0,255,148,0.5)" }}>
             Company Information
           </div>
           <h1
             className="text-3xl sm:text-4xl font-black mb-4"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -85,7 +85,7 @@ export default function About() {
           >
             About WaytoAlgo
           </h1>
-          <p className="text-sm leading-relaxed max-w-lg mx-auto" style={{ color: "rgba(194,210,255,0.50)" }}>
+          <p className="text-sm leading-relaxed max-w-lg mx-auto" style={{ color: "rgba(176,255,224,0.50)" }}>
             {cert.companyName} is an officially registered company incorporated in England &amp; Wales,
             operating a diversified investment platform across Real Estate, Stocks, Forex, and Cryptocurrency
             markets with over 10 years of combined expertise.
@@ -106,10 +106,10 @@ export default function About() {
               style={{
                 background: "rgba(10,14,30,0.65)",
                 backdropFilter: "blur(14px)",
-                border: "1px solid rgba(91,140,255,0.10)",
+                border: "1px solid rgba(0,255,148,0.10)",
               }}
             >
-              <div className="text-xs mb-1" style={{ color: "rgba(194,210,255,0.35)" }}>{label}</div>
+              <div className="text-xs mb-1" style={{ color: "rgba(176,255,224,0.35)" }}>{label}</div>
               <div className="text-xs font-bold" style={{ color: "rgba(200,240,255,0.85)" }}>{value}</div>
             </div>
           ))}
@@ -117,7 +117,7 @@ export default function About() {
 
         {/* Certificate of Incorporation */}
         <div className="mb-3 text-center">
-          <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: "rgba(91,140,255,0.5)" }}>
+          <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: "rgba(0,255,148,0.5)" }}>
             Official Document
           </div>
         </div>
@@ -221,7 +221,7 @@ export default function About() {
               className="text-3xl font-black tracking-widest"
               style={{
                 fontFamily: "'Sora', sans-serif",
-                color: "rgba(91,140,255,0.06)",
+                color: "rgba(0,255,148,0.06)",
                 transform: "rotate(-30deg)",
                 whiteSpace: "nowrap",
                 userSelect: "none",
@@ -241,7 +241,7 @@ export default function About() {
         </div>
 
         {/* Footer note */}
-        <p className="text-center text-xs mt-6" style={{ color: "rgba(194,210,255,0.25)" }}>
+        <p className="text-center text-xs mt-6" style={{ color: "rgba(176,255,224,0.25)" }}>
           Issued by Companies House, England &amp; Wales · {cert.incorporatedDate}
         </p>
       </div>

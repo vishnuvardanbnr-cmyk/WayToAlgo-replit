@@ -2,18 +2,18 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Save, FileText, Shield } from "lucide-react";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 const TEXTAREA_STYLE = {
   background: "rgba(0,20,40,0.7)",
-  border: "1px solid rgba(91,140,255,0.18)",
-  color: "rgba(194,210,255,0.9)",
+  border: "1px solid rgba(0,255,148,0.18)",
+  color: "rgba(176,255,224,0.9)",
   fontFamily: "monospace",
   fontSize: "0.82rem",
   lineHeight: "1.6",
   resize: "vertical" as const,
 };
-const LABEL_STYLE = { color: "rgba(194,210,255,0.6)", fontSize: "0.75rem", letterSpacing: "0.06em", textTransform: "uppercase" as const };
+const LABEL_STYLE = { color: "rgba(176,255,224,0.6)", fontSize: "0.75rem", letterSpacing: "0.06em", textTransform: "uppercase" as const };
 
 export default function AdminLegal() {
   const { toast } = useToast();
@@ -62,7 +62,7 @@ export default function AdminLegal() {
     return (
       <div className="px-4 py-6 max-w-4xl mx-auto space-y-4">
         {[1, 2].map(i => (
-          <div key={i} className="rounded-xl h-64 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+          <div key={i} className="rounded-xl h-64 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
         ))}
       </div>
     );
@@ -75,7 +75,7 @@ export default function AdminLegal() {
           className="text-xl font-bold"
           style={{
             fontFamily: "'Sora', sans-serif",
-            background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+            background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -83,7 +83,7 @@ export default function AdminLegal() {
         >
           Legal Content
         </h1>
-        <p className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+        <p className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
           Edit Terms & Conditions and Privacy Policy shown to users. Plain text or Markdown supported.
         </p>
       </div>
@@ -94,13 +94,13 @@ export default function AdminLegal() {
           <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.25)" }}
+              style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.25)" }}
             >
               <FileText size={15} style={{ color: TEAL }} />
             </div>
             <div>
-              <div className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.9)" }}>Terms &amp; Conditions</div>
-              <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Shown at /terms</div>
+              <div className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.9)" }}>Terms &amp; Conditions</div>
+              <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Shown at /terms</div>
             </div>
           </div>
           <button
@@ -108,9 +108,9 @@ export default function AdminLegal() {
             disabled={saving === "terms"}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-60"
             style={{
-              background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-              color: "#060814",
-              boxShadow: "0 0 16px rgba(91,140,255,0.3)",
+              background: "linear-gradient(135deg, #00FF94, #00CC77)",
+              color: "#050C0A",
+              boxShadow: "0 0 16px rgba(0,255,148,0.3)",
             }}
           >
             <Save size={14} />
@@ -136,13 +136,13 @@ export default function AdminLegal() {
           <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.25)" }}
+              style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.25)" }}
             >
               <Shield size={15} style={{ color: TEAL }} />
             </div>
             <div>
-              <div className="text-sm font-semibold" style={{ color: "rgba(194,210,255,0.9)" }}>Privacy Policy</div>
-              <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Shown at /privacy</div>
+              <div className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.9)" }}>Privacy Policy</div>
+              <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Shown at /privacy</div>
             </div>
           </div>
           <button
@@ -150,9 +150,9 @@ export default function AdminLegal() {
             disabled={saving === "privacy"}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-60"
             style={{
-              background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-              color: "#060814",
-              boxShadow: "0 0 16px rgba(91,140,255,0.3)",
+              background: "linear-gradient(135deg, #00FF94, #00CC77)",
+              color: "#050C0A",
+              boxShadow: "0 0 16px rgba(0,255,148,0.3)",
             }}
           >
             <Save size={14} />

@@ -3,12 +3,12 @@ import {
   CircleDollarSign, Clock, CheckCircle, XCircle, RefreshCw, Eye, X, Check, Ban, Trash2,
 } from "lucide-react";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const PURPLE = "#b87fff";
 const GLASS = {
   background: "rgba(10,14,30,0.65)",
   backdropFilter: "blur(14px)",
-  border: "1px solid rgba(91,140,255,0.10)",
+  border: "1px solid rgba(0,255,148,0.10)",
 } as const;
 
 function getToken() {
@@ -53,7 +53,7 @@ function ScreenshotModal({ url, onClose }: { url: string; onClose: () => void })
         <button
           onClick={onClose}
           className="absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center z-10"
-          style={{ background: "rgba(10,14,30,0.95)", border: "1px solid rgba(91,140,255,0.25)", color: TEAL }}
+          style={{ background: "rgba(10,14,30,0.95)", border: "1px solid rgba(0,255,148,0.25)", color: TEAL }}
         >
           <X size={14} />
         </button>
@@ -122,27 +122,27 @@ function ApproveModal({ request, onClose, onDone }: { request: HcRequest; onClos
             </div>
             <div>
               <div className="text-sm font-bold" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif" }}>Approve WTA Deposit</div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>{request.userName} · {request.userEmail}</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>{request.userName} · {request.userEmail}</div>
             </div>
           </div>
 
           <div className="rounded-xl p-3 space-y-1.5" style={{ background: "rgba(184,127,255,0.06)", border: "1px solid rgba(184,127,255,0.16)" }}>
             <div className="flex justify-between text-xs">
-              <span style={{ color: "rgba(194,210,255,0.4)" }}>User</span>
+              <span style={{ color: "rgba(176,255,224,0.4)" }}>User</span>
               <span className="font-bold" style={{ color: PURPLE }}>{request.userName}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span style={{ color: "rgba(194,210,255,0.4)" }}>Submitted</span>
-              <span style={{ color: "rgba(194,210,255,0.7)" }}>{formatDate(request.createdAt)}</span>
+              <span style={{ color: "rgba(176,255,224,0.4)" }}>Submitted</span>
+              <span style={{ color: "rgba(176,255,224,0.7)" }}>{formatDate(request.createdAt)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span style={{ color: "rgba(194,210,255,0.4)" }}>WTA Rate</span>
+              <span style={{ color: "rgba(176,255,224,0.4)" }}>WTA Rate</span>
               <span className="font-bold" style={{ color: TEAL }}>1 WTA = ${hcPrice.toFixed(4)} USDT</span>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold mb-2" style={{ color: "rgba(194,210,255,0.6)" }}>
+            <label className="block text-xs font-semibold mb-2" style={{ color: "rgba(176,255,224,0.6)" }}>
               WTA to Credit
             </label>
             <input
@@ -153,11 +153,11 @@ function ApproveModal({ request, onClose, onDone }: { request: HcRequest; onClos
               value={hcAmount}
               onChange={e => setHcAmount(e.target.value)}
               className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none"
-              style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(52,211,153,0.3)", color: "rgba(194,210,255,0.9)" }}
+              style={{ background: "rgba(0,20,40,0.7)", border: "1px solid rgba(52,211,153,0.3)", color: "rgba(176,255,224,0.9)" }}
             />
             {hcVal > 0 && (
               <div className="mt-2 flex items-center justify-between px-1">
-                <span className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>USD value credited</span>
+                <span className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>USD value credited</span>
                 <span className="text-xs font-bold" style={{ color: "#34d399" }}>${usdPreview} USDT</span>
               </div>
             )}
@@ -169,7 +169,7 @@ function ApproveModal({ request, onClose, onDone }: { request: HcRequest; onClos
             <button
               onClick={onClose}
               className="flex-1 py-2.5 rounded-xl text-xs font-bold"
-              style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.12)", color: "rgba(194,210,255,0.6)" }}
+              style={{ background: "rgba(176,255,224,0.06)", border: "1px solid rgba(176,255,224,0.12)", color: "rgba(176,255,224,0.6)" }}
             >
               Cancel
             </button>
@@ -179,7 +179,7 @@ function ApproveModal({ request, onClose, onDone }: { request: HcRequest; onClos
               className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all"
               style={{
                 background: "linear-gradient(135deg, #34d399, #10b981)",
-                color: "#060814",
+                color: "#050C0A",
                 opacity: submitting ? 0.6 : 1,
               }}
             >
@@ -293,7 +293,7 @@ export default function AdminHcDeposits() {
             className="text-xl font-bold"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -301,7 +301,7 @@ export default function AdminHcDeposits() {
           >
             WTA Deposits
           </h1>
-          <p className="text-xs mt-1" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.4)" }}>
             Review and credit WTA deposit requests
           </p>
         </div>
@@ -325,7 +325,7 @@ export default function AdminHcDeposits() {
           <button
             onClick={() => { load(); loadOldCount(); }}
             className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:brightness-125"
-            style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }}
+            style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }}
           >
             <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
           </button>
@@ -341,14 +341,14 @@ export default function AdminHcDeposits() {
             className="px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all"
             style={{
               background: filter === tab
-                ? tab === "pending" ? "rgba(251,191,36,0.18)" : tab === "approved" ? "rgba(52,211,153,0.18)" : tab === "rejected" ? "rgba(248,113,113,0.18)" : "rgba(91,140,255,0.18)"
-                : "rgba(194,210,255,0.05)",
+                ? tab === "pending" ? "rgba(251,191,36,0.18)" : tab === "approved" ? "rgba(52,211,153,0.18)" : tab === "rejected" ? "rgba(248,113,113,0.18)" : "rgba(0,255,148,0.18)"
+                : "rgba(176,255,224,0.05)",
               border: filter === tab
-                ? tab === "pending" ? "1px solid rgba(251,191,36,0.4)" : tab === "approved" ? "1px solid rgba(52,211,153,0.4)" : tab === "rejected" ? "1px solid rgba(248,113,113,0.4)" : "1px solid rgba(91,140,255,0.4)"
-                : "1px solid rgba(194,210,255,0.08)",
+                ? tab === "pending" ? "1px solid rgba(251,191,36,0.4)" : tab === "approved" ? "1px solid rgba(52,211,153,0.4)" : tab === "rejected" ? "1px solid rgba(248,113,113,0.4)" : "1px solid rgba(0,255,148,0.4)"
+                : "1px solid rgba(176,255,224,0.08)",
               color: filter === tab
                 ? tab === "pending" ? "#fbbf24" : tab === "approved" ? "#34d399" : tab === "rejected" ? "#f87171" : TEAL
-                : "rgba(194,210,255,0.45)",
+                : "rgba(176,255,224,0.45)",
             }}
           >
             {tab} ({counts[tab]})
@@ -359,13 +359,13 @@ export default function AdminHcDeposits() {
       {/* List */}
       {loading ? (
         <div className="text-center py-12">
-          <RefreshCw size={24} className="mx-auto animate-spin mb-3" style={{ color: "rgba(194,210,255,0.3)" }} />
-          <p className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>Loading...</p>
+          <RefreshCw size={24} className="mx-auto animate-spin mb-3" style={{ color: "rgba(176,255,224,0.3)" }} />
+          <p className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>Loading...</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl p-12 text-center" style={GLASS}>
-          <CircleDollarSign size={32} className="mx-auto mb-3" style={{ color: "rgba(194,210,255,0.15)" }} />
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.3)" }}>No {filter !== "all" ? filter : ""} WTA deposit requests</p>
+          <CircleDollarSign size={32} className="mx-auto mb-3" style={{ color: "rgba(176,255,224,0.15)" }} />
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.3)" }}>No {filter !== "all" ? filter : ""} WTA deposit requests</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -387,16 +387,16 @@ export default function AdminHcDeposits() {
                       <CircleDollarSign size={16} style={{ color: PURPLE }} />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold truncate" style={{ color: "rgba(194,210,255,0.85)" }}>
+                      <div className="text-sm font-semibold truncate" style={{ color: "rgba(176,255,224,0.85)" }}>
                         {req.userName}
                       </div>
-                      <div className="text-xs truncate" style={{ color: "rgba(194,210,255,0.4)" }}>{req.userEmail}</div>
+                      <div className="text-xs truncate" style={{ color: "rgba(176,255,224,0.4)" }}>{req.userEmail}</div>
                       <div className="flex items-center gap-1.5 mt-1">
                         <Icon size={10} style={{ color: cfg.color }} />
                         <span className="text-xs font-semibold" style={{ color: cfg.color }}>{cfg.label}</span>
                         {req.amount && (
                           <>
-                            <span style={{ color: "rgba(194,210,255,0.25)" }}>·</span>
+                            <span style={{ color: "rgba(176,255,224,0.25)" }}>·</span>
                             <span className="text-xs font-bold" style={{ color: PURPLE }}>${parseFloat(req.amount).toFixed(2)} WTA</span>
                           </>
                         )}
@@ -405,10 +405,10 @@ export default function AdminHcDeposits() {
                   </div>
 
                   <div className="text-right shrink-0">
-                    <div className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>
+                    <div className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>
                       {formatDate(req.createdAt)}
                     </div>
-                    <div className="text-xs font-mono mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+                    <div className="text-xs font-mono mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
                       {req.referralCode}
                     </div>
                   </div>
@@ -425,7 +425,7 @@ export default function AdminHcDeposits() {
                     <button
                       onClick={() => setScreenshotUrl(req.screenshotUrl)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:brightness-125"
-                      style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: TEAL }}
+                      style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: TEAL }}
                     >
                       <Eye size={12} />
                       Screenshot
@@ -433,7 +433,7 @@ export default function AdminHcDeposits() {
                   ) : (
                     <span
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
-                      style={{ background: "rgba(194,210,255,0.04)", border: "1px solid rgba(194,210,255,0.08)", color: "rgba(194,210,255,0.25)" }}
+                      style={{ background: "rgba(176,255,224,0.04)", border: "1px solid rgba(176,255,224,0.08)", color: "rgba(176,255,224,0.25)" }}
                     >
                       <Eye size={12} />
                       Image Cleared

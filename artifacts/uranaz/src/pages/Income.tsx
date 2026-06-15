@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useListIncome, useGetIncomeSummary, getListIncomeQueryKey } from "@workspace/api-client-react";
 import { DollarSign, TrendingUp, Users, Award } from "lucide-react";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 
 const typeFilters = [
   { value: "",                label: "All" },
@@ -24,7 +24,7 @@ const typeColors: Record<string, string> = {
   daily_return:     "#34d399",
   spot_referral:    "#60a5fa",
   level_commission: "#c084fc",
-  rank_bonus:       "#5B8CFF",
+  rank_bonus:       "#00FF94",
 };
 
 function formatDate(iso: string) {
@@ -53,7 +53,7 @@ export default function Income() {
         className="text-xl font-bold"
         style={{
           fontFamily: "'Sora', sans-serif",
-          background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+          background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
@@ -66,17 +66,17 @@ export default function Income() {
       <div
         className="rounded-2xl p-5 relative overflow-hidden col-span-2"
         style={{
-          background: "linear-gradient(135deg, rgba(91,140,255,0.12), rgba(61,92,224,0.06), rgba(100,60,200,0.05))",
-          border: "1px solid rgba(91,140,255,0.28)",
-          boxShadow: "0 0 40px rgba(91,140,255,0.08)",
+          background: "linear-gradient(135deg, rgba(0,255,148,0.12), rgba(0,204,119,0.06), rgba(0,180,100,0.05))",
+          border: "1px solid rgba(0,255,148,0.28)",
+          boxShadow: "0 0 40px rgba(0,255,148,0.08)",
         }}
       >
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at top right, rgba(91,140,255,0.16) 0%, transparent 60%)" }}
+          style={{ background: "radial-gradient(ellipse at top right, rgba(0,255,148,0.16) 0%, transparent 60%)" }}
         />
         <div className="relative">
-          <div className="text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(194,210,255,0.45)" }}>
+          <div className="text-xs tracking-widest uppercase mb-1" style={{ color: "rgba(176,255,224,0.45)" }}>
             USDT Earnings
           </div>
           <div
@@ -84,7 +84,7 @@ export default function Income() {
             data-testid="text-total-income"
             style={{
               fontFamily: "'Sora', sans-serif",
-              background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+              background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -92,9 +92,9 @@ export default function Income() {
           >
             ${sumLoading ? "—" : (summary?.totalEarnings ?? 0).toFixed(2)}
           </div>
-          <div className="flex gap-4 mt-3 text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
-            <span>Available: <span style={{ color: "rgba(194,210,255,0.8)", fontWeight: 600 }}>${summary?.availableBalance?.toFixed(2) ?? "—"}</span></span>
-            <span>Withdrawn: <span style={{ color: "rgba(194,210,255,0.8)", fontWeight: 600 }}>${summary?.withdrawnTotal?.toFixed(2) ?? "—"}</span></span>
+          <div className="flex gap-4 mt-3 text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
+            <span>Available: <span style={{ color: "rgba(176,255,224,0.8)", fontWeight: 600 }}>${summary?.availableBalance?.toFixed(2) ?? "—"}</span></span>
+            <span>Withdrawn: <span style={{ color: "rgba(176,255,224,0.8)", fontWeight: 600 }}>${summary?.withdrawnTotal?.toFixed(2) ?? "—"}</span></span>
           </div>
         </div>
       </div>
@@ -112,28 +112,28 @@ export default function Income() {
         return (
           <div className="rounded-2xl p-4" style={GLASS}>
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xs tracking-wide uppercase" style={{ color: "rgba(194,210,255,0.45)" }}>
+              <div className="text-xs tracking-wide uppercase" style={{ color: "rgba(176,255,224,0.45)" }}>
                 Earnings Cap
               </div>
               <div
                 className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                style={{ color: TEAL, background: "rgba(91,140,255,0.12)", border: "1px solid rgba(91,140,255,0.25)" }}
+                style={{ color: TEAL, background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.25)" }}
               >
                 {Number(cap.multiplier ?? 0)}× INVESTED
               </div>
             </div>
             <div className="flex items-baseline justify-between mb-1.5">
-              <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.9)" }}>
-                ${earned.toFixed(2)} <span style={{ color: "rgba(194,210,255,0.4)", fontWeight: 400 }}>of ${ceiling.toFixed(2)}</span>
+              <div className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.9)" }}>
+                ${earned.toFixed(2)} <span style={{ color: "rgba(176,255,224,0.4)", fontWeight: 400 }}>of ${ceiling.toFixed(2)}</span>
               </div>
-              <div className="text-xs" style={{ color: reached ? "#f87171" : "rgba(194,210,255,0.55)" }}>
+              <div className="text-xs" style={{ color: reached ? "#f87171" : "rgba(176,255,224,0.55)" }}>
                 {reached ? "Cap reached" : `$${remaining.toFixed(2)} left`}
               </div>
             </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(91,140,255,0.12)" }}>
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(0,255,148,0.12)" }}>
               <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
             </div>
-            <div className="text-[11px] mt-2" style={{ color: "rgba(194,210,255,0.4)" }}>
+            <div className="text-[11px] mt-2" style={{ color: "rgba(176,255,224,0.4)" }}>
               Trading Profit + Team Benefit combined. Grow your direct team's volume past your own investment to unlock a higher cap.
             </div>
           </div>
@@ -151,9 +151,9 @@ export default function Income() {
           <div key={item.label} className="rounded-xl p-3" style={GLASS}>
             <div className="flex items-center gap-1.5 mb-1.5">
               <item.icon size={13} style={{ color: item.color }} />
-              <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>{item.label}</div>
+              <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>{item.label}</div>
             </div>
-            <div className="font-bold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>
+            <div className="font-bold text-sm" style={{ color: "rgba(176,255,224,0.85)" }}>
               {fmtAmount(item.type, item.value ?? 0)}
             </div>
           </div>
@@ -171,10 +171,10 @@ export default function Income() {
               onClick={() => setType(f.value)}
               className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
               style={{
-                background: active ? "linear-gradient(135deg, #5B8CFF, #3D5CE0)" : "rgba(10,14,30,0.65)",
-                color: active ? "#060814" : "rgba(194,210,255,0.45)",
-                border: active ? "none" : "1px solid rgba(91,140,255,0.12)",
-                boxShadow: active ? "0 0 10px rgba(91,140,255,0.25)" : "none",
+                background: active ? "linear-gradient(135deg, #00FF94, #00CC77)" : "rgba(10,14,30,0.65)",
+                color: active ? "#050C0A" : "rgba(176,255,224,0.45)",
+                border: active ? "none" : "1px solid rgba(0,255,148,0.12)",
+                boxShadow: active ? "0 0 10px rgba(0,255,148,0.25)" : "none",
                 fontWeight: active ? 700 : 500,
               }}
             >
@@ -188,13 +188,13 @@ export default function Income() {
       {isLoading ? (
         <div className="space-y-3">
           {[1,2,3,4].map(i => (
-            <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />
+            <div key={i} className="rounded-xl h-16 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />
           ))}
         </div>
       ) : !incomeData?.records?.length ? (
         <div className="rounded-xl p-10 text-center" style={GLASS}>
-          <DollarSign size={36} className="mx-auto mb-2" style={{ color: "rgba(194,210,255,0.2)" }} />
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.35)" }}>No income records yet</p>
+          <DollarSign size={36} className="mx-auto mb-2" style={{ color: "rgba(176,255,224,0.2)" }} />
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.35)" }}>No income records yet</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -216,11 +216,11 @@ export default function Income() {
                     <Icon size={16} style={{ color }} />
                   </div>
                   <div>
-                    <div className="text-sm font-medium" style={{ color: "rgba(194,210,255,0.8)" }}>{record.description}</div>
+                    <div className="text-sm font-medium" style={{ color: "rgba(176,255,224,0.8)" }}>{record.description}</div>
                     {record.fromUserName && (
-                      <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>From: {record.fromUserName}</div>
+                      <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>From: {record.fromUserName}</div>
                     )}
-                    <div className="text-xs" style={{ color: "rgba(194,210,255,0.3)" }}>{formatDate(record.createdAt)}</div>
+                    <div className="text-xs" style={{ color: "rgba(176,255,224,0.3)" }}>{formatDate(record.createdAt)}</div>
                   </div>
                 </div>
                 <div className="font-bold text-sm" style={{ color }}>+{fmtAmount(record.type, record.amount)}</div>

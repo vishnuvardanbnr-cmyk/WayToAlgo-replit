@@ -12,7 +12,7 @@ import {
 const variantIcon: Record<string, { icon: React.ElementType; color: string }> = {
   destructive: { icon: AlertCircle, color: "rgb(248,113,113)" },
   success:     { icon: CheckCircle2, color: "rgb(52,211,153)" },
-  default:     { icon: Info,         color: "#5B8CFF" },
+  default:     { icon: Info,         color: "#00FF94" },
 }
 
 export function Toaster() {

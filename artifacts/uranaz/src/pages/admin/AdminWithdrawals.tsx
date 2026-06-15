@@ -4,8 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Wallet, CheckCircle, XCircle, ExternalLink, Loader2, AlertCircle, MessageSquare } from "lucide-react";
 
-const TEAL = "#5B8CFF";
-const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(91,140,255,0.10)" } as const;
+const TEAL = "#00FF94";
+const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -13,7 +13,7 @@ function formatDate(iso: string) {
 
 const statusConfig: Record<string, { color: string; bg: string; label: string; icon: any }> = {
   pending:    { color: "#fbbf24", bg: "rgba(251,191,36,0.10)",  label: "Pending",    icon: AlertCircle },
-  processing: { color: TEAL,      bg: "rgba(91,140,255,0.10)",  label: "Processing", icon: Loader2 },
+  processing: { color: TEAL,      bg: "rgba(0,255,148,0.10)",  label: "Processing", icon: Loader2 },
   approved:   { color: "#34d399", bg: "rgba(52,211,153,0.10)",  label: "Approved",   icon: CheckCircle },
   rejected:   { color: "#f87171", bg: "rgba(248,113,113,0.10)", label: "Rejected",   icon: XCircle },
 };
@@ -85,7 +85,7 @@ export default function AdminWithdrawals() {
           className="text-xl font-bold"
           style={{
             fontFamily: "'Sora', sans-serif",
-            background: "linear-gradient(135deg, #C2D2FF, #5B8CFF)",
+            background: "linear-gradient(135deg, #B0FFE0, #00FF94)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -101,7 +101,7 @@ export default function AdminWithdrawals() {
         )}
         {processingCount > 0 && (
           <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
-            style={{ background: "rgba(91,140,255,0.10)", border: "1px solid rgba(91,140,255,0.22)", color: TEAL }}>
+            style={{ background: "rgba(0,255,148,0.10)", border: "1px solid rgba(0,255,148,0.22)", color: TEAL }}>
             {processingCount} on-chain
           </span>
         )}
@@ -116,12 +116,12 @@ export default function AdminWithdrawals() {
             onClick={() => setFilter(f)}
             className="shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all capitalize"
             style={filter === f ? {
-              background: "linear-gradient(135deg, #5B8CFF, #3D5CE0)",
-              color: "#060814",
+              background: "linear-gradient(135deg, #00FF94, #00CC77)",
+              color: "#050C0A",
               fontWeight: 700,
             } : {
               ...GLASS,
-              color: "rgba(194,210,255,0.45)",
+              color: "rgba(176,255,224,0.45)",
             }}
           >
             {f}
@@ -131,12 +131,12 @@ export default function AdminWithdrawals() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="rounded-xl h-24 animate-pulse" style={{ background: "rgba(91,140,255,0.04)", border: "1px solid rgba(91,140,255,0.08)" }} />)}
+          {[1,2,3].map(i => <div key={i} className="rounded-xl h-24 animate-pulse" style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.08)" }} />)}
         </div>
       ) : !withdrawals?.length ? (
         <div className="rounded-xl p-8 text-center" style={GLASS}>
-          <Wallet size={32} className="mx-auto mb-2" style={{ color: "rgba(194,210,255,0.2)" }} />
-          <p className="text-sm" style={{ color: "rgba(194,210,255,0.35)" }}>No {filter} withdrawals</p>
+          <Wallet size={32} className="mx-auto mb-2" style={{ color: "rgba(176,255,224,0.2)" }} />
+          <p className="text-sm" style={{ color: "rgba(176,255,224,0.35)" }}>No {filter} withdrawals</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -148,10 +148,10 @@ export default function AdminWithdrawals() {
               <div key={w.id} data-testid={`row-withdrawal-${w.id}`} className="rounded-xl p-4" style={GLASS}>
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0 flex-1">
-                    <div className="font-semibold text-sm" style={{ color: "rgba(194,210,255,0.85)" }}>
+                    <div className="font-semibold text-sm" style={{ color: "rgba(176,255,224,0.85)" }}>
                       {(w as any).userName || "User"}
                     </div>
-                    <div className="text-xs mt-0.5 font-mono truncate" style={{ color: "rgba(194,210,255,0.3)" }}>{w.walletAddress}</div>
+                    <div className="text-xs mt-0.5 font-mono truncate" style={{ color: "rgba(176,255,224,0.3)" }}>{w.walletAddress}</div>
                     {txHash && (
                       <a
                         href={`https://bscscan.com/tx/${txHash}`}
@@ -172,7 +172,7 @@ export default function AdminWithdrawals() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-bold" style={{ color: TEAL }}>${w.amount.toFixed(2)}</div>
-                    <div className="text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>{formatDate(w.createdAt)}</div>
+                    <div className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>{formatDate(w.createdAt)}</div>
                     <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full mt-1"
                       style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}33` }}>
                       {(w as any).status === "processing" && <Loader2 size={9} className="animate-spin" />}
@@ -182,7 +182,7 @@ export default function AdminWithdrawals() {
                 </div>
 
                 {(w as any).status === "pending" ? (
-                  <div className="pt-2" style={{ borderTop: "1px solid rgba(91,140,255,0.07)" }}>
+                  <div className="pt-2" style={{ borderTop: "1px solid rgba(0,255,148,0.07)" }}>
                     {rejectingId === w.id ? (
                       <div className="space-y-2">
                         <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: "#f87171" }}>
@@ -198,7 +198,7 @@ export default function AdminWithdrawals() {
                           style={{
                             background: "rgba(0,15,30,0.8)",
                             border: "1px solid rgba(248,113,113,0.3)",
-                            color: "rgba(194,210,255,0.8)",
+                            color: "rgba(176,255,224,0.8)",
                           }}
                         />
                         <div className="flex gap-2">
@@ -214,7 +214,7 @@ export default function AdminWithdrawals() {
                           <button
                             onClick={cancelReject}
                             className="px-4 py-2 rounded-lg text-xs font-medium"
-                            style={{ background: "rgba(91,140,255,0.08)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.6)" }}
+                            style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.18)", color: "rgba(176,255,224,0.6)" }}
                           >
                             Cancel
                           </button>
@@ -246,13 +246,13 @@ export default function AdminWithdrawals() {
                   </div>
                 ) : (w as any).status === "processing" ? (
                   <div className="flex items-center gap-2 pt-2 text-xs"
-                    style={{ borderTop: "1px solid rgba(91,140,255,0.07)", color: TEAL }}>
+                    style={{ borderTop: "1px solid rgba(0,255,148,0.07)", color: TEAL }}>
                     <Loader2 size={12} className="animate-spin" />
                     Sending on-chain… will update automatically
                   </div>
                 ) : (
                   <div className="mt-2 pt-2 flex items-center gap-1.5 text-xs font-semibold"
-                    style={{ borderTop: "1px solid rgba(91,140,255,0.07)", color: cfg.color }}>
+                    style={{ borderTop: "1px solid rgba(0,255,148,0.07)", color: cfg.color }}>
                     <cfg.icon size={12} />
                     {cfg.label}{w.processedAt ? ` · ${formatDate(w.processedAt)}` : ""}
                   </div>

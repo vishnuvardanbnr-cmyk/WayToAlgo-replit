@@ -12,11 +12,11 @@ import {
   readTokenBalance,
 } from "@/lib/tokenContract";
 
-const TEAL = "#5B8CFF";
+const TEAL = "#00FF94";
 const GLASS = {
   background: "rgba(10,14,30,0.65)",
   backdropFilter: "blur(14px)",
-  border: "1px solid rgba(91,140,255,0.12)",
+  border: "1px solid rgba(0,255,148,0.12)",
 } as const;
 
 const DECIMALS_BASE = 10n ** 18n;
@@ -139,7 +139,7 @@ export default function DashboardTokenCard() {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-semibold text-sm tracking-wide" style={{ color: "rgba(194,210,255,0.8)" }}>
+        <h2 className="font-semibold text-sm tracking-wide" style={{ color: "rgba(176,255,224,0.8)" }}>
           {symbol} Token
         </h2>
         <Link href="/invest?tab=token" className="text-xs flex items-center gap-1" style={{ color: TEAL }}>
@@ -153,7 +153,7 @@ export default function DashboardTokenCard() {
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(91,140,255,0.06))", border: "1px solid rgba(91,140,255,0.28)" }}
+              style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.18), rgba(0,255,148,0.06))", border: "1px solid rgba(0,255,148,0.28)" }}
             >
               <Coins size={18} style={{ color: TEAL }} />
             </div>
@@ -161,52 +161,52 @@ export default function DashboardTokenCard() {
               <div className="font-bold tracking-wide" style={{ color: "rgba(200,240,255,0.92)", fontFamily: "'Sora', sans-serif", fontSize: "0.85rem" }}>
                 {symbol} Token
               </div>
-              <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>On-chain · BNB Smart Chain</div>
+              <div className="text-xs mt-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>On-chain · BNB Smart Chain</div>
             </div>
           </div>
           <button
             onClick={() => refresh()}
             disabled={loading}
             className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(194,210,255,0.06)", border: "1px solid rgba(194,210,255,0.09)" }}
+            style={{ background: "rgba(176,255,224,0.06)", border: "1px solid rgba(176,255,224,0.09)" }}
             title="Refresh"
           >
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} style={{ color: "rgba(194,210,255,0.5)" }} />
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} style={{ color: "rgba(176,255,224,0.5)" }} />
           </button>
         </div>
 
         {/* price row */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.12)" }}>
-            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(0,255,148,0.06)", border: "1px solid rgba(0,255,148,0.12)" }}>
+            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
               <TrendingUp size={11} /> Buy Price
             </div>
             <div className="font-bold text-sm" style={{ color: TEAL }}>{priceUsdt} USDT</div>
           </div>
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(194,210,255,0.04)", border: "1px solid rgba(194,210,255,0.1)" }}>
-            <div className="text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>Sell Price</div>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(176,255,224,0.04)", border: "1px solid rgba(176,255,224,0.1)" }}>
+            <div className="text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>Sell Price</div>
             <div className="font-bold text-sm" style={{ color: "rgba(200,240,255,0.85)" }}>{sellPriceUsdt} USDT</div>
           </div>
         </div>
 
         {/* token-wide stats */}
         <div className="grid grid-cols-3 gap-2 mt-2">
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(194,210,255,0.04)", border: "1px solid rgba(194,210,255,0.1)" }}>
-            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(176,255,224,0.04)", border: "1px solid rgba(176,255,224,0.1)" }}>
+            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
               <Droplet size={11} /> Liquidity
             </div>
             <div className="font-bold text-sm truncate" style={{ color: "rgba(200,240,255,0.85)" }}>
-              {liquidityUsdt}<span className="text-xs font-normal" style={{ color: "rgba(194,210,255,0.4)" }}> USDT</span>
+              {liquidityUsdt}<span className="text-xs font-normal" style={{ color: "rgba(176,255,224,0.4)" }}> USDT</span>
             </div>
           </div>
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(194,210,255,0.04)", border: "1px solid rgba(194,210,255,0.1)" }}>
-            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(176,255,224,0.04)", border: "1px solid rgba(176,255,224,0.1)" }}>
+            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
               <Layers size={11} /> Supply
             </div>
             <div className="font-bold text-sm truncate" style={{ color: "rgba(200,240,255,0.85)" }}>{supplyDisplay}</div>
           </div>
-          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(194,210,255,0.04)", border: "1px solid rgba(194,210,255,0.1)" }}>
-            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(194,210,255,0.4)" }}>
+          <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(176,255,224,0.04)", border: "1px solid rgba(176,255,224,0.1)" }}>
+            <div className="flex items-center gap-1 text-xs mb-0.5" style={{ color: "rgba(176,255,224,0.4)" }}>
               <Users size={11} /> Holders
             </div>
             <div className="font-bold text-sm truncate" style={{ color: "rgba(200,240,255,0.85)" }}>{holdersDisplay}</div>
@@ -215,26 +215,26 @@ export default function DashboardTokenCard() {
 
         {/* my holdings */}
         {showHoldings ? (
-          <div className="mt-3 rounded-xl p-3" style={{ background: "linear-gradient(135deg, rgba(91,140,255,0.08), rgba(61,92,224,0.03))", border: "1px solid rgba(91,140,255,0.18)" }}>
-            <div className="flex items-center gap-1.5 text-xs mb-2.5" style={{ color: "rgba(194,210,255,0.55)" }}>
+          <div className="mt-3 rounded-xl p-3" style={{ background: "linear-gradient(135deg, rgba(0,255,148,0.08), rgba(0,204,119,0.03))", border: "1px solid rgba(0,255,148,0.18)" }}>
+            <div className="flex items-center gap-1.5 text-xs mb-2.5" style={{ color: "rgba(176,255,224,0.55)" }}>
               <Wallet size={12} style={{ color: TEAL }} /> My Holdings
               {!walletConnected && (
-                <span className="ml-auto text-xs" style={{ color: "rgba(194,210,255,0.35)" }}>from purchase history</span>
+                <span className="ml-auto text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>from purchase history</span>
               )}
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Holding</div>
+                <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Holding</div>
                 <div className="font-bold text-sm mt-0.5" style={{ color: "rgba(200,240,255,0.9)" }}>
-                  {holdingDisplay} <span className="text-xs font-normal" style={{ color: "rgba(194,210,255,0.4)" }}>{symbol}</span>
+                  {holdingDisplay} <span className="text-xs font-normal" style={{ color: "rgba(176,255,224,0.4)" }}>{symbol}</span>
                 </div>
               </div>
               <div>
-                <div className="text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>Current Value</div>
+                <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Current Value</div>
                 <div className="font-bold text-sm mt-0.5" style={{ color: TEAL }}>{currentValue}</div>
               </div>
               <div>
-                <div className="flex items-center gap-1 text-xs" style={{ color: "rgba(194,210,255,0.4)" }}>
+                <div className="flex items-center gap-1 text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
                   <PiggyBank size={10} /> Purchased
                 </div>
                 <div className="font-bold text-sm mt-0.5" style={{ color: "rgba(200,240,255,0.9)" }}>{purchasedDisplay}</div>
@@ -242,9 +242,9 @@ export default function DashboardTokenCard() {
             </div>
           </div>
         ) : (
-          <div className="mt-3 flex gap-2.5 px-3 py-2.5 rounded-xl" style={{ background: "rgba(91,140,255,0.05)", border: "1px solid rgba(91,140,255,0.12)" }}>
+          <div className="mt-3 flex gap-2.5 px-3 py-2.5 rounded-xl" style={{ background: "rgba(0,255,148,0.05)", border: "1px solid rgba(0,255,148,0.12)" }}>
             <Sparkles size={13} className="shrink-0 mt-0.5" style={{ color: TEAL }} />
-            <p className="text-xs leading-relaxed" style={{ color: "rgba(194,210,255,0.6)" }}>
+            <p className="text-xs leading-relaxed" style={{ color: "rgba(176,255,224,0.6)" }}>
               {configured
                 ? <>Buy <Link href="/invest?tab=token" style={{ color: TEAL, fontWeight: 600 }}>WTA tokens</Link> to see your holdings, current value and purchase total here.</>
                 : "Live prices, your holdings, current value and purchase total appear here once the token contract is added."}
