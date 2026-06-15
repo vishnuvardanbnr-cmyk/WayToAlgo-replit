@@ -788,3 +788,160 @@ async function _runTokenDistribute(
 export function runTokenBuyAndDistribute(profitUsdt: number): Promise<TokenDistributeResult> {
   return runTokenDistribute(profitUsdt, "buy");
 }
+
+/**
+ * MetaMask-based distribution: the admin already executed the on-chain buy
+ * in their browser. We receive the resulting token quantity + tx hash and do
+ * only the virtual in-DB distribution — no private key or chain write needed.
+ */
+export async function runTokenDistributeMetaMask(
+  profitUsdt: number,
+  tokensBoughtWei: bigint,
+  buyTxHash: string,
+): Promise<TokenDistributeResult> {
+  if (distributionInProgress) {
+    return { success: false, error: "Another distribution is already running — please wait." };
+  }
+  distributionInProgress = true;
+  try {
+    return await _runTokenDistributeMetaMask(profitUsdt, tokensBoughtWei, buyTxHash);
+  } finally {
+    distributionInProgress = false;
+  }
+}
+
+async function _runTokenDistributeMetaMask(
+  profitUsdt: number,
+  tokensBoughtWei: bigint,
+  buyTxHash: string,
+): Promise<TokenDistributeResult> {
+  if (!Number.isFinite(profitUsdt) || profitUsdt <= 0) {
+    return { success: false, error: "Profit amount must be a positive number" };
+  }
+  if (tokensBoughtWei <= 0n) {
+    return { success: false, error: "Token amount must be positive" };
+  }
+
+  const [settings] = await db.select().from(platformSettingsTable).limit(1);
+  if (!settings) return { success: false, error: "Platform settings not configured" };
+
+  const contractAddress = (settings.tokenContractAddress || "").trim();
+  if (!isValidAddress(contractAddress)) {
+    return { success: false, error: "Token contract address is not configured" };
+  }
+  const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
+
+  const e = await loadEligibility(settings);
+  if (e.eligible.length === 0) {
+    return { success: false, error: "No eligible active investments to distribute to (check cooling period and active investors)" };
+  }
+  if (e.totalMicro <= 0n) {
+    return { success: false, error: "Eligible investment principal is zero" };
+  }
+
+  const dailyRoiRate = parseFloat(settings.dailyRoiRate ?? "0") || 0;
+  const pct = e.levelCommissionPoolPct;
+  const investorRoiUsd = (Number(e.totalMicro) / 1e6) * dailyRoiRate;
+  const expectedDailyUsd = investorRoiUsd * (1 + pct);
+  if (expectedDailyUsd > 0 && profitUsdt + 1e-6 < expectedDailyUsd) {
+    return {
+      success: false,
+      error: `Amount is below the required daily minimum of $${expectedDailyUsd.toFixed(2)}.`,
+    };
+  }
+
+  let buyPrice = "0";
+  try {
+    const prices = await getTokenPrices(contractAddress, rpcUrl);
+    buyPrice = prices.buyPrice;
+  } catch { /* non-fatal — price is informational */ }
+
+  const [batch] = await db.insert(tokenBuyBatchesTable).values({
+    usdtSpent: profitUsdt.toString(),
+    expectedUsdt: expectedDailyUsd.toFixed(6),
+    source: "buy",
+    buyTxHash,
+    buyPrice,
+    status: "pending",
+  }).returning();
+  const batchId = batch.id;
+
+  const sim = simulateDistribution(e, tokensBoughtWei, profitUsdt);
+
+  try {
+    await db.transaction(async (tx) => {
+      for (const upd of sim.investmentUpdates) {
+        await tx.update(investmentsTable)
+          .set({ remainingDays: upd.remainingDays, earnedSoFar: upd.earnedSoFar, status: upd.status })
+          .where(eq(investmentsTable.id, upd.id));
+      }
+      for (const [userId, addWei] of sim.userTokenAdd.entries()) {
+        const u = e.userById.get(userId)!;
+        const current = ethers.parseUnits((u.roiTokenBalance || "0"), TOKEN_DECIMALS);
+        const next = current + addWei;
+        const roiTokenWei = sim.rewardRows.filter(r => r.userId === userId && r.type === "roi").reduce((s, r) => s + r.tokenAmount, 0n);
+        const levelTokenWei = sim.rewardRows.filter(r => r.userId === userId && r.type === "level").reduce((s, r) => s + r.tokenAmount, 0n);
+        const newTradingBal = roiTokenWei > 0n ? (parseFloat(u.tradingProfitBalance || "0") + parseFloat(ethers.formatUnits(roiTokenWei, TOKEN_DECIMALS))).toFixed(6) : u.tradingProfitBalance;
+        const newTeamBal = levelTokenWei > 0n ? (parseFloat(u.teamBenefitBalance || "0") + parseFloat(ethers.formatUnits(levelTokenWei, TOKEN_DECIMALS))).toFixed(6) : u.teamBenefitBalance;
+        const usdShare = (Number(addWei) / Number(tokensBoughtWei)) * profitUsdt;
+        await tx.update(usersTable).set({
+          roiTokenBalance: ethers.formatUnits(next, TOKEN_DECIMALS),
+          tradingProfitBalance: newTradingBal,
+          teamBenefitBalance: newTeamBal,
+          totalEarnings: (parseFloat(u.totalEarnings || "0") + usdShare).toFixed(6),
+        }).where(eq(usersTable.id, userId));
+      }
+      if (sim.rewardRows.length > 0) {
+        await tx.insert(tokenRewardsTable).values(
+          sim.rewardRows.map((r) => ({
+            userId: r.userId, batchId, type: r.type,
+            tokenAmount: ethers.formatUnits(r.tokenAmount, TOKEN_DECIMALS),
+            usdValue: r.usdValue.toFixed(6),
+            level: r.level, fromUserId: r.fromUserId, fromUserName: r.fromUserName,
+          })),
+        );
+      }
+      if (sim.reserveAddWei > 0n) {
+        const [ps] = await tx.select().from(platformSettingsTable).limit(1);
+        if (ps) {
+          const currentReserve = parseFloat(ps.reserveTokenBalance ?? "0");
+          const addReserve = parseFloat(ethers.formatUnits(sim.reserveAddWei, TOKEN_DECIMALS));
+          await tx.update(platformSettingsTable)
+            .set({ reserveTokenBalance: (currentReserve + addReserve).toFixed(8) })
+            .where(eq(platformSettingsTable.id, ps.id));
+        }
+      }
+      await tx.update(tokenBuyBatchesTable).set({
+        status: "completed",
+        buyTxHash,
+        buyPrice,
+        tokensBought: ethers.formatUnits(tokensBoughtWei, TOKEN_DECIMALS),
+        roiTokenTotal: ethers.formatUnits(sim.roiTotalWei, TOKEN_DECIMALS),
+        levelTokenTotal: ethers.formatUnits(sim.levelTotalWei, TOKEN_DECIMALS),
+        recipientCount: sim.recipients.size,
+      }).where(eq(tokenBuyBatchesTable.id, batchId));
+    });
+  } catch (err: any) {
+    logger.error({ err, batchId }, "MetaMask token distribution DB transaction failed");
+    await db.update(tokenBuyBatchesTable)
+      .set({ status: "failed", note: `Distribution failed: ${err?.message}`, buyTxHash })
+      .where(eq(tokenBuyBatchesTable.id, batchId));
+    return {
+      success: false,
+      error: "On-chain buy succeeded but distribution failed — see batch note. No tokens were credited.",
+      batchId, txHash: buyTxHash, source: "buy",
+    };
+  }
+
+  logger.info({ batchId, recipients: sim.recipients.size, eligible: e.eligible.length }, "MetaMask token distribute completed");
+
+  return {
+    success: true, batchId, txHash: buyTxHash, source: "buy",
+    usdtSpent: profitUsdt,
+    tokensBought: ethers.formatUnits(tokensBoughtWei, TOKEN_DECIMALS),
+    roiTokenTotal: ethers.formatUnits(sim.roiTotalWei, TOKEN_DECIMALS),
+    levelTokenTotal: ethers.formatUnits(sim.levelTotalWei, TOKEN_DECIMALS),
+    recipientCount: sim.recipients.size,
+    eligibleInvestments: e.eligible.length,
+  };
+}

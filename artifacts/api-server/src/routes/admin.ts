@@ -1619,6 +1619,35 @@ router.post("/admin/token/distribute", requireAdmin, async (req, res) => {
   }
 });
 
+// POST /api/admin/token/distribute-metamask
+// Called after the admin's MetaMask wallet has already executed the on-chain buy.
+// Receives { profitUsdt, tokensBoughtWei, buyTxHash } and runs only the virtual
+// in-DB distribution — no private key or chain write needed server-side.
+router.post("/admin/token/distribute-metamask", requireAdmin, async (req, res) => {
+  const parsed = z.object({
+    profitUsdt: z.number().positive(),
+    tokensBoughtWei: z.string().min(1),
+    buyTxHash: z.string().min(10),
+  }).safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: "Invalid input — need profitUsdt, tokensBoughtWei, buyTxHash" });
+    return;
+  }
+  const { profitUsdt, tokensBoughtWei, buyTxHash } = parsed.data;
+  let wei: bigint;
+  try { wei = BigInt(tokensBoughtWei); } catch {
+    res.status(400).json({ success: false, message: "tokensBoughtWei must be a valid integer string" }); return;
+  }
+  try {
+    const { runTokenDistributeMetaMask } = await import("../lib/tokenPayout");
+    const result = await runTokenDistributeMetaMask(profitUsdt, wei, buyTxHash);
+    if (!result.success) { res.status(400).json(result); return; }
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err?.message || "Distribution failed" });
+  }
+});
+
 // GET /api/admin/token/batches — buy & distribute history
 router.get("/admin/token/batches", requireAdmin, async (_req, res) => {
   const { tokenBuyBatchesTable } = await import("@workspace/db");

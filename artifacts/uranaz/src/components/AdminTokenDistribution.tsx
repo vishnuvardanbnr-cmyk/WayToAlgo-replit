@@ -3,6 +3,7 @@ import {
   Coins, RefreshCw, ShieldAlert, CheckCircle2, XCircle, Users, ArrowRight,
   ExternalLink, TrendingUp, Wallet, AlertTriangle, Loader2, ChevronDown, Calendar, Clock,
 } from "lucide-react";
+import { ethers } from "ethers";
 
 const TEAL = "#5B8CFF";
 const GREEN = "rgb(52,211,153)";
@@ -24,6 +25,16 @@ function authHeaders(): Record<string, string> {
 }
 
 type Mode = "buy" | "held";
+
+const BSC_CHAIN_ID = "0x38";
+const USDT_BSC = "0x55d398326f99059fF775485246999027B3197955";
+const USDT_ABI = [
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+];
+const TOKEN_BUY_ABI = ["function buy(uint256 usdtAmount, uint256 minTokens, address[] calldata referrers) returns (uint256)"];
+
+type BuyStep = "idle" | "approving" | "buying" | "distributing" | "done" | "failed";
 
 interface TokenStatus {
   configured: boolean;
@@ -116,6 +127,10 @@ export default function AdminTokenDistribution() {
   const [distributing, setDistributing] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // MetaMask state (used only for "buy" mode)
+  const [connectedAddr, setConnectedAddr] = useState<string | null>(null);
+  const [buyStep, setBuyStep] = useState<BuyStep>("idle");
+
   const [batches, setBatches] = useState<Batch[]>([]);
 
   const todayKey = dayKeyOf(new Date());
@@ -175,18 +190,21 @@ export default function AdminTokenDistribution() {
   const amt = parseFloat(amount);
   const amtValid = Number.isFinite(amt) && amt > 0;
 
+  // For "held" mode: check withdraw wallet has enough tokens.
+  // For "buy" mode: we don't gate on withdraw wallet USDT — MetaMask handles that.
   const insufficient =
     amtValid && preview
-      ? mode === "buy"
-        ? preview.sufficientUsdt === false
-        : preview.sufficientTokens === false
+      ? mode === "held"
+        ? preview.sufficientTokens === false
+        : false  // buy mode: MetaMask will surface insufficient USDT naturally
       : false;
 
   const noEligible = preview ? preview.eligibleInvestments === 0 : false;
-  const configured = status?.configured && status?.walletConfigured;
+  // For "buy" mode: only token contract needs to be configured (no withdraw/gas keys needed)
+  const configured = mode === "buy"
+    ? !!(status?.configured)
+    : !!(status?.configured && status?.walletConfigured);
 
-  // Never let the admin distribute without a valid, up-to-date preview that
-  // reflects the exact amount currently entered.
   const previewReady =
     !!preview &&
     preview.success &&
@@ -194,44 +212,109 @@ export default function AdminTokenDistribution() {
     Math.abs(preview.profitUsdt - amt) < 1e-9 &&
     !!preview.estTokens;
 
-  // Flat daily ROI minimum: admin may distribute the same or more, never less.
   const requiredUsd = preview?.expectedDailyUsd ?? 0;
   const belowMinimum = amtValid && requiredUsd > 0 && amt + 1e-6 < requiredUsd;
 
+  // For "buy" mode: require MetaMask connected too
   const canDistribute =
     amtValid && !!configured && !noEligible && !insufficient && !belowMinimum &&
-    !previewLoading && !distributing && previewReady;
+    !previewLoading && !distributing && previewReady &&
+    (mode === "buy" ? !!connectedAddr : true);
 
-  const doDistribute = async () => {
+  // ── MetaMask helpers ──
+  const connectWallet = async () => {
+    if (!(window as any).ethereum) { setResult({ ok: false, text: "MetaMask not detected — install it and try again." }); return; }
+    try {
+      const accounts: string[] = await (window as any).ethereum.request({ method: "eth_requestAccounts" });
+      if (accounts[0]) setConnectedAddr(accounts[0]);
+    } catch (e: any) {
+      setResult({ ok: false, text: e?.message || "Wallet connection rejected" });
+    }
+  };
+
+  async function ensureBsc() {
+    const eth = (window as any).ethereum;
+    const chainId: string = await eth.request({ method: "eth_chainId" });
+    if (chainId !== BSC_CHAIN_ID) {
+      await eth.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: BSC_CHAIN_ID }],
+      });
+    }
+  }
+
+  // "Held" mode: server-side distribute (no MetaMask)
+  const doDistributeHeld = async () => {
     setDistributing(true);
     setResult(null);
     try {
       const r = await fetch("/api/admin/token/distribute", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ profitUsdt: amt, mode }),
+        body: JSON.stringify({ profitUsdt: amt, mode: "held" }),
       });
       const data = await r.json();
       if (r.ok && data.success) {
-        setResult({
-          ok: true,
-          text: `Distributed ${fmt(data.tokensBought)} WTA to ${data.recipientCount} user(s) across ${data.eligibleInvestments} investment(s).`,
-        });
-        setAmount("");
-        setConfirming(false);
-        loadStatus();
-        loadBatches();
+        setResult({ ok: true, text: `Distributed ${fmt(data.tokensBought)} WTA to ${data.recipientCount} user(s) across ${data.eligibleInvestments} investment(s).` });
+        setAmount(""); setConfirming(false); loadStatus(); loadBatches();
       } else {
-        setResult({ ok: false, text: data.error || data.message || "Distribution failed" });
-        setConfirming(false);
+        setResult({ ok: false, text: data.error || data.message || "Distribution failed" }); setConfirming(false);
       }
     } catch (e: any) {
-      setResult({ ok: false, text: e?.message || "Network error" });
-      setConfirming(false);
-    } finally {
-      setDistributing(false);
-    }
+      setResult({ ok: false, text: e?.message || "Network error" }); setConfirming(false);
+    } finally { setDistributing(false); }
   };
+
+  // "Buy" mode: MetaMask approve → buy → backend virtual distribute
+  const doDistributeBuy = async () => {
+    if (!status?.contractAddress || !connectedAddr) return;
+    setDistributing(true); setBuyStep("idle"); setResult(null);
+    try {
+      await ensureBsc();
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const signer = await provider.getSigner();
+      const usdtWei = ethers.parseUnits(amt.toFixed(6), 18);
+
+      // 1. Approve USDT
+      setBuyStep("approving");
+      const usdt = new ethers.Contract(USDT_BSC, USDT_ABI, signer);
+      const approveTx = await usdt.approve(status.contractAddress, usdtWei);
+      await approveTx.wait();
+
+      // 2. Buy tokens on-chain (no referrers for daily ROI buy)
+      setBuyStep("buying");
+      const tokenContract = new ethers.Contract(status.contractAddress, TOKEN_BUY_ABI, signer);
+      const balBefore: bigint = await (new ethers.Contract(status.contractAddress, ["function balanceOf(address) view returns (uint256)"], provider)).balanceOf(connectedAddr);
+      const buyTx = await tokenContract.buy(usdtWei, 0n, []);
+      const receipt = await buyTx.wait();
+      const balAfter: bigint = await (new ethers.Contract(status.contractAddress, ["function balanceOf(address) view returns (uint256)"], provider)).balanceOf(connectedAddr);
+      const tokensBoughtWei = balAfter - balBefore;
+
+      if (tokensBoughtWei <= 0n) throw new Error("On-chain buy returned 0 tokens — check USDT approval and contract.");
+
+      // 3. Send to backend for virtual distribution
+      setBuyStep("distributing");
+      const r = await fetch("/api/admin/token/distribute-metamask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ profitUsdt: amt, tokensBoughtWei: tokensBoughtWei.toString(), buyTxHash: receipt.hash }),
+      });
+      const data = await r.json();
+      if (r.ok && data.success) {
+        setBuyStep("done");
+        setResult({ ok: true, text: `Distributed ${fmt(data.tokensBought)} WTA to ${data.recipientCount} user(s) across ${data.eligibleInvestments} investment(s). Tx: ${receipt.hash.slice(0, 10)}…` });
+        setAmount(""); setConfirming(false); loadStatus(); loadBatches();
+      } else {
+        setBuyStep("failed");
+        setResult({ ok: false, text: data.error || data.message || "Distribution failed" }); setConfirming(false);
+      }
+    } catch (e: any) {
+      setBuyStep("failed");
+      setResult({ ok: false, text: e?.shortMessage || e?.message || "MetaMask transaction failed" }); setConfirming(false);
+    } finally { setDistributing(false); }
+  };
+
+  const doDistribute = mode === "buy" ? doDistributeBuy : doDistributeHeld;
 
   // ── Group distributions by calendar day ──
   const dayGroups = useMemo(() => {
@@ -275,7 +358,7 @@ export default function AdminTokenDistribution() {
         <div className="text-[11px] font-semibold uppercase tracking-[0.18em] mb-2" style={{ color: "rgba(194,210,255,0.55)" }}>Distribution Source</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {([
-            { key: "buy" as Mode, icon: TrendingUp, title: "Buy New Tokens", desc: "Spend USDT from the withdraw wallet to buy WTA on-chain, then distribute." },
+            { key: "buy" as Mode, icon: TrendingUp, title: "Buy via MetaMask", desc: "Connect your MetaMask wallet to buy WTA on-chain yourself — no server private key needed." },
             { key: "held" as Mode, icon: Wallet, title: "Distribute Held Tokens", desc: "Use WTA you've already sent to the withdraw wallet. No buy — assigns virtually." },
           ]).map(({ key, icon: Icon, title, desc }) => {
             const active = mode === key;
@@ -283,7 +366,7 @@ export default function AdminTokenDistribution() {
               <button
                 key={key}
                 type="button"
-                onClick={() => { setMode(key); setResult(null); setConfirming(false); }}
+                onClick={() => { setMode(key); setResult(null); setConfirming(false); setBuyStep("idle"); }}
                 className="text-left rounded-xl p-4 transition-all"
                 style={{
                   background: active ? "rgba(91,140,255,0.10)" : "rgba(10,14,30,0.5)",
@@ -400,11 +483,6 @@ export default function AdminTokenDistribution() {
             <AlertTriangle size={14} className="shrink-0 mt-0.5" /> No eligible investments right now — nothing would be distributed.
           </div>
         )}
-        {amtValid && insufficient && mode === "buy" && (
-          <div className="mt-3 flex gap-2 p-3 rounded-xl text-xs" style={{ background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.22)", color: "rgba(248,113,113,0.9)" }}>
-            <XCircle size={14} className="shrink-0 mt-0.5" /> Withdraw wallet has only ${fmt(preview?.walletUsdtBalance, 2)} USDT — not enough to buy ${fmt(amt, 2)}.
-          </div>
-        )}
         {amtValid && insufficient && mode === "held" && (
           <div className="mt-3 flex gap-2 p-3 rounded-xl text-xs" style={{ background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.22)", color: "rgba(248,113,113,0.9)" }}>
             <XCircle size={14} className="shrink-0 mt-0.5" /> Withdraw wallet holds only {fmt(preview?.walletTokenBalance)} WTA — send more tokens before distributing {fmt(preview?.estTokens)} WTA.
@@ -424,46 +502,130 @@ export default function AdminTokenDistribution() {
         </div>
       )}
 
-      {!confirming ? (
-        <button
-          type="button"
-          disabled={!canDistribute}
-          onClick={() => setConfirming(true)}
-          className="w-full sm:w-auto sm:px-8 py-3 rounded-xl font-bold transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
-          style={{ background: `linear-gradient(135deg, ${TEAL}, #3D5CE0)`, color: "#fff" }}
-        >
-          <Coins size={16} />
-          {mode === "buy" ? "Buy & Distribute" : "Distribute Held Tokens"}
-        </button>
-      ) : (
-        <div className="rounded-xl p-4" style={{ background: "rgba(91,140,255,0.06)", border: `1px solid ${TEAL}55` }}>
-          <div className="text-sm font-semibold mb-1" style={{ color: "rgba(200,240,255,0.95)" }}>Confirm distribution</div>
-          <div className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(194,210,255,0.6)" }}>
-            {mode === "buy"
-              ? <>Spend <strong>${fmt(amt, 2)}</strong> buying WTA on-chain and distribute to <strong>{fmt(preview?.recipientCount, 0)}</strong> user(s) across <strong>{fmt(preview?.eligibleInvestments, 0)}</strong> investment(s). This advances each eligible investment by one day.</>
-              : <>Distribute <strong>{fmt(preview?.estTokens)} WTA</strong> (${fmt(amt, 2)} worth) from the withdraw wallet to <strong>{fmt(preview?.recipientCount, 0)}</strong> user(s) across <strong>{fmt(preview?.eligibleInvestments, 0)}</strong> investment(s). This advances each eligible investment by one day.</>}
-          </div>
-          <div className="flex gap-2">
+      {/* ── Buy via MetaMask action area ── */}
+      {mode === "buy" && (
+        <div className="space-y-3">
+          {/* MetaMask connect row */}
+          {!connectedAddr ? (
             <button
               type="button"
-              disabled={distributing}
-              onClick={doDistribute}
-              className="px-5 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 inline-flex items-center gap-2"
+              onClick={connectWallet}
+              className="w-full sm:w-auto sm:px-8 py-3 rounded-xl font-bold transition-all inline-flex items-center justify-center gap-2"
+              style={{ background: "rgba(91,140,255,0.15)", border: `1px solid ${TEAL}`, color: TEAL }}
+            >
+              <Wallet size={16} /> Connect MetaMask
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.2)" }}>
+              <CheckCircle2 size={13} style={{ color: GREEN }} />
+              <span style={{ color: GREEN }}>Connected: {connectedAddr.slice(0, 8)}…{connectedAddr.slice(-6)}</span>
+              <button type="button" onClick={() => setConnectedAddr(null)} className="ml-auto text-[10px]" style={{ color: "rgba(194,210,255,0.4)" }}>Disconnect</button>
+            </div>
+          )}
+
+          {/* Buy step progress (only during active MetaMask flow) */}
+          {distributing && (
+            <div className="rounded-xl p-3 space-y-2" style={{ background: "rgba(91,140,255,0.06)", border: `1px solid ${TEAL}44` }}>
+              {(["approving", "buying", "distributing"] as BuyStep[]).map((step, i) => {
+                const labels: Record<string, string> = { approving: "Approve USDT spend (MetaMask)", buying: "Buy WTA on-chain (MetaMask)", distributing: "Record virtual distribution (server)" };
+                const past = ["approving", "buying", "distributing"].indexOf(buyStep) > i;
+                const active = buyStep === step;
+                return (
+                  <div key={step} className="flex items-center gap-2 text-xs">
+                    {past ? <CheckCircle2 size={13} style={{ color: GREEN }} /> : active ? <Loader2 size={13} className="animate-spin" style={{ color: TEAL }} /> : <div className="w-3.5 h-3.5 rounded-full border" style={{ borderColor: "rgba(91,140,255,0.3)" }} />}
+                    <span style={{ color: past ? GREEN : active ? "rgba(200,240,255,0.95)" : "rgba(194,210,255,0.4)" }}>{labels[step]}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {!confirming ? (
+            <button
+              type="button"
+              disabled={!canDistribute}
+              onClick={() => setConfirming(true)}
+              className="w-full sm:w-auto sm:px-8 py-3 rounded-xl font-bold transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
               style={{ background: `linear-gradient(135deg, ${TEAL}, #3D5CE0)`, color: "#fff" }}
             >
-              {distributing ? <><Loader2 size={14} className="animate-spin" /> Processing…</> : <><ArrowRight size={14} /> Confirm & Distribute</>}
+              <Coins size={16} /> Buy & Distribute via MetaMask
             </button>
+          ) : (
+            <div className="rounded-xl p-4" style={{ background: "rgba(91,140,255,0.06)", border: `1px solid ${TEAL}55` }}>
+              <div className="text-sm font-semibold mb-1" style={{ color: "rgba(200,240,255,0.95)" }}>Confirm MetaMask distribution</div>
+              <div className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(194,210,255,0.6)" }}>
+                Your MetaMask wallet will:<br />
+                1. Approve ${fmt(amt, 2)} USDT to the token contract<br />
+                2. Buy WTA tokens on-chain (raises the live price)<br />
+                3. Server virtually credits <strong>{fmt(preview?.recipientCount, 0)}</strong> user(s) across <strong>{fmt(preview?.eligibleInvestments, 0)}</strong> investment(s) — advancing each by one day.
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={distributing}
+                  onClick={doDistribute}
+                  className="px-5 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 inline-flex items-center gap-2"
+                  style={{ background: `linear-gradient(135deg, ${TEAL}, #3D5CE0)`, color: "#fff" }}
+                >
+                  {distributing ? <><Loader2 size={14} className="animate-spin" /> {buyStep === "approving" ? "Approving…" : buyStep === "buying" ? "Buying…" : "Distributing…"}</> : <><ArrowRight size={14} /> Open MetaMask</>}
+                </button>
+                <button
+                  type="button"
+                  disabled={distributing}
+                  onClick={() => setConfirming(false)}
+                  className="px-5 py-2.5 rounded-xl font-medium text-sm transition-all disabled:opacity-50"
+                  style={{ background: "rgba(10,14,30,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Held mode action area ── */}
+      {mode === "held" && (
+        <>
+          {!confirming ? (
             <button
               type="button"
-              disabled={distributing}
-              onClick={() => setConfirming(false)}
-              className="px-5 py-2.5 rounded-xl font-medium text-sm transition-all disabled:opacity-50"
-              style={{ background: "rgba(10,14,30,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}
+              disabled={!canDistribute}
+              onClick={() => setConfirming(true)}
+              className="w-full sm:w-auto sm:px-8 py-3 rounded-xl font-bold transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
+              style={{ background: `linear-gradient(135deg, ${TEAL}, #3D5CE0)`, color: "#fff" }}
             >
-              Cancel
+              <Coins size={16} /> Distribute Held Tokens
             </button>
-          </div>
-        </div>
+          ) : (
+            <div className="rounded-xl p-4" style={{ background: "rgba(91,140,255,0.06)", border: `1px solid ${TEAL}55` }}>
+              <div className="text-sm font-semibold mb-1" style={{ color: "rgba(200,240,255,0.95)" }}>Confirm distribution</div>
+              <div className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(194,210,255,0.6)" }}>
+                Distribute <strong>{fmt(preview?.estTokens)} WTA</strong> (${fmt(amt, 2)} worth) from the withdraw wallet to <strong>{fmt(preview?.recipientCount, 0)}</strong> user(s) across <strong>{fmt(preview?.eligibleInvestments, 0)}</strong> investment(s). This advances each eligible investment by one day.
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={distributing}
+                  onClick={doDistribute}
+                  className="px-5 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 inline-flex items-center gap-2"
+                  style={{ background: `linear-gradient(135deg, ${TEAL}, #3D5CE0)`, color: "#fff" }}
+                >
+                  {distributing ? <><Loader2 size={14} className="animate-spin" /> Processing…</> : <><ArrowRight size={14} /> Confirm & Distribute</>}
+                </button>
+                <button
+                  type="button"
+                  disabled={distributing}
+                  onClick={() => setConfirming(false)}
+                  className="px-5 py-2.5 rounded-xl font-medium text-sm transition-all disabled:opacity-50"
+                  style={{ background: "rgba(10,14,30,0.6)", border: "1px solid rgba(91,140,255,0.18)", color: "rgba(194,210,255,0.7)" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
