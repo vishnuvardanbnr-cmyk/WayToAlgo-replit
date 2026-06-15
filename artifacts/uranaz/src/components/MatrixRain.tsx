@@ -1,9 +1,16 @@
 import { useEffect, useRef } from "react";
 
-/* Trading-terminal Matrix Rain — falling financial/crypto characters */
-const CHARS = "01₿Ξ$%+−×=↑↓▲▼BCDEF789USDT·•◈←→0123456";
-const COL_W  = 18;   // px per column
-const FONT   = 13;   // font size px
+/* Particle Network — floating nodes connected by lines (blockchain/neural style) */
+const NODE_COUNT   = 55;
+const MAX_DIST     = 160;   // px — connection threshold
+const NODE_COLOR   = "rgba(0,255,148,";
+const LINE_COLOR   = "rgba(0,255,148,";
+
+interface Node {
+  x: number; y: number;
+  vx: number; vy: number;
+  r: number;
+}
 
 export default function MatrixRain() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -11,7 +18,6 @@ export default function MatrixRain() {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d")!;
     let raf: number;
 
@@ -22,53 +28,59 @@ export default function MatrixRain() {
     resize();
     window.addEventListener("resize", resize);
 
-    const cols = () => Math.ceil(canvas.width / COL_W);
+    const nodes: Node[] = Array.from({ length: NODE_COUNT }, () => ({
+      x:  Math.random() * window.innerWidth,
+      y:  Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35,
+      r:  1.5 + Math.random() * 1.5,
+    }));
 
-    let drops: number[] = [];
-    let speeds: number[] = [];
-    const init = () => {
-      const n = cols();
-      drops  = Array.from({ length: n }, () => Math.random() * -(canvas.height / COL_W));
-      speeds = Array.from({ length: n }, () => 0.25 + Math.random() * 0.6);
-    };
-    init();
-    window.addEventListener("resize", init);
-
-    let frame = 0;
     const draw = () => {
-      frame++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      /* Fade trail — semi-transparent dark overlay each frame */
-      ctx.fillStyle = "rgba(5,12,10,0.055)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const W = canvas.width;
+      const H = canvas.height;
 
-      ctx.font = `${FONT}px 'Courier New', monospace`;
+      /* Update positions — wrap around edges */
+      for (const n of nodes) {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0) n.x = W;
+        if (n.x > W) n.x = 0;
+        if (n.y < 0) n.y = H;
+        if (n.y > H) n.y = 0;
+      }
 
-      const n = drops.length;
-      for (let i = 0; i < n; i++) {
-        const y = drops[i] * COL_W;
-        if (y < -COL_W) { drops[i] += speeds[i]; continue; }
-
-        const x = i * COL_W;
-        const ch = CHARS[Math.floor(Math.random() * CHARS.length)];
-
-        /* Head — bright white-green */
-        ctx.fillStyle = "rgba(180,255,220,0.92)";
-        ctx.fillText(ch, x, y);
-
-        /* Second char (just behind head) — vivid green */
-        if (y > COL_W) {
-          ctx.fillStyle = "rgba(0,255,148,0.75)";
-          ctx.fillText(CHARS[Math.floor(Math.random() * CHARS.length)], x, y - COL_W);
+      /* Draw connecting lines */
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < MAX_DIST) {
+            const alpha = (1 - dist / MAX_DIST) * 0.22;
+            ctx.beginPath();
+            ctx.strokeStyle = LINE_COLOR + alpha + ")";
+            ctx.lineWidth = 0.6;
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.stroke();
+          }
         }
+      }
 
-        drops[i] += speeds[i];
-
-        /* Reset column after it falls off screen */
-        if (y > canvas.height && Math.random() > 0.978) {
-          drops[i] = Math.random() * -30;
-          speeds[i] = 0.25 + Math.random() * 0.6;
-        }
+      /* Draw nodes */
+      for (const n of nodes) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = NODE_COLOR + "0.55)";
+        ctx.fill();
+        /* Subtle outer glow ring */
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r + 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = NODE_COLOR + "0.08)";
+        ctx.fill();
       }
 
       raf = requestAnimationFrame(draw);
@@ -78,7 +90,6 @@ export default function MatrixRain() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
-      window.removeEventListener("resize", init);
     };
   }, []);
 
@@ -93,7 +104,7 @@ export default function MatrixRain() {
         height: "100%",
         pointerEvents: "none",
         zIndex: 0,
-        opacity: 0.18,
+        opacity: 0.85,
       }}
     />
   );
