@@ -50,12 +50,8 @@ function shortId(id: string | number) {
   return String(id).slice(0, 8).toUpperCase();
 }
 
-const TOKEN_TYPES = new Set(["daily_return"]);
-
-function fmtAmount(type: string, amount: number) {
-  return TOKEN_TYPES.has(type)
-    ? `${amount.toFixed(4)} WTA`
-    : `$${amount.toFixed(2)}`;
+function fmtAmount(_type: string, amount: number) {
+  return `$${amount.toFixed(2)}`;
 }
 
 /* ─────────────────────────────────────────
