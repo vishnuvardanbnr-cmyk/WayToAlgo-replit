@@ -10,7 +10,7 @@ import {
   readBuyPrice, readSellPrice, readQuoteBuy, readQuoteSell,
   readTokenBalance, readUsdtBalance, readAllowance, readSymbol,
   readTotalLiquidity, readTotalSupply, readHolderCount,
-  readLevelPercents, REFERRAL_LEVELS, BPS_DENOMINATOR,
+  readLevelPercents, readAdminWallet, REFERRAL_LEVELS, BPS_DENOMINATOR,
   approveUsdt, buyTokens, sellTokens,
 } from "@/lib/tokenContract";
 
@@ -60,6 +60,7 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   // On-chain referral config + this user's upline (supplied by the website).
   const [uplines, setUplines] = useState<string[]>([]);
   const [levelPercents, setLevelPercents] = useState<number[]>([]);
+  const [adminWalletAddr, setAdminWalletAddr] = useState<string>("");
 
   const [stage, setStage] = useState<Stage>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -85,6 +86,7 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   const loadReferral = useCallback(async () => {
     if (!isTokenConfigured()) return;
     readLevelPercents().then(setLevelPercents).catch(() => setLevelPercents([]));
+    readAdminWallet().then(setAdminWalletAddr).catch(() => {});
     try {
       const res = await fetch("/api/token/upline", {
         headers: { Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}` },
@@ -262,19 +264,12 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   };
 
   // ── Referral breakdown (buy only) ──
-  // A level contributes only when the website supplied a real upline address
-  // AND the admin set a non-zero percent for it. Rewards are carved from the
-  // buyer's gross mint (totalSupply unaffected), so the buyer receives the rest.
+  // ALL configured (non-zero) levels are always paid out — unclaimed levels go to
+  // adminWallet instead of staying with the buyer (mirrors the updated contract).
   const activeReferralBps = (() => {
     let sum = 0;
-    const self = account ? account.toLowerCase() : null;
-    const n = Math.min(uplines.length, levelPercents.length, REFERRAL_LEVELS);
-    for (let i = 0; i < n; i++) {
-      const ref = uplines[i] ? uplines[i].toLowerCase() : "";
-      // Mirror the contract: zero-address, self, and zero-percent levels are skipped.
-      if (ref && ref !== ZERO_ADDR && ref !== self && levelPercents[i] > 0) {
-        sum += levelPercents[i];
-      }
+    for (let i = 0; i < REFERRAL_LEVELS; i++) {
+      if ((levelPercents[i] ?? 0) > 0) sum += levelPercents[i];
     }
     return sum;
   })();
@@ -284,21 +279,30 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   const netBuyTokens = grossBuy !== null ? grossBuy - referralTokens : null;
   const referralPct = (activeReferralBps / BPS_DENOMINATOR) * 100;
 
-  // Per-level breakdown — mirrors the contract logic exactly.
-  // Active = valid upline address + non-zero pct; inactive = skipped by contract → tokens stay with buyer.
+  // Per-level breakdown — mirrors the updated contract logic.
+  // Active = valid upline + non-zero pct → goes to upline.
+  // Configured but no upline → goes to adminWallet.
+  // pct=0 → level not configured, not deducted at all.
   const levelBreakdown = (() => {
     if (!grossBuy || mode !== "buy") return [];
     const self = account ? account.toLowerCase() : null;
+    const adminShort = adminWalletAddr
+      ? `${adminWalletAddr.slice(0, 6)}…${adminWalletAddr.slice(-4)}`
+      : "admin";
     return Array.from({ length: REFERRAL_LEVELS }, (_, i) => {
       const addr = (uplines[i] || "").toLowerCase();
       const pct = levelPercents[i] ?? 0;
-      const active = !!addr && addr !== ZERO_ADDR && addr !== self && pct > 0;
-      const tokens = active ? (grossBuy * BigInt(pct)) / BigInt(BPS_DENOMINATOR) : 0n;
-      const addrShort = uplines[i] ? `${uplines[i].slice(0, 6)}…${uplines[i].slice(-4)}` : "—";
-      return { level: i + 1, active, pct, tokens, addrShort };
+      if (pct === 0) return { level: i + 1, pct: 0, tokens: 0n, addrShort: "—", status: "unconfigured" as const };
+      const tokens = (grossBuy * BigInt(pct)) / BigInt(BPS_DENOMINATOR);
+      const hasValidUpline = !!addr && addr !== ZERO_ADDR && addr !== self;
+      if (hasValidUpline) {
+        const addrShort = `${uplines[i].slice(0, 6)}…${uplines[i].slice(-4)}`;
+        return { level: i + 1, pct, tokens, addrShort, status: "upline" as const };
+      }
+      return { level: i + 1, pct, tokens, addrShort: adminShort, status: "admin" as const };
     });
   })();
-  const anyActiveLevel = levelBreakdown.some(l => l.active);
+  const anyConfiguredLevel = levelBreakdown.some(l => l.pct > 0);
 
   const priceUsdt = buyPrice !== null ? formatUnits18(buyPrice, 6) : "—";
   const sellPriceUsdt = sellPrice !== null ? formatUnits18(sellPrice, 6) : "—";
@@ -483,7 +487,7 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
                   {mode === "buy" ? symbol : "USDT"}
                 </span>
               </div>
-              {mode === "buy" && grossBuy !== null && anyActiveLevel && (
+              {mode === "buy" && grossBuy !== null && anyConfiguredLevel && (
                 <div className="mt-2">
                   <button
                     onClick={() => setShowLevelBreakdown(v => !v)}
@@ -492,7 +496,7 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
                   >
                     <Users size={11} style={{ color: TEAL }} />
                     <span className="flex-1 text-left">
-                      {formatUnits18(referralTokens, 4)} {symbol} ({referralPct.toFixed(2)}%) split to upline team
+                      {formatUnits18(referralTokens, 4)} {symbol} ({referralPct.toFixed(2)}%) split to levels
                     </span>
                     {showLevelBreakdown
                       ? <ChevronUp size={11} style={{ color: "rgba(176,255,224,0.35)" }} />
@@ -508,28 +512,38 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
                       {levelBreakdown.map(row => (
                         <div key={row.level}
                           className="flex items-center justify-between px-3 py-1.5"
-                          style={{ borderBottom: "1px solid rgba(0,255,148,0.05)", background: row.active ? "rgba(0,255,148,0.02)" : "transparent" }}>
+                          style={{
+                            borderBottom: "1px solid rgba(0,255,148,0.05)",
+                            background: row.status === "upline" ? "rgba(0,255,148,0.02)"
+                              : row.status === "admin" ? "rgba(91,140,255,0.03)"
+                              : "transparent",
+                          }}>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold w-5 shrink-0" style={{ color: row.active ? TEAL : "rgba(176,255,224,0.2)" }}>
+                            <span className="text-xs font-bold w-5 shrink-0"
+                              style={{ color: row.status === "upline" ? TEAL : row.status === "admin" ? "#5B8CFF" : "rgba(176,255,224,0.18)" }}>
                               L{row.level}
                             </span>
-                            {row.active ? (
+                            {row.status === "upline" && (
                               <span className="text-xs font-mono" style={{ color: "rgba(176,255,224,0.45)" }}>{row.addrShort}</span>
-                            ) : (
-                              <span className="text-xs italic" style={{ color: "rgba(176,255,224,0.2)" }}>
-                                {row.pct > 0 ? "no upline — stays with you" : "not configured"}
+                            )}
+                            {row.status === "admin" && (
+                              <span className="text-xs font-mono" style={{ color: "rgba(91,140,255,0.6)" }}>
+                                {row.addrShort} <span style={{ color: "rgba(91,140,255,0.4)", fontFamily: "system-ui" }}>(admin)</span>
                               </span>
+                            )}
+                            {row.status === "unconfigured" && (
+                              <span className="text-xs italic" style={{ color: "rgba(176,255,224,0.18)" }}>not configured</span>
                             )}
                           </div>
                           <div className="text-xs font-semibold shrink-0 ml-2">
-                            {row.active
-                              ? <span style={{ color: TEAL }}>{formatUnits18(row.tokens, 4)} {symbol}</span>
-                              : <span style={{ color: "rgba(176,255,224,0.2)" }}>+you</span>}
+                            {row.status === "upline" && <span style={{ color: TEAL }}>{formatUnits18(row.tokens, 4)} {symbol}</span>}
+                            {row.status === "admin" && <span style={{ color: "#5B8CFF" }}>{formatUnits18(row.tokens, 4)} {symbol}</span>}
+                            {row.status === "unconfigured" && <span style={{ color: "rgba(176,255,224,0.18)" }}>—</span>}
                           </div>
                         </div>
                       ))}
-                      <div className="px-3 py-1.5 text-xs" style={{ background: "rgba(0,255,148,0.03)", color: "rgba(176,255,224,0.3)" }}>
-                        Unclaimed levels (no upline) stay with the buyer — never sent to admin.
+                      <div className="px-3 py-1.5 text-xs" style={{ background: "rgba(91,140,255,0.03)", color: "rgba(176,255,224,0.3)" }}>
+                        Levels with no upline send their share to the admin wallet.
                       </div>
                     </div>
                   )}
