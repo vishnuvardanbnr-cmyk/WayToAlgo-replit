@@ -102,6 +102,31 @@ export default function Register({ onLogin }: Props) {
     }
   }, [ref]);
 
+  // Auto-switch to BSC when inside a wallet DApp browser
+  useEffect(() => {
+    const eth = (window as any).ethereum;
+    if (!eth) return;
+    const BSC_CHAIN_ID = "0x38";
+    eth.request({ method: "eth_chainId" }).then((chainId: string) => {
+      if (chainId !== BSC_CHAIN_ID) {
+        eth
+          .request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: BSC_CHAIN_ID,
+                chainName: "BNB Smart Chain",
+                nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+                rpcUrls: ["https://bsc-dataseed.binance.org/"],
+                blockExplorerUrls: ["https://bscscan.com/"],
+              },
+            ],
+          })
+          .catch(() => {});
+      }
+    }).catch(() => {});
+  }, []);
+
   const requireReferral = regInfo?.requiresReferral ?? true;
   const isFirstUser = regInfo?.isFirstUser ?? false;
   const schema = buildSchema(requireReferral);

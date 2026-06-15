@@ -134,7 +134,7 @@ router.get("/team/referral-link", requireAuth, async (req, res) => {
   const directRefs = await db.select().from(usersTable).where(eq(usersTable.sponsorId, user.id));
   
   const domain = process.env.APP_DOMAIN || "localhost";
-  const referralLink = `https://${domain}/register?ref=${user.referralCode}`;
+  const referralLink = `https://${domain}/join?ref=${user.referralCode}`;
 
   // Calculate spot commission earned
   const { incomeTable } = await import("@workspace/db");

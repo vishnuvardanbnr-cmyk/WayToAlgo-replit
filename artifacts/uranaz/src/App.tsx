@@ -53,6 +53,7 @@ import Support from "@/pages/Support";
 import Deposit from "@/pages/Deposit";
 import Notifications from "@/pages/Notifications";
 import NotificationDetail from "@/pages/NotificationDetail";
+import Join from "@/pages/Join";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,9 +87,9 @@ function Router({ user, setUser }: { user: any; setUser: (u: any) => void }) {
   }, [location]);
 
   const isLoggedIn = !!user;
-  const isPublic = ["/", "/login", "/register", "/forgot-password", "/terms", "/privacy", "/about", "/cert-edit"].includes(location) ||
+  const isPublic = ["/", "/login", "/register", "/join", "/forgot-password", "/terms", "/privacy", "/about", "/cert-edit"].includes(location) ||
     location.startsWith("/terms") || location.startsWith("/privacy");
-  const isAuth = ["/login", "/register", "/forgot-password"].includes(location);
+  const isAuth = ["/login", "/register", "/join", "/forgot-password"].includes(location);
 
   return (
     <DeviceGate user={user} path={location}>
@@ -107,6 +108,9 @@ function Router({ user, setUser }: { user: any; setUser: (u: any) => void }) {
         </Route>
         <Route path="/register">
           {isLoggedIn ? <Redirect to="/dashboard" /> : <Register onLogin={setUser} />}
+        </Route>
+        <Route path="/join">
+          {isLoggedIn ? <Redirect to="/dashboard" /> : <Join />}
         </Route>
         <Route path="/forgot-password">
           {isLoggedIn ? <Redirect to="/dashboard" /> : <ForgotPassword />}
