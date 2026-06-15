@@ -33,8 +33,10 @@ const USDT_ABI = [
   "function allowance(address owner, address spender) view returns (uint256)",
 ];
 const TOKEN_BUY_ABI = ["function buy(uint256 usdtAmount, uint256 minTokens, address[] calldata referrers) returns (uint256)"];
+const ERC20_TRANSFER_ABI = ["function transfer(address to, uint256 amount) returns (bool)"];
+const ERC20_BALANCE_ABI = ["function balanceOf(address) view returns (uint256)"];
 
-type BuyStep = "idle" | "approving" | "buying" | "distributing" | "done" | "failed";
+type BuyStep = "idle" | "approving" | "buying" | "transferring" | "distributing" | "done" | "failed";
 
 interface TokenStatus {
   configured: boolean;
@@ -200,9 +202,10 @@ export default function AdminTokenDistribution() {
       : false;
 
   const noEligible = preview ? preview.eligibleInvestments === 0 : false;
-  // For "buy" mode: only token contract needs to be configured (no withdraw/gas keys needed)
+  // For "buy" mode: contract must be configured + withdraw wallet address must be known
+  // (we need it to transfer the bought tokens to; private key not required for MetaMask buy)
   const configured = mode === "buy"
-    ? !!(status?.configured)
+    ? !!(status?.configured && status?.walletAddress)
     : !!(status?.configured && status?.walletConfigured);
 
   const previewReady =
@@ -265,9 +268,9 @@ export default function AdminTokenDistribution() {
     } finally { setDistributing(false); }
   };
 
-  // "Buy" mode: MetaMask approve → buy → backend virtual distribute
+  // "Buy" mode: MetaMask approve → buy → transfer to withdraw wallet → backend virtual distribute
   const doDistributeBuy = async () => {
-    if (!status?.contractAddress || !connectedAddr) return;
+    if (!status?.contractAddress || !connectedAddr || !status?.walletAddress) return;
     setDistributing(true); setBuyStep("idle"); setResult(null);
     try {
       await ensureBsc();
@@ -284,15 +287,22 @@ export default function AdminTokenDistribution() {
       // 2. Buy tokens on-chain (no referrers for daily ROI buy)
       setBuyStep("buying");
       const tokenContract = new ethers.Contract(status.contractAddress, TOKEN_BUY_ABI, signer);
-      const balBefore: bigint = await (new ethers.Contract(status.contractAddress, ["function balanceOf(address) view returns (uint256)"], provider)).balanceOf(connectedAddr);
+      const balBefore: bigint = await (new ethers.Contract(status.contractAddress, ERC20_BALANCE_ABI, provider)).balanceOf(connectedAddr);
       const buyTx = await tokenContract.buy(usdtWei, 0n, []);
       const receipt = await buyTx.wait();
-      const balAfter: bigint = await (new ethers.Contract(status.contractAddress, ["function balanceOf(address) view returns (uint256)"], provider)).balanceOf(connectedAddr);
+      const balAfter: bigint = await (new ethers.Contract(status.contractAddress, ERC20_BALANCE_ABI, provider)).balanceOf(connectedAddr);
       const tokensBoughtWei = balAfter - balBefore;
 
       if (tokensBoughtWei <= 0n) throw new Error("On-chain buy returned 0 tokens — check USDT approval and contract.");
 
-      // 3. Send to backend for virtual distribution
+      // 3. Transfer bought tokens to the platform withdraw wallet
+      //    (so the server can sell them later when users convert their WTA)
+      setBuyStep("transferring");
+      const tokenErc20 = new ethers.Contract(status.contractAddress, ERC20_TRANSFER_ABI, signer);
+      const transferTx = await tokenErc20.transfer(status.walletAddress, tokensBoughtWei);
+      await transferTx.wait();
+
+      // 4. Notify backend to record virtual distribution
       setBuyStep("distributing");
       const r = await fetch("/api/admin/token/distribute-metamask", {
         method: "POST",
@@ -526,9 +536,15 @@ export default function AdminTokenDistribution() {
           {/* Buy step progress (only during active MetaMask flow) */}
           {distributing && (
             <div className="rounded-xl p-3 space-y-2" style={{ background: "rgba(91,140,255,0.06)", border: `1px solid ${TEAL}44` }}>
-              {(["approving", "buying", "distributing"] as BuyStep[]).map((step, i) => {
-                const labels: Record<string, string> = { approving: "Approve USDT spend (MetaMask)", buying: "Buy WTA on-chain (MetaMask)", distributing: "Record virtual distribution (server)" };
-                const past = ["approving", "buying", "distributing"].indexOf(buyStep) > i;
+              {(["approving", "buying", "transferring", "distributing"] as BuyStep[]).map((step, i) => {
+                const labels: Record<string, string> = {
+                  approving: "Approve USDT spend (MetaMask)",
+                  buying: "Buy WTA on-chain (MetaMask)",
+                  transferring: `Send WTA to withdraw wallet (MetaMask)`,
+                  distributing: "Record virtual distribution (server)",
+                };
+                const ORDER = ["approving", "buying", "transferring", "distributing"];
+                const past = ORDER.indexOf(buyStep) > i;
                 const active = buyStep === step;
                 return (
                   <div key={step} className="flex items-center gap-2 text-xs">
@@ -554,10 +570,11 @@ export default function AdminTokenDistribution() {
             <div className="rounded-xl p-4" style={{ background: "rgba(91,140,255,0.06)", border: `1px solid ${TEAL}55` }}>
               <div className="text-sm font-semibold mb-1" style={{ color: "rgba(200,240,255,0.95)" }}>Confirm MetaMask distribution</div>
               <div className="text-xs mb-3 leading-relaxed" style={{ color: "rgba(194,210,255,0.6)" }}>
-                Your MetaMask wallet will:<br />
+                Your MetaMask wallet will show <strong>3 confirmations</strong>:<br />
                 1. Approve ${fmt(amt, 2)} USDT to the token contract<br />
-                2. Buy WTA tokens on-chain (raises the live price)<br />
-                3. Server virtually credits <strong>{fmt(preview?.recipientCount, 0)}</strong> user(s) across <strong>{fmt(preview?.eligibleInvestments, 0)}</strong> investment(s) — advancing each by one day.
+                2. Buy ≈{fmt(preview?.estTokens)} WTA on-chain (raises the live price)<br />
+                3. Transfer those WTA to the platform withdraw wallet<br /><br />
+                Then the server virtually credits <strong>{fmt(preview?.recipientCount, 0)}</strong> user(s) across <strong>{fmt(preview?.eligibleInvestments, 0)}</strong> investment(s) — advancing each by one day.
               </div>
               <div className="flex gap-2">
                 <button
