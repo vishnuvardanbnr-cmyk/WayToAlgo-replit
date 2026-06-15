@@ -18,7 +18,6 @@ const navLinks = [
   { href: "/team",        label: "Team" },
   { href: "/withdrawals", label: "Withdraw" },
   { href: "/ranks",       label: "Ranks" },
-  { href: "/about",       label: "About" },
 ];
 
 export default function TopNav({ user, onLogout }: Props) {

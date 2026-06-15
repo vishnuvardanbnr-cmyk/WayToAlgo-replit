@@ -393,7 +393,6 @@ export default function Landing() {
           WaytoAlgo
         </div>
         <div className="flex items-center gap-5 text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
-          <Link href="/about"><span className="hover:text-teal-300 transition-colors cursor-pointer">About</span></Link>
           <Link href="/terms"><span className="hover:text-teal-300 transition-colors cursor-pointer">Terms & Conditions</span></Link>
           <Link href="/privacy"><span className="hover:text-teal-300 transition-colors cursor-pointer">Privacy Policy</span></Link>
         </div>
