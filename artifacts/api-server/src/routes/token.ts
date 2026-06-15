@@ -19,13 +19,20 @@ const ADDR_RE = /^0x[0-9a-fA-F]{40}$/;
  * Returns the current user's ordered upline sponsor wallet addresses, level 1
  * (direct sponsor) first, up to UPLINE_LEVELS deep. These are passed by the
  * frontend into the on-chain `buy()` so the contract pays each sponsor their
- * configured per-level token reward. Levels with no sponsor or no valid wallet
- * are returned as the zero address (the contract skips them).
+ * configured per-level token reward.
  *
- * This is read-only and isolated from all off-chain balance flows.
+ * Levels with no valid upline wallet are filled with the admin master wallet
+ * so the contract sends those tokens to admin instead of skipping them.
+ * The response also includes `adminWallet` so the frontend can label those
+ * slots correctly in the level breakdown UI.
  */
 router.get("/token/upline", requireAuth, async (req, res) => {
   const user = (req as any).user;
+
+  // Resolve admin wallet once — used as fallback for empty levels.
+  const [settings] = await db.select().from(platformSettingsTable).limit(1);
+  const adminWallet = (settings?.adminMasterWallet || "").trim();
+  const fallback = ADDR_RE.test(adminWallet) ? adminWallet : ZERO_ADDRESS;
 
   const addresses: string[] = [];
   let currentSponsorId: number | null = user.sponsorId ?? null;
@@ -33,7 +40,7 @@ router.get("/token/upline", requireAuth, async (req, res) => {
 
   for (let level = 0; level < UPLINE_LEVELS; level++) {
     if (currentSponsorId == null || seen.has(currentSponsorId)) {
-      addresses.push(ZERO_ADDRESS);
+      addresses.push(fallback);
       currentSponsorId = null;
       continue;
     }
@@ -46,17 +53,18 @@ router.get("/token/upline", requireAuth, async (req, res) => {
       .limit(1);
 
     if (!sponsor) {
-      addresses.push(ZERO_ADDRESS);
+      addresses.push(fallback);
       currentSponsorId = null;
       continue;
     }
 
     const wallet = (sponsor.walletAddress || "").trim();
-    addresses.push(ADDR_RE.test(wallet) ? wallet : ZERO_ADDRESS);
+    // Use sponsor wallet if valid, otherwise fall back to admin wallet.
+    addresses.push(ADDR_RE.test(wallet) ? wallet : fallback);
     currentSponsorId = sponsor.sponsorId ?? null;
   }
 
-  res.json({ levels: UPLINE_LEVELS, addresses });
+  res.json({ levels: UPLINE_LEVELS, addresses, adminWallet: fallback });
 });
 
 /**

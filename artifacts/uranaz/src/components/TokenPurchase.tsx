@@ -86,7 +86,6 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   const loadReferral = useCallback(async () => {
     if (!isTokenConfigured()) return;
     readLevelPercents().then(setLevelPercents).catch(() => setLevelPercents([]));
-    readAdminWallet().then(setAdminWalletAddr).catch(() => {});
     try {
       const res = await fetch("/api/token/upline", {
         headers: { Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}` },
@@ -94,6 +93,8 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data?.addresses)) setUplines(data.addresses);
+        // Backend fills empty slots with admin wallet and tells us which it is.
+        if (data?.adminWallet) setAdminWalletAddr(data.adminWallet);
       }
     } catch { /* non-fatal */ }
   }, []);
