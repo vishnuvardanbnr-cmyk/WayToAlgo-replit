@@ -4,8 +4,6 @@ import { eq, and, desc, sum } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { CreateInvestmentBody } from "@workspace/api-zod";
 import { sendDepositConfirmationEmail } from "../lib/email";
-import { verifySafeBuyTx, isValidAddress } from "../lib/tokenChain";
-import { ethers } from "ethers";
 
 const router = Router();
 
@@ -62,20 +60,6 @@ router.post("/investments", requireAuth, async (req, res) => {
   const { amount, investmentType } = parsed.data as { amount: number; investmentType: "safe" | "risky" };
   const isSafe = investmentType === "safe";
 
-  // Safe Invest pays its 50% token-half on-chain via the user's own MetaMask
-  // (buySafe), so the request must carry the confirmed on-chain purchase proof.
-  // The ROI-half (the other 50%) is funded from the in-app USDT balance below.
-  const txHash = typeof req.body?.txHash === "string" ? req.body.txHash.trim() : "";
-  const tokenWalletAddress = typeof req.body?.walletAddress === "string" ? req.body.walletAddress.trim() : "";
-  const tokenSignature = typeof req.body?.signature === "string" ? req.body.signature.trim() : "";
-  const wtaReceived = parseFloat(req.body?.wtaReceived ?? "0") || 0;
-  const tokenBuyPrice = parseFloat(req.body?.buyPrice ?? "0") || 0;
-
-  if (isSafe && !/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
-    res.status(400).json({ message: "Safe Invest requires a confirmed on-chain token purchase. Please complete the wallet transaction and try again." });
-    return;
-  }
-
   if (user.investmentBlocked) {
     const reason = user.investmentBlockReason || user.blockReason;
     res.status(403).json({
@@ -103,14 +87,14 @@ router.post("/investments", requireAuth, async (req, res) => {
   const [settings] = await db.select().from(platformSettingsTable).limit(1);
 
   // Compute the split server-side based on investmentType:
-  // Safe  → 50% buys WTA tokens ON-CHAIN via the user's own MetaMask (buySafe),
-  //         50% earns daily ROI from the in-app balance. Only the ROI-half is
-  //         deducted in-app; the token-half never touches the in-app wallet.
+  // Safe  → 100% deducted from the in-app USDT balance. 50% is virtually
+  //         allocated as WTA tokens (recorded in user_token_purchases); the
+  //         other 50% earns daily ROI. Admin later deposits the token-half
+  //         funds into the contract.
   // Risky → 100% earns daily ROI (no token purchase), paid from the in-app wallet.
   const tokenPurchaseAmount = isSafe ? amount * 0.5 : 0;
-  // In-app USDT deduction: token-half is on-chain for Safe, so only the ROI-half
-  // is taken from the in-app wallet; Risky pays the full amount in-app.
-  const usdtAmount = amount - tokenPurchaseAmount;
+  // Full amount is always deducted from the in-app wallet for both types.
+  const usdtAmount = amount;
   const hyperCoinAmount = 0; // user never pays with WTA tokens
 
   // Fetch fresh user to check balances
@@ -145,71 +129,9 @@ router.post("/investments", requireAuth, async (req, res) => {
     return;
   }
 
-  // ── Safe Invest: verify the on-chain token-half BEFORE creating the
-  // half-priced (in-app) investment. This is the trust boundary — without it a
-  // client could call the API directly with a fabricated hash and pay only the
-  // ROI-half while still getting full totalInvested/spot-referral credit.
-  if (isSafe) {
-    const contractAddress = (settings?.tokenContractAddress || "").trim();
-    if (!isValidAddress(contractAddress)) {
-      res.status(400).json({ message: "On-chain token trading is not configured yet. Please contact support." });
-      return;
-    }
-    if (!/^0x[0-9a-fA-F]{40}$/.test(tokenWalletAddress)) {
-      res.status(400).json({ message: "A valid wallet address is required for Safe Invest." });
-      return;
-    }
-    // Bind the on-chain proof to THIS account: the buying wallet must be the
-    // user's own registered wallet. Without this, an attacker could claim any
-    // stranger's public buySafe tx (set walletAddress to that tx's sender) and
-    // get Safe credit while paying only the ROI-half. verifySafeBuyTx then
-    // confirms tx.from === this same wallet, so the tx is provably the user's.
-    const userWallet = (freshUser.walletAddress || "").trim();
-    if (!isValidAddress(userWallet)) {
-      res.status(400).json({ message: "Please set your wallet address in your profile before using Safe Invest." });
-      return;
-    }
-    if (tokenWalletAddress.toLowerCase() !== userWallet.toLowerCase()) {
-      res.status(400).json({ message: "Safe Invest must be paid from your registered wallet address. Connect the wallet that matches your profile." });
-      return;
-    }
-    // Cryptographic proof of wallet control (EIP-191). This is the real
-    // ownership binding: a registered/profile address is NOT itself proven, so
-    // without this an attacker could register a victim's address and claim the
-    // victim's public buySafe tx. Requiring a signature over the txHash from the
-    // buying wallet means only the actual key-holder can submit the claim.
-    const authMsg = `WaytoAlgo Safe Invest\nWallet: ${tokenWalletAddress.toLowerCase()}\nTx: ${txHash.toLowerCase()}`;
-    let recovered = "";
-    try { recovered = ethers.verifyMessage(authMsg, tokenSignature); } catch { recovered = ""; }
-    if (!recovered || recovered.toLowerCase() !== tokenWalletAddress.toLowerCase()) {
-      res.status(400).json({ message: "Wallet ownership could not be verified. Please sign the authorization with the wallet that made the purchase." });
-      return;
-    }
-    // Fast replay check: reject a tx hash already tied to a prior purchase.
-    // (The atomic unique-constraint insert inside the transaction below closes
-    // the remaining race window.)
-    const [dup] = await db
-      .select({ id: userTokenPurchasesTable.id })
-      .from(userTokenPurchasesTable)
-      .where(eq(userTokenPurchasesTable.txHash, txHash.toLowerCase()))
-      .limit(1);
-    if (dup) {
-      res.status(400).json({ message: "This transaction has already been used for an investment." });
-      return;
-    }
-    const rpcUrl = settings?.bscRpcUrl || "https://bsc-dataseed.binance.org/";
-    const expectedUsdtWei = ethers.parseUnits(tokenPurchaseAmount.toString(), 18);
-    const v = await verifySafeBuyTx({
-      txHash, expectedFrom: tokenWalletAddress, expectedUsdtWei, contractAddress, rpcUrl,
-    });
-    if (!v.ok) {
-      res.status(400).json({ message: v.error ?? "On-chain token purchase could not be verified." });
-      return;
-    }
-  }
-  // NOTE: Safe Invest no longer credits an off-chain hyperCoin balance — the
-  // token-half is bought on-chain and the real WTA tokens land in the user's own
-  // wallet. The confirmed purchase is recorded atomically inside the tx below.
+  // Safe Invest: no on-chain verification needed — the full amount is deducted
+  // from the user's in-app balance. A virtual token purchase record is created
+  // atomically below. Admin deposits the token-half funds into the contract later.
 
   const startDate = new Date();
   const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
@@ -241,26 +163,21 @@ router.post("/investments", requireAuth, async (req, res) => {
         earnedSoFar: "0",
       }).returning();
 
-      // Record the confirmed on-chain Safe token purchase INSIDE the tx so the
-      // unique tx_hash constraint gives atomic replay protection: a duplicate
-      // hash throws (23505) → the whole investment rolls back. No
-      // onConflictDoNothing here — a reused hash MUST fail the investment.
+      // Record a virtual token allocation for Safe Invest. A synthetic unique
+      // reference is used in place of a real txHash since no on-chain transaction
+      // is made by the user. Admin later deposits the token-half funds on-chain.
       if (isSafe) {
-        try {
-          await tx.insert(userTokenPurchasesTable).values({
-            userId: user.id,
-            walletAddress: tokenWalletAddress.toLowerCase(),
-            txHash: txHash.toLowerCase(),
-            usdtSpent: tokenPurchaseAmount.toString(),
-            wtaReceived: wtaReceived.toString(),
-            buyPrice: tokenBuyPrice.toString(),
-          });
-        } catch (e: any) {
-          if (e?.code === "23505") {
-            throw Object.assign(new Error("This transaction has already been used for an investment."), { status: 400 });
-          }
-          throw e;
-        }
+        const investmentId = inv[0]?.id ?? 0;
+        const virtualRef = `virtual:${user.id}:${investmentId}:${Date.now()}`;
+        const walletAddr = (freshUser.walletAddress || "platform").toLowerCase();
+        await tx.insert(userTokenPurchasesTable).values({
+          userId: user.id,
+          walletAddress: walletAddr,
+          txHash: virtualRef,
+          usdtSpent: tokenPurchaseAmount.toString(),
+          wtaReceived: "0",
+          buyPrice: "0",
+        });
       }
 
       // Auto-activate user on their first investment
