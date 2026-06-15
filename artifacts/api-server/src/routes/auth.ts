@@ -11,9 +11,35 @@ import { trackOtpFailure } from "../lib/alerts";
 import { generateDepositWallet } from "../lib/blockchain";
 import { encryptKey } from "../lib/keyEncryption.js";
 
-// In-memory nonce store: address (lowercase) → { nonce, expiresAt }
+// Nonce store — Redis when available (cluster-safe), in-memory fallback for dev.
+// Must be shared across all PM2 workers: the GET nonce and POST login requests
+// can hit different workers in cluster mode.
+import { getRedis } from "../lib/redis";
 const walletNonces = new Map<string, { nonce: string; expiresAt: number }>();
 const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const NONCE_TTL_S  = 300;            // same in seconds for Redis EX
+
+async function storeNonce(address: string, nonce: string): Promise<void> {
+  const redis = getRedis();
+  if (redis) {
+    await redis.set(`wta:nonce:${address}`, nonce, "EX", NONCE_TTL_S);
+  } else {
+    walletNonces.set(address, { nonce, expiresAt: Date.now() + NONCE_TTL_MS });
+  }
+}
+
+async function consumeNonce(address: string): Promise<string | null> {
+  const redis = getRedis();
+  if (redis) {
+    const nonce = await redis.get(`wta:nonce:${address}`);
+    if (nonce) await redis.del(`wta:nonce:${address}`);
+    return nonce;
+  }
+  const stored = walletNonces.get(address);
+  walletNonces.delete(address);
+  if (!stored || Date.now() > stored.expiresAt) return null;
+  return stored.nonce;
+}
 
 const router = Router();
 
@@ -399,7 +425,7 @@ router.get("/auth/wallet-check", async (req, res) => {
 
 // GET /api/auth/wallet-nonce?address=0x...
 // Returns a one-time nonce the client must sign with personal_sign.
-router.get("/auth/wallet-nonce", (req, res) => {
+router.get("/auth/wallet-nonce", async (req, res) => {
   const raw = (req.query.address as string | undefined) ?? "";
   const address = raw.trim().toLowerCase();
   if (!/^0x[a-f0-9]{40}$/.test(address)) {
@@ -407,7 +433,7 @@ router.get("/auth/wallet-nonce", (req, res) => {
     return;
   }
   const nonce = randomBytes(16).toString("hex");
-  walletNonces.set(address, { nonce, expiresAt: Date.now() + NONCE_TTL_MS });
+  await storeNonce(address, nonce);
   const message = `Sign in to WaytoAlgo\nNonce: ${nonce}`;
   res.json({ nonce, message });
 });
@@ -424,15 +450,14 @@ router.post("/auth/wallet-login", async (req, res) => {
     return;
   }
 
-  const stored = walletNonces.get(address);
-  if (!stored || Date.now() > stored.expiresAt) {
-    walletNonces.delete(address);
+  const nonce = await consumeNonce(address);
+  if (!nonce) {
     res.status(400).json({ message: "Nonce expired or not found. Please try again." });
     return;
   }
 
   // Verify signature
-  const message = `Sign in to WaytoAlgo\nNonce: ${stored.nonce}`;
+  const message = `Sign in to WaytoAlgo\nNonce: ${nonce}`;
   let recovered: string;
   try {
     recovered = ethers.verifyMessage(message, signature).toLowerCase();
@@ -440,8 +465,6 @@ router.post("/auth/wallet-login", async (req, res) => {
     res.status(400).json({ message: "Invalid signature" });
     return;
   }
-
-  walletNonces.delete(address); // consume nonce
 
   if (recovered !== address) {
     res.status(401).json({ message: "Signature does not match the wallet address" });
