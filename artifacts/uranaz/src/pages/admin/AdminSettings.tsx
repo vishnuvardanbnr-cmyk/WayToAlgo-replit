@@ -559,12 +559,14 @@ export default function AdminSettings() {
     gasWalletPrivateKey: string;
     bscRpcUrl: string;
     minDepositUsdt: number;
+    tokenContractAddress: string;
   }>({
     defaultValues: {
       adminMasterWallet: "",
       gasWalletPrivateKey: "",
       bscRpcUrl: "https://bsc-dataseed.binance.org/",
       minDepositUsdt: 1,
+      tokenContractAddress: "",
     },
   });
 
@@ -579,6 +581,7 @@ export default function AdminSettings() {
           gasWalletPrivateKey: "",
           bscRpcUrl: d.bscRpcUrl ?? "https://bsc-dataseed.binance.org/",
           minDepositUsdt: d.minDepositUsdt ?? 1,
+          tokenContractAddress: d.tokenContractAddress ?? "",
         });
       })
       .catch(() => {})
@@ -587,13 +590,14 @@ export default function AdminSettings() {
     loadServerStatus();
   }, []);
 
-  const onWalletSubmit = async (data: { adminMasterWallet: string; gasWalletPrivateKey: string; bscRpcUrl: string; minDepositUsdt: number }) => {
+  const onWalletSubmit = async (data: { adminMasterWallet: string; gasWalletPrivateKey: string; bscRpcUrl: string; minDepositUsdt: number; tokenContractAddress: string }) => {
     setWalletSaving(true);
     try {
       const body: Record<string, unknown> = {
         adminMasterWallet: data.adminMasterWallet,
         bscRpcUrl: data.bscRpcUrl,
         minDepositUsdt: data.minDepositUsdt,
+        tokenContractAddress: data.tokenContractAddress,
       };
       // Only send the key if the admin entered a new one — blank means "keep existing"
       if (data.gasWalletPrivateKey.trim()) body.gasWalletPrivateKey = data.gasWalletPrivateKey.trim();
@@ -1046,6 +1050,18 @@ export default function AdminSettings() {
                     {showGasKey ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
+              </div>
+
+              <SubHeader hint="The deployed WTA token smart contract on BSC. Required for on-chain buy/sell and ROI distribution.">Token Contract</SubHeader>
+              <div>
+                <FieldLabel>WTA Token Contract Address (BEP-20)</FieldLabel>
+                <input
+                  type="text"
+                  placeholder="0x... deployed contract address"
+                  {...walletForm.register("tokenContractAddress")}
+                  className={INPUT_CLS + " font-mono"}
+                  style={INPUT_STYLE}
+                />
               </div>
 
               <SubHeader>Network</SubHeader>
