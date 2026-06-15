@@ -20,25 +20,83 @@ function incomeToResponse(inc: typeof incomeTable.$inferSelect) {
   };
 }
 
+// Maps UI filter value → internal tokenRewards type
+const UI_TO_TOKEN_TYPE: Record<string, string> = {
+  daily_return: "roi",
+  level_commission: "level",
+};
+// Maps tokenRewards type → UI type name
+const TOKEN_TYPE_TO_UI: Record<string, string> = {
+  roi: "daily_return",
+  level: "level_commission",
+};
+// Income types that still come from incomeTable (not from tokenRewardsTable)
+const INCOME_TABLE_TYPES = ["spot_referral", "rank_bonus", "token_sale"];
+
+function tokenRewardToResponse(tr: typeof tokenRewardsTable.$inferSelect) {
+  // tokenAmount is stored as the full bigint wei value as a numeric string.
+  // Divide by 1e18 to get human-readable WTA token amount.
+  const tokenAmountHuman = Number(BigInt(tr.tokenAmount.split(".")[0])) / 1e18;
+  const uiType = TOKEN_TYPE_TO_UI[tr.type] ?? tr.type;
+  const description = tr.type === "level"
+    ? `Level ${tr.level} commission from ${tr.fromUserName ?? ""}`
+    : "Daily Trading Profit";
+  return {
+    id: `t-${tr.id}`,
+    userId: tr.userId,
+    type: uiType,
+    amount: tokenAmountHuman,
+    usdValue: parseFloat(tr.usdValue),
+    description,
+    fromUserId: tr.fromUserId,
+    fromUserName: tr.fromUserName,
+    level: tr.level,
+    createdAt: tr.createdAt.toISOString(),
+  };
+}
+
 // GET /api/income
 router.get("/income", requireAuth, async (req, res) => {
   const user = (req as any).user;
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
-  const type = req.query.type as string | undefined;
+  const typeFilter = req.query.type as string | undefined;
   const offset = (page - 1) * limit;
 
-  const conditions = [eq(incomeTable.userId, user.id)];
-  if (type) conditions.push(eq(incomeTable.type, type));
+  const records: any[] = [];
 
-  const allRecords = await db.select().from(incomeTable)
-    .where(and(...conditions))
-    .orderBy(desc(incomeTable.createdAt));
+  // ── Token rewards (roi / level) ───────────────────────────────────────────
+  const wantTokenRewards = !typeFilter
+    || typeFilter === "daily_return"
+    || typeFilter === "level_commission";
 
-  const paginated = allRecords.slice(offset, offset + limit);
+  if (wantTokenRewards) {
+    const tokenType = typeFilter ? UI_TO_TOKEN_TYPE[typeFilter] : undefined;
+    const conditions = tokenType
+      ? and(eq(tokenRewardsTable.userId, user.id), eq(tokenRewardsTable.type, tokenType))
+      : eq(tokenRewardsTable.userId, user.id);
+    const rows = await db.select().from(tokenRewardsTable).where(conditions);
+    for (const tr of rows) records.push(tokenRewardToResponse(tr));
+  }
+
+  // ── Income table (spot_referral / rank_bonus / token_sale) ────────────────
+  const wantIncome = !typeFilter || INCOME_TABLE_TYPES.includes(typeFilter);
+
+  if (wantIncome) {
+    const incomeConditions = typeFilter
+      ? and(eq(incomeTable.userId, user.id), eq(incomeTable.type, typeFilter))
+      : and(eq(incomeTable.userId, user.id), inArray(incomeTable.type, INCOME_TABLE_TYPES));
+    const rows = await db.select().from(incomeTable).where(incomeConditions);
+    for (const inc of rows) records.push(incomeToResponse(inc));
+  }
+
+  // Sort merged result by date descending, then paginate
+  records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const paginated = records.slice(offset, offset + limit);
   res.json({
-    records: paginated.map(incomeToResponse),
-    total: allRecords.length,
+    records: paginated,
+    total: records.length,
     page,
     limit,
   });
