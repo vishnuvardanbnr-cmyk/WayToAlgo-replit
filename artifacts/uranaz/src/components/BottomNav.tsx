@@ -26,7 +26,7 @@ export default function BottomNav({ isLoggedIn }: Props) {
         background: "rgba(1, 10, 20, 0.90)",
         backdropFilter: "blur(24px) saturate(1.6)",
         WebkitBackdropFilter: "blur(24px) saturate(1.6)",
-        borderTop: "1px solid rgba(91, 140, 255, 0.15)",
+        borderTop: "1px solid rgba(0, 255, 148, 0.15)",
         boxShadow: "0 -4px 30px rgba(0,0,0,0.5), 0 -1px 0 rgba(0,255,148,0.08)",
       }}
     >
