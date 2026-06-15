@@ -2182,26 +2182,30 @@ router.post("/admin/token-allocations/settle", requireAdmin, async (req, res) =>
     let currentSponsorId: number | null = buyer?.sponsorId ?? null;
     const seen = new Set<number>([userId]);
 
+    // Fallback for any empty/missing slot — admin master wallet receives those commissions
+    const fallback = ADDR_RE_LOCAL.test(adminMasterWallet) ? adminMasterWallet : ZERO_ADDR;
+
     for (let level = 0; level < SAFE_USER_LEVELS; level++) {
       if (currentSponsorId == null || seen.has(currentSponsorId)) {
-        addresses.push(ZERO_ADDR);
+        addresses.push(fallback);
         currentSponsorId = null;
         continue;
       }
       seen.add(currentSponsorId);
       const [sponsor] = await db.select({ id: usersTable.id, walletAddress: usersTable.walletAddress, sponsorId: usersTable.sponsorId })
         .from(usersTable).where(eq(usersTable.id, currentSponsorId)).limit(1);
-      if (!sponsor) { addresses.push(ZERO_ADDR); currentSponsorId = null; continue; }
+      if (!sponsor) { addresses.push(fallback); currentSponsorId = null; continue; }
       const w = (sponsor.walletAddress ?? "").trim();
-      addresses.push(ADDR_RE_LOCAL.test(w) ? w : ZERO_ADDR);
+      // If sponsor has no valid wallet, the commission goes to admin instead of burning
+      addresses.push(ADDR_RE_LOCAL.test(w) ? w : fallback);
       currentSponsorId = sponsor.sponsorId ?? null;
     }
 
     // Slot 5: admin master wallet (the fixed admin cut)
-    addresses.push(ADDR_RE_LOCAL.test(adminMasterWallet) ? adminMasterWallet : ZERO_ADDR);
+    addresses.push(fallback);
 
-    // Remaining slots unused
-    while (addresses.length < TOTAL_LEVELS) addresses.push(ZERO_ADDR);
+    // Slots 6–9: unused by user levels — route to admin so nothing is burned
+    while (addresses.length < TOTAL_LEVELS) addresses.push(fallback);
     return addresses;
   }
 
