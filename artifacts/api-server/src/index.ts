@@ -36,6 +36,14 @@ if (Number.isNaN(port) || port <= 0) {
 const server = createServer(app);
 setupWebSocket(server);
 
+// ── Cron guard — only run scheduled jobs on PM2 instance 0 ─────────────────
+// In cluster mode PM2 sets NODE_APP_INSTANCE to "0", "1", …, "n-1".
+// In fork mode it is undefined. Both cases should run crons once.
+// Without this guard every worker would fire the same job simultaneously.
+const IS_CRON_WORKER =
+  process.env.NODE_APP_INSTANCE === undefined ||
+  process.env.NODE_APP_INSTANCE === "0";
+
 // ── Daily payout cron: DISABLED ──
 // The off-chain USDT ROI/level payout has been replaced by the token-based
 // payout cycle. ROI is now credited only when an admin runs "Buy & Distribute"
@@ -45,49 +53,47 @@ setupWebSocket(server);
 // only — it is no longer scheduled.
 logger.info("Daily ROI payout cron disabled — using token-based buy & distribute instead");
 
-// ── Hourly DB backup cron ──────────────────────────────────────────────────
-cron.schedule("0 * * * *", async () => {
-  logger.info("Cron: starting hourly database backup");
-  try {
-    const result = await sendDatabaseBackupEmail();
-    if (result.sent) {
-      logger.info("Cron: database backup email sent successfully");
-    } else {
-      logger.info({ reason: result.error }, "Cron: database backup skipped");
+if (IS_CRON_WORKER) {
+  // ── Hourly DB backup cron ────────────────────────────────────────────────
+  cron.schedule("0 * * * *", async () => {
+    logger.info("Cron: starting hourly database backup");
+    try {
+      const result = await sendDatabaseBackupEmail();
+      if (result.sent) {
+        logger.info("Cron: database backup email sent successfully");
+      } else {
+        logger.info({ reason: result.error }, "Cron: database backup skipped");
+      }
+    } catch (err) {
+      logger.error({ err }, "Cron: database backup failed");
     }
-  } catch (err) {
-    logger.error({ err }, "Cron: database backup failed");
-  }
-});
+  });
+  logger.info("Hourly DB backup cron scheduled — every hour at :00");
 
-logger.info("Hourly DB backup cron scheduled — every hour at :00");
+  // ── Daily rank engine cron ───────────────────────────────────────────────
+  cron.schedule("0 1 * * *", async () => {
+    logger.info("Cron: starting daily rank engine");
+    try {
+      const result = await runRankEngine();
+      logger.info(result, "Cron: rank engine finished");
+    } catch (err) {
+      logger.error({ err }, "Cron: rank engine failed");
+    }
+  });
+  logger.info("Daily rank engine cron scheduled — every day at 01:00");
 
-// ── Daily rank engine cron ──────────────────────────────────────────────────
-// Auto-promotes users to the highest rank they qualify for and pays out due
-// monthly rank rewards to the Withdraw Wallet. Runs daily at 01:00.
-cron.schedule("0 1 * * *", async () => {
-  logger.info("Cron: starting daily rank engine");
-  try {
-    const result = await runRankEngine();
-    logger.info(result, "Cron: rank engine finished");
-  } catch (err) {
-    logger.error({ err }, "Cron: rank engine failed");
-  }
-});
+  // Seed the default rank ladder on an empty platform. Idempotent.
+  seedRanks()
+    .then((r) => logger.info(r, "Rank seed checked"))
+    .catch((err) => logger.error({ err }, "Rank seed failed"));
 
-logger.info("Daily rank engine cron scheduled — every day at 01:00");
-
-// Seed the default rank ladder on an empty platform so the Ranks page and
-// progress bars work immediately. Idempotent: skips when ranks already exist.
-seedRanks()
-  .then((r) => logger.info(r, "Rank seed checked"))
-  .catch((err) => logger.error({ err }, "Rank seed failed"));
-
-// Run the rank engine shortly after startup so promotions/payouts settle without
-// waiting for the next daily tick (non-blocking, errors are swallowed/logged).
-setTimeout(() => {
-  runRankEngine().catch((err) => logger.error({ err }, "Startup rank engine run failed"));
-}, 15_000);
+  // Run rank engine once at startup so promotions settle immediately.
+  setTimeout(() => {
+    runRankEngine().catch((err) => logger.error({ err }, "Startup rank engine run failed"));
+  }, 15_000);
+} else {
+  logger.info({ instance: process.env.NODE_APP_INSTANCE }, "Worker skipping crons (not instance 0)");
+}
 
 server.listen(port, (err?: Error) => {
   if (err) {

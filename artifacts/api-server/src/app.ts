@@ -2,8 +2,10 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import cors from "cors";
 import pinoHttp from "pino-http";
 import rateLimit from "express-rate-limit";
+import { RedisStore } from "rate-limit-redis";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { getRedis } from "./lib/redis";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -64,6 +66,18 @@ app.use(cors({
 }));
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
+// When Redis is available (production), counters are shared across all PM2
+// cluster workers so limits are enforced globally, not per-worker.
+// Falls back to in-memory store when Redis is not configured (local dev).
+function makeStore(prefix: string) {
+  const redis = getRedis();
+  if (!redis) return undefined; // express-rate-limit defaults to MemoryStore
+  return new RedisStore({
+    prefix: `rl:${prefix}:`,
+    sendCommand: (...args: string[]) => (redis as any).call(...args),
+  });
+}
+
 // Login: 10 requests per minute per IP
 const authLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -72,6 +86,7 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many login attempts, please try again in a minute." },
   skip: (req) => req.method === "OPTIONS",
+  store: makeStore("auth"),
 });
 
 // OTP endpoint: 5 per minute per IP — prevents OTP spam and enumeration
@@ -82,6 +97,7 @@ const otpLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many OTP requests, please wait before trying again." },
   skip: (req) => req.method === "OPTIONS",
+  store: makeStore("otp"),
 });
 
 // General API: 200 requests per minute per IP
@@ -92,6 +108,7 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many requests, slow down." },
   skip: (req) => req.method === "OPTIONS",
+  store: makeStore("api"),
 });
 
 // ── Body parsers — 10 mb to handle base64 profile images and large payloads ──
