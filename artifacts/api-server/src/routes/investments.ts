@@ -4,6 +4,8 @@ import { eq, and, desc, sum } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { CreateInvestmentBody } from "@workspace/api-zod";
 import { sendDepositConfirmationEmail } from "../lib/email";
+import { buyAndTransferToUser, TOKEN_DECIMALS } from "../lib/tokenChain";
+import { ethers } from "ethers";
 
 const router = Router();
 
@@ -129,12 +131,13 @@ router.post("/investments", requireAuth, async (req, res) => {
     return;
   }
 
-  // Safe Invest: no on-chain verification needed — the full amount is deducted
-  // from the user's in-app balance. A virtual token purchase record is created
-  // atomically below. Admin deposits the token-half funds into the contract later.
-
   const startDate = new Date();
   const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
+
+  // Generate a unique pending reference for the Safe Invest token record.
+  // This is stored atomically with the investment; replaced by the real tx hash
+  // if the on-chain mint succeeds, left as-is for admin manual settlement if not.
+  const virtualRef = isSafe ? `virtual:${user.id}:${Date.now()}` : "";
 
   // Wrap investment creation + balance deduction in a transaction to prevent race conditions
   let investment: typeof investmentsTable.$inferSelect;
@@ -163,12 +166,9 @@ router.post("/investments", requireAuth, async (req, res) => {
         earnedSoFar: "0",
       }).returning();
 
-      // Record a virtual token allocation for Safe Invest. A synthetic unique
-      // reference is used in place of a real txHash since no on-chain transaction
-      // is made by the user. Admin later deposits the token-half funds on-chain.
+      // Record a pending token allocation for Safe Invest. The virtualRef is
+      // replaced with the real on-chain transfer tx hash after the DB commit.
       if (isSafe) {
-        const investmentId = inv[0]?.id ?? 0;
-        const virtualRef = `virtual:${user.id}:${investmentId}:${Date.now()}`;
         const walletAddr = (freshUser.walletAddress || "platform").toLowerCase();
         await tx.insert(userTokenPurchasesTable).values({
           userId: user.id,
@@ -196,6 +196,51 @@ router.post("/investments", requireAuth, async (req, res) => {
     const status = err?.status ?? 500;
     res.status(status).json({ message: err?.message ?? "Investment creation failed" });
     return;
+  }
+
+  // === Safe Invest: on-chain token mint (fire-and-forget, non-blocking) ===
+  // After the DB transaction commits we attempt to buy WTA tokens from the
+  // platform withdraw wallet and transfer them directly to the user's wallet.
+  // If this fails (contract not set, user has no wallet, RPC error) the
+  // virtual record stays as a pending settlement task for the admin.
+  if (isSafe) {
+    (async () => {
+      try {
+        const [cfg] = await db.select().from(platformSettingsTable).limit(1);
+        const contractAddress = cfg?.tokenContractAddress ?? "";
+        const withdrawKey    = cfg?.withdrawWalletPrivateKey ?? "";
+        const gasKey         = cfg?.gasWalletPrivateKey ?? "";
+        const rpcUrl         = cfg?.bscRpcUrl ?? "";
+        const userWallet     = freshUser.walletAddress ?? "";
+
+        if (!contractAddress || !withdrawKey || !gasKey || !rpcUrl || !userWallet) {
+          // Not yet fully configured — keep virtual record for admin to settle later
+          return;
+        }
+
+        const result = await buyAndTransferToUser({
+          usdtAmount: tokenPurchaseAmount,
+          userWallet,
+          contractAddress,
+          withdrawWalletPrivateKey: withdrawKey,
+          gasWalletPrivateKey: gasKey,
+          rpcUrl,
+        });
+
+        if (result.success && result.transferTxHash && result.tokensBought) {
+          // Update the pending record with the real on-chain details
+          await db.update(userTokenPurchasesTable)
+            .set({
+              txHash: result.transferTxHash,
+              wtaReceived: ethers.formatUnits(result.tokensBought, TOKEN_DECIMALS),
+            })
+            .where(eq(userTokenPurchasesTable.txHash, virtualRef));
+        }
+        // On failure, tokenChain.ts already logged the error with buyTxHash for manual recovery
+      } catch (e: any) {
+        // Non-blocking — investment already succeeded
+      }
+    })();
   }
 
   if (user.sponsorId) {

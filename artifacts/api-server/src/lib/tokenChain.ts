@@ -21,6 +21,7 @@ const TOKEN_ABI = [
   "function quoteBuy(uint256 usdtAmount) view returns (uint256)",
   "function quoteSell(uint256 tokenAmount) view returns (uint256)",
   "function balanceOf(address owner) view returns (uint256)",
+  "function transfer(address to, uint256 amount) returns (bool)",
 ];
 
 const USDT_ERC20_ABI = [
@@ -254,6 +255,97 @@ export async function buyTokens(
   } catch (err: any) {
     logger.error({ err }, "On-chain token buy failed");
     return { success: false, error: err?.shortMessage || err?.message || "Buy failed" };
+  }
+}
+
+export interface BuyAndTransferResult {
+  success: boolean;
+  buyTxHash?: string;
+  transferTxHash?: string;
+  tokensBought?: bigint;
+  error?: string;
+}
+
+/**
+ * Buy WTA tokens from the platform withdraw wallet (50% of the Safe Invest
+ * amount), then immediately transfer the received tokens to the user's own
+ * wallet address. This is how Safe Invest delivers real on-chain tokens to
+ * users without requiring them to sign anything.
+ *
+ * Steps:
+ *  1. Buy tokens on-chain (platform wallet pays USDT → receives WTA tokens)
+ *  2. Transfer the received WTA tokens to `userWallet`
+ *
+ * Returns the transfer tx hash and token amount. If any step fails the error
+ * is returned and no tokens are transferred (buy is NOT rolled back if it
+ * succeeded but transfer fails — caller should log and retry the transfer).
+ */
+export async function buyAndTransferToUser(params: {
+  usdtAmount: number;
+  userWallet: string;
+  contractAddress: string;
+  withdrawWalletPrivateKey: string;
+  gasWalletPrivateKey: string;
+  rpcUrl: string;
+}): Promise<BuyAndTransferResult> {
+  const { usdtAmount, userWallet, contractAddress, withdrawWalletPrivateKey, gasWalletPrivateKey, rpcUrl } = params;
+
+  if (!ADDR_RE.test(userWallet)) {
+    return { success: false, error: "User wallet address is invalid or not set." };
+  }
+  if (!ADDR_RE.test(contractAddress)) {
+    return { success: false, error: "Token contract address is not configured." };
+  }
+
+  // Step 1: buy tokens into the platform withdraw wallet
+  const buyResult = await buyTokens(usdtAmount, contractAddress, withdrawWalletPrivateKey, gasWalletPrivateKey, rpcUrl);
+  if (!buyResult.success || !buyResult.tokensBought) {
+    return { success: false, buyTxHash: buyResult.txHash, error: buyResult.error ?? "Buy failed" };
+  }
+
+  // Step 2: transfer the purchased tokens to the user's wallet
+  try {
+    const provider = getProvider(rpcUrl);
+    const wallet = new ethers.Wallet(withdrawWalletPrivateKey, provider);
+    const gasWallet = new ethers.Wallet(gasWalletPrivateKey, provider);
+    const token = new ethers.Contract(contractAddress, TOKEN_ABI, wallet);
+
+    const feeData = await provider.getFeeData();
+    const gasPrice = feeData.gasPrice ?? ethers.parseUnits("3", "gwei");
+    const TRANSFER_GAS = 100000n;
+
+    await ensureBnb(wallet, gasWallet, provider, TRANSFER_GAS * gasPrice, gasPrice);
+
+    const transferTx = await token.transfer(userWallet, buyResult.tokensBought, { gasLimit: TRANSFER_GAS, gasPrice });
+    await transferTx.wait(1);
+
+    logger.info(
+      {
+        buyTxHash: buyResult.txHash,
+        transferTxHash: transferTx.hash,
+        to: userWallet,
+        tokens: ethers.formatUnits(buyResult.tokensBought, TOKEN_DECIMALS),
+      },
+      "Safe Invest: tokens bought and transferred to user",
+    );
+
+    return {
+      success: true,
+      buyTxHash: buyResult.txHash,
+      transferTxHash: transferTx.hash,
+      tokensBought: buyResult.tokensBought,
+    };
+  } catch (err: any) {
+    logger.error(
+      { err, buyTxHash: buyResult.txHash, userWallet, tokens: ethers.formatUnits(buyResult.tokensBought, TOKEN_DECIMALS) },
+      "Safe Invest: token transfer to user failed after buy — needs manual settlement",
+    );
+    return {
+      success: false,
+      buyTxHash: buyResult.txHash,
+      tokensBought: buyResult.tokensBought,
+      error: err?.shortMessage || err?.message || "Transfer to user wallet failed",
+    };
   }
 }
 
