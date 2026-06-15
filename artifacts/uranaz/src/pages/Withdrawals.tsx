@@ -263,9 +263,7 @@ export default function Withdrawals({ user }: { user: any }) {
                         }}
                       />
                     </FormControl>
-                    <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.35)" }}>
-                      To change your withdrawal address, update it in your Profile.
-                    </p>
+
                     <FormMessage />
                   </FormItem>
                 )} />
