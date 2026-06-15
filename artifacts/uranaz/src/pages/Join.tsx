@@ -16,46 +16,143 @@ interface WalletDef {
   getLink: (registerUrl: string) => string;
 }
 
-/* Simple inline SVG wallet logos */
-const MetaMaskIcon: React.FC<{ size?: number }> = ({ size = 36 }) => (
+/* ── Brand-accurate wallet SVG logos ──────────────────────────────────────*/
+
+/** MetaMask — fox head with correct brand colours */
+const MetaMaskIcon: React.FC<{ size?: number }> = ({ size = 40 }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-    <rect width="40" height="40" rx="10" fill="rgba(246,133,27,0.15)" />
-    <path d="M32 9L22 16.5L24 12L32 9Z" fill="#E17726" stroke="#E17726" strokeWidth="0.3" />
-    <path d="M8 9L17.9 16.6L16 12L8 9Z" fill="#E27625" stroke="#E27625" strokeWidth="0.3" />
-    <path d="M28.5 25.5L26 29.5L31.5 31L33 25.6L28.5 25.5Z" fill="#E27625" stroke="#E27625" strokeWidth="0.3" />
-    <path d="M7 25.6L8.5 31L14 29.5L11.5 25.5L7 25.6Z" fill="#E27625" stroke="#E27625" strokeWidth="0.3" />
-    <path d="M13.7 19.5L12.2 21.8L17.6 22L17.4 16.2L13.7 19.5Z" fill="#E27625" stroke="#E27625" strokeWidth="0.3" />
-    <path d="M26.3 19.5L22.5 16.1L22.4 22L27.8 21.8L26.3 19.5Z" fill="#E27625" stroke="#E27625" strokeWidth="0.3" />
-    <path d="M14 29.5L17.2 28L14.4 25.6L14 29.5Z" fill="#E27625" stroke="#E27625" strokeWidth="0.3" />
-    <path d="M22.8 28L26 29.5L25.6 25.6L22.8 28Z" fill="#E27625" stroke="#E27625" strokeWidth="0.3" />
-    <text x="20" y="37" textAnchor="middle" fontSize="7" fill="#F6851B" fontWeight="700" fontFamily="sans-serif">MM</text>
+    {/* rounded dark bg */}
+    <rect width="40" height="40" rx="9" fill="#1C1C1E" />
+
+    {/* left ear outer */}
+    <polygon points="8,18 12.5,6 17.5,16.5" fill="#E2761B" />
+    {/* left ear inner */}
+    <polygon points="9.5,17.2 12.5,8.5 16,15.5" fill="#D7C1B3" />
+
+    {/* right ear outer */}
+    <polygon points="32,18 27.5,6 22.5,16.5" fill="#E2761B" />
+    {/* right ear inner */}
+    <polygon points="30.5,17.2 27.5,8.5 24,15.5" fill="#D7C1B3" />
+
+    {/* head base */}
+    <path d="M9 18 Q9 34 20 35.5 Q31 34 31 18 Q25.5 13.5 20 13 Q14.5 13.5 9 18Z" fill="#E4761B" />
+
+    {/* forehead dark band */}
+    <path d="M13 19 L27 19 L25.5 22 L14.5 22 Z" fill="#763D16" opacity="0.55" />
+
+    {/* left eye white surround */}
+    <ellipse cx="14.8" cy="24" rx="4.2" ry="3.6" fill="#D7C1B3" />
+    {/* right eye white surround */}
+    <ellipse cx="25.2" cy="24" rx="4.2" ry="3.6" fill="#D7C1B3" />
+
+    {/* left pupil */}
+    <ellipse cx="14.8" cy="24" rx="2.3" ry="2.3" fill="#161616" />
+    {/* right pupil */}
+    <ellipse cx="25.2" cy="24" rx="2.3" ry="2.3" fill="#161616" />
+
+    {/* eye shine left */}
+    <circle cx="15.6" cy="23.2" r="0.85" fill="white" />
+    {/* eye shine right */}
+    <circle cx="26" cy="23.2" r="0.85" fill="white" />
+
+    {/* muzzle / lower face */}
+    <path d="M15.5 29 Q20 33 24.5 29 L23.5 32 Q20 34.5 16.5 32 Z" fill="#C0AC9D" />
+
+    {/* nose */}
+    <ellipse cx="20" cy="29" rx="2.8" ry="1.8" fill="#763D16" />
+    {/* nose highlight */}
+    <ellipse cx="19.1" cy="28.3" rx="1" ry="0.65" fill="#CD6116" opacity="0.6" />
   </svg>
 );
 
-const TrustWalletIcon: React.FC<{ size?: number }> = ({ size = 36 }) => (
+/** Trust Wallet — blue shield + white checkmark */
+const TrustWalletIcon: React.FC<{ size?: number }> = ({ size = 40 }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-    <rect width="40" height="40" rx="10" fill="rgba(51,117,187,0.15)" />
-    <path d="M20 8L10 12V21C10 26.5 14.5 31.5 20 33C25.5 31.5 30 26.5 30 21V12L20 8Z" fill="#3375BB" opacity="0.8" />
-    <path d="M20 10L12 13.5V21C12 25.5 15.5 29.8 20 31.2C24.5 29.8 28 25.5 28 21V13.5L20 10Z" fill="#4A9EE8" opacity="0.9" />
-    <path d="M16 20L18.5 22.5L24 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <rect width="40" height="40" rx="9" fill="#1A52EF" />
+
+    {/* shield fill */}
+    <path
+      d="M20 6.5 L9.5 11.5 L9.5 22 C9.5 28.8 14.2 34.1 20 35.5 C25.8 34.1 30.5 28.8 30.5 22 L30.5 11.5 Z"
+      fill="url(#tw_fill)"
+    />
+    {/* shield border */}
+    <path
+      d="M20 6.5 L9.5 11.5 L9.5 22 C9.5 28.8 14.2 34.1 20 35.5 C25.8 34.1 30.5 28.8 30.5 22 L30.5 11.5 Z"
+      fill="none"
+      stroke="white"
+      strokeWidth="1.2"
+      opacity="0.35"
+    />
+
+    {/* checkmark */}
+    <path
+      d="M14 22.5 L18 26.5 L26 18"
+      stroke="white"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+
+    <defs>
+      <linearGradient id="tw_fill" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="white" stopOpacity="0.18" />
+        <stop offset="100%" stopColor="white" stopOpacity="0.04" />
+      </linearGradient>
+    </defs>
   </svg>
 );
 
-const TokenPocketIcon: React.FC<{ size?: number }> = ({ size = 36 }) => (
+/** TokenPocket — blue square, pocket bag icon */
+const TokenPocketIcon: React.FC<{ size?: number }> = ({ size = 40 }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-    <rect width="40" height="40" rx="10" fill="rgba(41,128,254,0.15)" />
-    <rect x="10" y="10" width="20" height="20" rx="5" fill="#2980FE" opacity="0.85" />
-    <text x="20" y="24" textAnchor="middle" fontSize="11" fill="white" fontWeight="800" fontFamily="sans-serif">TP</text>
+    <rect width="40" height="40" rx="9" fill="#2980FE" />
+
+    {/* bag body */}
+    <path
+      d="M12 20 Q12 15 16 14 L24 14 Q28 15 28 20 L28 30 Q28 33 25 33 L15 33 Q12 33 12 30 Z"
+      fill="white"
+      opacity="0.9"
+    />
+    {/* bag handle */}
+    <path
+      d="M16 14 Q16 9.5 20 9.5 Q24 9.5 24 14"
+      stroke="white"
+      strokeWidth="2.6"
+      fill="none"
+      strokeLinecap="round"
+    />
+    {/* horizontal lines inside bag */}
+    <path d="M16 22 L24 22" stroke="#2980FE" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M16 26 L21 26" stroke="#2980FE" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 );
 
-const SafePalIcon: React.FC<{ size?: number }> = ({ size = 36 }) => (
+/** SafePal — dark rounded square, cyan shield-key brand mark */
+const SafePalIcon: React.FC<{ size?: number }> = ({ size = 40 }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-    <rect width="40" height="40" rx="10" fill="rgba(10,175,224,0.15)" />
-    <rect x="9" y="9" width="22" height="22" rx="4" fill="#0AAFE0" opacity="0.85" />
-    <circle cx="20" cy="19" r="4" fill="white" opacity="0.9" />
-    <rect x="17" y="22" width="6" height="5" rx="1" fill="white" opacity="0.9" />
-    <path d="M18 19V21" stroke="#0AAFE0" strokeWidth="1.5" strokeLinecap="round" />
+    <rect width="40" height="40" rx="9" fill="#0D1829" />
+
+    {/* outer shield */}
+    <path
+      d="M20 6 L10 10.5 L10 21 C10 27.5 14.5 32.8 20 34.5 C25.5 32.8 30 27.5 30 21 L30 10.5 Z"
+      fill="url(#sp_shield)"
+    />
+
+    {/* inner keyhole circle */}
+    <circle cx="20" cy="19.5" r="4.5" fill="#0D1829" stroke="#0FF" strokeWidth="1.5" opacity="0.85" />
+    {/* keyhole body */}
+    <rect x="18" y="22.5" width="4" height="6" rx="1.2" fill="#0D1829" />
+    {/* key hole dot */}
+    <circle cx="20" cy="19.5" r="1.8" fill="#00C9E4" />
+    {/* connecting bar of keyhole */}
+    <rect x="18.8" y="21" width="2.4" height="3.5" rx="0.5" fill="#00C9E4" />
+
+    <defs>
+      <linearGradient id="sp_shield" x1="20" y1="6" x2="20" y2="35" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#00C9E4" stopOpacity="0.55" />
+        <stop offset="100%" stopColor="#005F8F" stopOpacity="0.6" />
+      </linearGradient>
+    </defs>
   </svg>
 );
 
@@ -70,7 +167,6 @@ const WALLETS: WalletDef[] = [
     icon: MetaMaskIcon,
     getLink: (url) => {
       const u = new URL(url);
-      // metamask.app.link/dapp/<host><pathname><search>
       return `https://metamask.app.link/dapp/${u.host}${u.pathname}${u.search}`;
     },
   },
@@ -102,9 +198,9 @@ const WALLETS: WalletDef[] = [
     id: "safepal",
     name: "SafePal",
     desc: "Open in SafePal browser",
-    color: "#0AAFE0",
-    bg: "rgba(10,175,224,0.07)",
-    border: "rgba(10,175,224,0.28)",
+    color: "#00C9E4",
+    bg: "rgba(0,201,228,0.07)",
+    border: "rgba(0,201,228,0.28)",
     icon: SafePalIcon,
     getLink: (url) =>
       `https://safepal.io/dapp?dapp_url=${encodeURIComponent(url)}`,
@@ -134,13 +230,11 @@ export default function Join() {
   const params = new URLSearchParams(search);
   const ref = params.get("ref") || "";
 
-  // Full register URL (with ref code) that each wallet will open
   const registerUrl = `${window.location.protocol}//${window.location.host}/register${ref ? `?ref=${encodeURIComponent(ref)}` : ""}`;
 
   const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    // If already inside a DApp wallet browser, go straight to register
     if (isInsideWalletBrowser()) {
       setRedirecting(true);
       setLocation(`/register${ref ? `?ref=${encodeURIComponent(ref)}` : ""}`);
@@ -148,8 +242,7 @@ export default function Join() {
   }, []);
 
   const handleWalletClick = (wallet: WalletDef) => {
-    const link = wallet.getLink(registerUrl);
-    window.location.href = link;
+    window.location.href = wallet.getLink(registerUrl);
   };
 
   if (redirecting) {
@@ -222,14 +315,14 @@ export default function Join() {
                 key={wallet.id}
                 type="button"
                 onClick={() => handleWalletClick(wallet)}
-                className="w-full flex items-center gap-4 rounded-2xl px-4 py-4 text-left transition-all active:scale-[0.98]"
+                className="w-full flex items-center gap-4 rounded-2xl px-4 py-3.5 text-left transition-all active:scale-[0.98]"
                 style={{
                   background: wallet.bg,
                   border: `1px solid ${wallet.border}`,
                   cursor: "pointer",
                 }}
               >
-                <Icon size={40} />
+                <Icon size={44} />
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-sm" style={{ color: "rgba(200,240,255,0.95)" }}>
                     {wallet.name}
