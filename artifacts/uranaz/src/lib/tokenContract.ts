@@ -43,9 +43,6 @@ const SEL = {
   buySafe: "79371dad", // buySafe(uint256,uint256,address[])
   getSafeLevelPercents: "147b66c7", // getSafeLevelPercents()
   setSafeLevelPercents: "758a06a0", // setSafeLevelPercents(uint256[10])
-  // Admin wallet — receives tokens for unclaimed referral levels.
-  adminWallet: "67c7066c", // adminWallet() (public state var getter)
-  setAdminWallet: "704b6c02", // setAdminWallet(address)
 } as const;
 
 // Referral depth — must match WaytoAlgoToken.LEVELS.
@@ -380,12 +377,6 @@ export async function readSafeLevelPercents(): Promise<number[]> {
 /** Read the contract owner address (admin gating for the percent setter). */
 export async function readOwner(): Promise<string> {
   const raw = (await ethCall(TOKEN_CONTRACT_ADDRESS, SEL.owner)).replace(/^0x/, "");
-  return "0x" + raw.slice(-40);
-}
-
-/** Read the adminWallet — the address that receives tokens for unclaimed referral levels. */
-export async function readAdminWallet(): Promise<string> {
-  const raw = (await ethCall(TOKEN_CONTRACT_ADDRESS, SEL.adminWallet)).replace(/^0x/, "");
   return "0x" + raw.slice(-40);
 }
 

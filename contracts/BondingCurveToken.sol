@@ -74,9 +74,6 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     // affecting the direct Buy/Sell levels. Same MAX_TOTAL_BPS cap applies.
     uint256[LEVELS] public safeLevelPercents;
 
-    // Admin wallet — receives referral tokens for levels that have no valid upline.
-    address public adminWallet;
-
     mapping(address => uint256) public totalReceivedByUser;
     mapping(address => uint256) public totalBurnedByUser;
     mapping(address => uint256) public totalReferralEarned;
@@ -96,7 +93,6 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     event ReferralPaid(address indexed buyer, address indexed sponsor, uint256 indexed level, uint256 amount);
     event LevelPercentsUpdated(uint256[LEVELS] percents);
     event SafeLevelPercentsUpdated(uint256[LEVELS] percents);
-    event AdminWalletUpdated(address indexed newAdminWallet);
 
     error ZeroAddress();
     error ZeroAmount();
@@ -115,14 +111,6 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     {
         if (_usdt == address(0)) revert ZeroAddress();
         usdtToken = IERC20(_usdt);
-        adminWallet = msg.sender; // default: deployer receives excess referral tokens
-    }
-
-    /// @notice Update the admin wallet that receives tokens for unclaimed referral levels.
-    function setAdminWallet(address _adminWallet) external onlyOwner {
-        if (_adminWallet == address(0)) revert ZeroAddress();
-        adminWallet = _adminWallet;
-        emit AdminWalletUpdated(_adminWallet);
     }
 
     // ---------------------------------------------------------------------
@@ -184,9 +172,8 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
      * @param _minTokensOut Minimum tokens the BUYER will accept after referral
      *                      payouts (slippage guard; use 0 to disable).
      * @param _referrers    Ordered upline sponsor addresses, level 1 first
-     *                      (length 0..LEVELS). Levels with no valid upline
-     *                      (zero address / self / missing) send their share to
-     *                      adminWallet instead of staying with the buyer.
+     *                      (length 0..LEVELS). Zero address / self / empty
+     *                      levels are skipped — their share stays with the buyer.
      * @return mintAmount   Tokens minted to the caller (net of referral payouts).
      */
     function buy(uint256 _usdtAmount, uint256 _minTokensOut, address[] calldata _referrers)
@@ -249,25 +236,20 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
         emit PriceUpdated(getBuyPrice(), getSellPrice());
     }
 
-    /// @dev Mints each per-level cut of `gross` to the sponsor if valid, or to
-    ///      adminWallet when the level has no valid upline (zero address / self /
-    ///      missing from the array). All configured non-zero levels are always paid
-    ///      out — none stay with the buyer.
+    /// @dev Mints each eligible sponsor their per-level cut of `gross`, using
+    ///      the supplied `percents` table (levelPercents or safeLevelPercents).
     function _payReferrals(
         uint256 gross,
         address[] calldata _referrers,
         uint256[LEVELS] storage percents
     ) private returns (uint256 referralTotal) {
-        for (uint256 i = 0; i < LEVELS; i++) {
+        uint256 n = _referrers.length < LEVELS ? _referrers.length : LEVELS;
+        for (uint256 i = 0; i < n; i++) {
+            address sponsor = _referrers[i];
             uint256 pct = percents[i];
-            if (pct == 0) continue;
+            if (sponsor == address(0) || sponsor == msg.sender || pct == 0) continue;
             uint256 reward = (gross * pct) / BPS_DENOMINATOR;
             if (reward == 0) continue;
-            // Resolve recipient: valid upline or fallback to adminWallet.
-            address sponsor = (i < _referrers.length) ? _referrers[i] : address(0);
-            if (sponsor == address(0) || sponsor == msg.sender) {
-                sponsor = adminWallet;
-            }
             referralTotal += reward;
             totalReferralEarned[sponsor] += reward;
             _mint(sponsor, reward);
@@ -329,22 +311,21 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice What the BUYER would receive for `_usdtAmount` after ALL configured
-     *         referral levels are deducted. Unclaimed levels go to adminWallet,
-     *         so the buyer's net is always gross − sum(all non-zero levelPercents).
-     *         `_referrers` is accepted for ABI compatibility but not used in the
-     *         buyer-amount calculation.
+     * @notice What the BUYER would receive for `_usdtAmount` given `_referrers`,
+     *         after per-level referral payouts are carved out.
      */
     function quoteBuyNet(uint256 _usdtAmount, address[] calldata _referrers)
         external
         view
         returns (uint256 buyerAmount, uint256 referralTotal)
     {
-        _referrers; // unused — all configured levels are always deducted
         uint256 gross = quoteBuy(_usdtAmount);
-        for (uint256 i = 0; i < LEVELS; i++) {
+        uint256 n = _referrers.length < LEVELS ? _referrers.length : LEVELS;
+        for (uint256 i = 0; i < n; i++) {
+            address sponsor = _referrers[i];
             uint256 pct = levelPercents[i];
-            if (pct == 0) continue;
+            // Mirror _payReferrals: skip zero-address, self, and zero-percent levels.
+            if (sponsor == address(0) || sponsor == msg.sender || pct == 0) continue;
             referralTotal += (gross * pct) / BPS_DENOMINATOR;
         }
         buyerAmount = gross - referralTotal;
@@ -359,11 +340,12 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
         view
         returns (uint256 buyerAmount, uint256 referralTotal)
     {
-        _referrers; // unused — all configured levels are always deducted
         uint256 gross = quoteBuy(_usdtAmount);
-        for (uint256 i = 0; i < LEVELS; i++) {
+        uint256 n = _referrers.length < LEVELS ? _referrers.length : LEVELS;
+        for (uint256 i = 0; i < n; i++) {
+            address sponsor = _referrers[i];
             uint256 pct = safeLevelPercents[i];
-            if (pct == 0) continue;
+            if (sponsor == address(0) || sponsor == msg.sender || pct == 0) continue;
             referralTotal += (gross * pct) / BPS_DENOMINATOR;
         }
         buyerAmount = gross - referralTotal;

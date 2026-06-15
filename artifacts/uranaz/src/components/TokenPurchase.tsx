@@ -10,7 +10,7 @@ import {
   readBuyPrice, readSellPrice, readQuoteBuy, readQuoteSell,
   readTokenBalance, readUsdtBalance, readAllowance, readSymbol,
   readTotalLiquidity, readTotalSupply, readHolderCount,
-  readLevelPercents, readAdminWallet, REFERRAL_LEVELS, BPS_DENOMINATOR,
+  readLevelPercents, REFERRAL_LEVELS, BPS_DENOMINATOR,
   approveUsdt, buyTokens, sellTokens,
 } from "@/lib/tokenContract";
 
