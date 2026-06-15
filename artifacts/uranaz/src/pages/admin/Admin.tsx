@@ -1,5 +1,6 @@
 import { useGetAdminStats } from "@workspace/api-client-react";
-import { Users, TrendingUp, Wallet, DollarSign, Shield, Activity } from "lucide-react";
+import { Users, TrendingUp, Wallet, DollarSign, Shield, Activity, PiggyBank, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 
 const TEAL = "#00FF94";
 const GLASS = { background: "rgba(10,14,30,0.65)", backdropFilter: "blur(14px)", border: "1px solid rgba(0,255,148,0.10)" } as const;
@@ -101,6 +102,43 @@ export default function Admin() {
               Use the menu on the left to manage users, investments, withdrawals, support tickets, offers, notices, and platform settings.
             </div>
           </div>
+
+          {/* Wallet Balances quick-link */}
+          <Link href="/admin/wallet-balances">
+            <div
+              className="rounded-xl p-4 flex items-center gap-4 cursor-pointer transition-all group"
+              style={{
+                background: "rgba(10,14,30,0.65)",
+                backdropFilter: "blur(14px)",
+                border: "1px solid rgba(0,255,148,0.18)",
+                boxShadow: "0 0 24px rgba(0,255,148,0.05)",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,255,148,0.40)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 32px rgba(0,255,148,0.12)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,255,148,0.18)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 24px rgba(0,255,148,0.05)";
+              }}
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.28)" }}
+              >
+                <PiggyBank size={18} style={{ color: TEAL }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold" style={{ color: "rgba(176,255,224,0.9)" }}>
+                  Wallet Balances
+                </div>
+                <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
+                  View all user withdraw balances vs. actual USDT in the withdraw wallet
+                </div>
+              </div>
+              <ArrowRight size={16} style={{ color: "rgba(0,255,148,0.5)" }} className="shrink-0 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
         </>
       )}
     </div>

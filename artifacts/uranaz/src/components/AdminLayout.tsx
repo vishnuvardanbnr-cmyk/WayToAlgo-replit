@@ -2,24 +2,25 @@ import { useState, useEffect, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, TrendingUp, Wallet, FileText,
-  Settings, MessageCircle, Award, Bell, Shield, Menu, X, ArrowLeft, Scale, Star, Gift,
+  Settings, MessageCircle, Award, Bell, Shield, Menu, X, ArrowLeft, Scale, Star, Gift, PiggyBank,
 } from "lucide-react";
 
 const TEAL = "#00FF94";
 
 const NAV_ITEMS = [
-  { href: "/admin",              label: "Dashboard",         sub: "Overview & stats",            icon: LayoutDashboard },
-  { href: "/admin/users",        label: "Manage Users",      sub: "Profiles, blocks, balances",  icon: Users },
-  { href: "/admin/investments",  label: "Investments",       sub: "Active plans",                icon: TrendingUp },
-  { href: "/admin/withdrawals",  label: "Withdrawals",       sub: "Approve / reject requests",   icon: Wallet },
-  { href: "/admin/reports",      label: "Reports",           sub: "Deposits, withdrawals, wallets", icon: FileText },
-  { href: "/admin/settings",     label: "Platform Settings", sub: "Configure platform",          icon: Settings },
-  { href: "/admin/support",      label: "Support Tickets",   sub: "Manage user queries",         icon: MessageCircle },
-  { href: "/admin/offers",       label: "Offers",            sub: "Create & manage offers",      icon: Award },
-  { href: "/admin/notices",      label: "Notices",           sub: "Push announcements & alerts", icon: Bell },
-  { href: "/admin/legal",        label: "Legal Content",     sub: "Terms & Privacy Policy",      icon: Scale },
-  { href: "/admin/ranks",        label: "Rank Management",   sub: "Create & edit rank tiers",    icon: Star },
-  { href: "/admin/rewards",      label: "Rewards Hub",       sub: "Eligible users & reward tracking", icon: Gift },
+  { href: "/admin",                  label: "Dashboard",         sub: "Overview & stats",            icon: LayoutDashboard },
+  { href: "/admin/users",            label: "Manage Users",      sub: "Profiles, blocks, balances",  icon: Users },
+  { href: "/admin/investments",      label: "Investments",       sub: "Active plans",                icon: TrendingUp },
+  { href: "/admin/withdrawals",      label: "Withdrawals",       sub: "Approve / reject requests",   icon: Wallet },
+  { href: "/admin/wallet-balances",  label: "Wallet Balances",   sub: "User balances vs. withdraw wallet", icon: PiggyBank },
+  { href: "/admin/reports",          label: "Reports",           sub: "Deposits, withdrawals, wallets", icon: FileText },
+  { href: "/admin/settings",         label: "Platform Settings", sub: "Configure platform",          icon: Settings },
+  { href: "/admin/support",          label: "Support Tickets",   sub: "Manage user queries",         icon: MessageCircle },
+  { href: "/admin/offers",           label: "Offers",            sub: "Create & manage offers",      icon: Award },
+  { href: "/admin/notices",          label: "Notices",           sub: "Push announcements & alerts", icon: Bell },
+  { href: "/admin/legal",            label: "Legal Content",     sub: "Terms & Privacy Policy",      icon: Scale },
+  { href: "/admin/ranks",            label: "Rank Management",   sub: "Create & edit rank tiers",    icon: Star },
+  { href: "/admin/rewards",          label: "Rewards Hub",       sub: "Eligible users & reward tracking", icon: Gift },
 ] as const;
 
 function isActive(location: string, href: string) {

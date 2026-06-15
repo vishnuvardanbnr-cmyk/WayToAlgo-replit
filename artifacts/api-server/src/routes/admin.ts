@@ -98,6 +98,56 @@ router.get("/admin/stats", requireAdmin, async (req, res) => {
   });
 });
 
+// GET /api/admin/wallet-balances
+// Returns every user's platform withdraw balance + on-chain USDT in the withdraw wallet.
+router.get("/admin/wallet-balances", requireAdmin, async (req, res) => {
+  const users = await db.select().from(usersTable).orderBy(desc(usersTable.withdrawBalance));
+
+  const totalWithdrawBalance = users.reduce((s, u) => s + parseFloat(u.withdrawBalance ?? "0"), 0);
+  const totalWalletBalance   = users.reduce((s, u) => s + parseFloat(u.walletBalance  ?? "0"), 0);
+
+  let withdrawWalletAddress: string | null = null;
+  let withdrawWalletUsdtBalance: number | null = null;
+  let onChainError: string | null = null;
+
+  try {
+    const [settings] = await db.select().from(platformSettingsTable).limit(1);
+    if (settings?.withdrawWalletPrivateKey) {
+      const key = resolveKey(settings.withdrawWalletPrivateKey);
+      if (key) {
+        const { ethers } = await import("ethers");
+        const { getUsdtBalance } = await import("../lib/blockchain.js");
+        const wallet = new ethers.Wallet(key);
+        withdrawWalletAddress = wallet.address;
+        const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
+        const balBig = await Promise.race<bigint>([
+          getUsdtBalance(withdrawWalletAddress, rpcUrl),
+          new Promise<bigint>((_, rej) => setTimeout(() => rej(new Error("RPC timeout")), 9000)),
+        ]);
+        withdrawWalletUsdtBalance = parseFloat(ethers.formatUnits(balBig, 18));
+      }
+    }
+  } catch (e: any) {
+    onChainError = e?.message ?? "Failed to fetch on-chain balance";
+  }
+
+  res.json({
+    totalWithdrawBalance,
+    totalWalletBalance,
+    withdrawWalletAddress,
+    withdrawWalletUsdtBalance,
+    onChainError,
+    users: users.map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      walletAddress: u.walletAddress,
+      walletBalance: parseFloat(u.walletBalance ?? "0"),
+      withdrawBalance: parseFloat(u.withdrawBalance ?? "0"),
+    })),
+  });
+});
+
 // GET /api/admin/users
 router.get("/admin/users", requireAdmin, async (req, res) => {
   const page = parseInt(req.query.page as string) || 1;
