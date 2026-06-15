@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Coins, Wallet, RefreshCw, ArrowDownUp, CheckCircle2, XCircle,
-  ExternalLink, TrendingUp, ShieldAlert, Sparkles, Droplet, Users, Layers,
+  ExternalLink, TrendingUp, ShieldAlert, Sparkles, Droplet, Users, Layers, ChevronDown, ChevronUp,
 } from "lucide-react";
 import {
   isTokenConfigured, TOKEN_CONTRACT_ADDRESS,
@@ -65,6 +65,7 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loadingChain, setLoadingChain] = useState(false);
+  const [showLevelBreakdown, setShowLevelBreakdown] = useState(false);
 
   const busy = !["idle", "success", "failed"].includes(stage);
 
@@ -283,6 +284,22 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   const netBuyTokens = grossBuy !== null ? grossBuy - referralTokens : null;
   const referralPct = (activeReferralBps / BPS_DENOMINATOR) * 100;
 
+  // Per-level breakdown — mirrors the contract logic exactly.
+  // Active = valid upline address + non-zero pct; inactive = skipped by contract → tokens stay with buyer.
+  const levelBreakdown = (() => {
+    if (!grossBuy || mode !== "buy") return [];
+    const self = account ? account.toLowerCase() : null;
+    return Array.from({ length: REFERRAL_LEVELS }, (_, i) => {
+      const addr = (uplines[i] || "").toLowerCase();
+      const pct = levelPercents[i] ?? 0;
+      const active = !!addr && addr !== ZERO_ADDR && addr !== self && pct > 0;
+      const tokens = active ? (grossBuy * BigInt(pct)) / BigInt(BPS_DENOMINATOR) : 0n;
+      const addrShort = uplines[i] ? `${uplines[i].slice(0, 6)}…${uplines[i].slice(-4)}` : "—";
+      return { level: i + 1, active, pct, tokens, addrShort };
+    });
+  })();
+  const anyActiveLevel = levelBreakdown.some(l => l.active);
+
   const priceUsdt = buyPrice !== null ? formatUnits18(buyPrice, 6) : "—";
   const sellPriceUsdt = sellPrice !== null ? formatUnits18(sellPrice, 6) : "—";
   const liquidityUsdt = liquidity !== null ? formatUnits18(liquidity, 2) : "—";
@@ -466,15 +483,59 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
                   {mode === "buy" ? symbol : "USDT"}
                 </span>
               </div>
-              {mode === "buy" && activeReferralBps > 0 && grossBuy !== null && (
-                <div className="flex items-center gap-1.5 text-xs mt-1.5" style={{ color: "rgba(176,255,224,0.45)" }}>
-                  <Users size={11} style={{ color: TEAL }} />
-                  <span>
-                    {formatUnits18(referralTokens, 4)} {symbol} ({referralPct.toFixed(2)}%) shared to your upline team
-                  </span>
+              {mode === "buy" && grossBuy !== null && anyActiveLevel && (
+                <div className="mt-2">
+                  <button
+                    onClick={() => setShowLevelBreakdown(v => !v)}
+                    className="flex items-center gap-1.5 text-xs w-full"
+                    style={{ color: "rgba(176,255,224,0.55)" }}
+                  >
+                    <Users size={11} style={{ color: TEAL }} />
+                    <span className="flex-1 text-left">
+                      {formatUnits18(referralTokens, 4)} {symbol} ({referralPct.toFixed(2)}%) split to upline team
+                    </span>
+                    {showLevelBreakdown
+                      ? <ChevronUp size={11} style={{ color: "rgba(176,255,224,0.35)" }} />
+                      : <ChevronDown size={11} style={{ color: "rgba(176,255,224,0.35)" }} />}
+                  </button>
+
+                  {showLevelBreakdown && (
+                    <div className="mt-2 rounded-xl overflow-hidden" style={{ border: "1px solid rgba(0,255,148,0.1)" }}>
+                      <div className="px-3 py-1.5 text-xs uppercase tracking-widest"
+                        style={{ background: "rgba(0,255,148,0.05)", color: "rgba(176,255,224,0.3)", borderBottom: "1px solid rgba(0,255,148,0.08)" }}>
+                        Level income split
+                      </div>
+                      {levelBreakdown.map(row => (
+                        <div key={row.level}
+                          className="flex items-center justify-between px-3 py-1.5"
+                          style={{ borderBottom: "1px solid rgba(0,255,148,0.05)", background: row.active ? "rgba(0,255,148,0.02)" : "transparent" }}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold w-5 shrink-0" style={{ color: row.active ? TEAL : "rgba(176,255,224,0.2)" }}>
+                              L{row.level}
+                            </span>
+                            {row.active ? (
+                              <span className="text-xs font-mono" style={{ color: "rgba(176,255,224,0.45)" }}>{row.addrShort}</span>
+                            ) : (
+                              <span className="text-xs italic" style={{ color: "rgba(176,255,224,0.2)" }}>
+                                {row.pct > 0 ? "no upline — stays with you" : "not configured"}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs font-semibold shrink-0 ml-2">
+                            {row.active
+                              ? <span style={{ color: TEAL }}>{formatUnits18(row.tokens, 4)} {symbol}</span>
+                              : <span style={{ color: "rgba(176,255,224,0.2)" }}>+you</span>}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="px-3 py-1.5 text-xs" style={{ background: "rgba(0,255,148,0.03)", color: "rgba(176,255,224,0.3)" }}>
+                        Unclaimed levels (no upline) stay with the buyer — never sent to admin.
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-              <div className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.3)" }}>
+              <div className="text-xs mt-1.5" style={{ color: "rgba(176,255,224,0.3)" }}>
                 Includes the contract's 10% spread · 1% slippage protection
                 {mode === "buy" && activeReferralBps > 0 ? " · referral reward" : ""}
               </div>
