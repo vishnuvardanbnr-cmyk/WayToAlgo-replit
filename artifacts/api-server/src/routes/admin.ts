@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable, rankRewardSchedulesTable } from "@workspace/db";
-import { eq, desc, ilike, or, and, inArray, sql } from "drizzle-orm";
+import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable, rankRewardSchedulesTable, userTokenPurchasesTable } from "@workspace/db";
+import { eq, desc, ilike, or, and, inArray, sql, like } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/auth";
 import { UpdateAdminUserBody, UpdateAdminInvestmentBody, UpdateAdminSettingsBody, ListAdminUsersQueryParams, ListAdminInvestmentsQueryParams, ListAdminWithdrawalsQueryParams } from "@workspace/api-zod";
 import { withdrawalToResponse } from "./withdrawals";
@@ -2116,6 +2116,101 @@ router.get("/admin/reports/balance-adjustments", requireAdmin, async (req, res) 
 
   const { rows: pageRows, total } = paginate(enriched, page, limit);
   res.json({ rows: pageRows, total, page, limit, summary });
+});
+
+// ── Safe Invest pending token allocations ──────────────────────────────────
+// GET /api/admin/token-allocations/pending
+// Lists all Safe Invest token records that have not yet been minted (wtaReceived = 0,
+// txHash starts with "virtual:"). Each row includes the user's name, email, wallet
+// address, the USDT amount to purchase and the investment date.
+router.get("/admin/token-allocations/pending", requireAdmin, async (_req, res) => {
+  const pending = await db.select().from(userTokenPurchasesTable)
+    .where(like(userTokenPurchasesTable.txHash, "virtual:%"))
+    .orderBy(desc(userTokenPurchasesTable.createdAt));
+
+  const enriched = await Promise.all(pending.map(async (row) => {
+    const [user] = await db.select({ name: usersTable.name, email: usersTable.email, walletAddress: usersTable.walletAddress })
+      .from(usersTable).where(eq(usersTable.id, row.userId)).limit(1);
+    return {
+      id: row.id,
+      userId: row.userId,
+      userName: user?.name ?? `User #${row.userId}`,
+      userEmail: user?.email ?? "",
+      walletAddress: user?.walletAddress ?? row.walletAddress,
+      usdtSpent: parseFloat(row.usdtSpent),
+      createdAt: row.createdAt.toISOString(),
+    };
+  }));
+
+  res.json({ rows: enriched, total: enriched.length });
+});
+
+// POST /api/admin/token-allocations/settle
+// Admin triggers on-chain token minting for all pending allocations.
+// Requires the platform withdraw wallet to have sufficient USDT.
+// Each pending record is processed: tokens are bought and transferred to the user's
+// wallet. Records are updated with the real tx hash and amount on success.
+router.post("/admin/token-allocations/settle", requireAdmin, async (_req, res) => {
+  const { buyAndTransferToUser, TOKEN_DECIMALS } = await import("../lib/tokenChain.js");
+  const { ethers } = await import("ethers");
+
+  const [cfg] = await db.select().from(platformSettingsTable).limit(1);
+  const contractAddress = cfg?.tokenContractAddress ?? "";
+  const withdrawKey     = cfg?.withdrawWalletPrivateKey ?? "";
+  const gasKey          = cfg?.gasWalletPrivateKey ?? "";
+  const rpcUrl          = cfg?.bscRpcUrl ?? "";
+
+  if (!contractAddress || !withdrawKey || !gasKey || !rpcUrl) {
+    res.status(400).json({ message: "Token contract, withdraw wallet, gas wallet, and RPC URL must all be configured in Settings before settling." });
+    return;
+  }
+
+  const pending = await db.select().from(userTokenPurchasesTable)
+    .where(like(userTokenPurchasesTable.txHash, "virtual:%"))
+    .orderBy(desc(userTokenPurchasesTable.createdAt));
+
+  if (pending.length === 0) {
+    res.json({ settled: 0, failed: 0, results: [] });
+    return;
+  }
+
+  const results: { id: number; userId: number; usdtSpent: number; status: "settled" | "failed"; transferTxHash?: string; wtaReceived?: string; error?: string }[] = [];
+
+  for (const row of pending) {
+    const [user] = await db.select({ walletAddress: usersTable.walletAddress })
+      .from(usersTable).where(eq(usersTable.id, row.userId)).limit(1);
+    const userWallet = user?.walletAddress ?? "";
+
+    if (!userWallet || !/^0x[0-9a-fA-F]{40}$/.test(userWallet)) {
+      results.push({ id: row.id, userId: row.userId, usdtSpent: parseFloat(row.usdtSpent), status: "failed", error: "User has no valid wallet address" });
+      continue;
+    }
+
+    const result = await buyAndTransferToUser({
+      usdtAmount: parseFloat(row.usdtSpent),
+      userWallet,
+      contractAddress,
+      withdrawWalletPrivateKey: withdrawKey,
+      gasWalletPrivateKey: gasKey,
+      rpcUrl,
+    });
+
+    if (result.success && result.transferTxHash && result.tokensBought) {
+      const wtaStr = ethers.formatUnits(result.tokensBought, TOKEN_DECIMALS);
+      await db.update(userTokenPurchasesTable)
+        .set({ txHash: result.transferTxHash, wtaReceived: wtaStr, walletAddress: userWallet })
+        .where(eq(userTokenPurchasesTable.id, row.id));
+      results.push({ id: row.id, userId: row.userId, usdtSpent: parseFloat(row.usdtSpent), status: "settled", transferTxHash: result.transferTxHash, wtaReceived: wtaStr });
+    } else {
+      results.push({ id: row.id, userId: row.userId, usdtSpent: parseFloat(row.usdtSpent), status: "failed", error: result.error });
+    }
+  }
+
+  res.json({
+    settled: results.filter(r => r.status === "settled").length,
+    failed: results.filter(r => r.status === "failed").length,
+    results,
+  });
 });
 
 // POST /api/admin/reset-for-live
