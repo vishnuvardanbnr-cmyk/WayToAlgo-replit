@@ -58,7 +58,27 @@ export default function Login({ onLogin }: Props) {
       }, 3000);
     } catch (err: any) {
       setConnectedAddress("");
-      toast({ title: "Login failed", description: err.message, variant: "destructive" });
+      const raw: string = err?.message || "";
+      let title = "Couldn't sign in";
+      let description = "Something went wrong — please try again.";
+
+      if (raw.toLowerCase().includes("no account linked") || raw.toLowerCase().includes("not registered")) {
+        title = "Wallet not registered";
+        description = "This wallet doesn't have an account yet. Tap Register below to create one.";
+      } else if (raw.toLowerCase().includes("rejected") || raw.toLowerCase().includes("denied") || raw.toLowerCase().includes("cancelled")) {
+        title = "Connection cancelled";
+        description = "You declined the MetaMask request. Tap Connect Wallet to try again.";
+      } else if (raw.toLowerCase().includes("nonce") || raw.toLowerCase().includes("challenge") || raw.toLowerCase().includes("sign")) {
+        title = "Signature required";
+        description = "Please approve the sign-in request in MetaMask to continue.";
+      } else if (raw.toLowerCase().includes("network") || raw.toLowerCase().includes("fetch") || raw.toLowerCase().includes("failed to")) {
+        title = "Connection issue";
+        description = "Couldn't reach the server. Check your internet connection and try again.";
+      } else if (raw) {
+        description = raw;
+      }
+
+      toast({ title, description, variant: "destructive" });
     } finally {
       setLoading(false);
     }
