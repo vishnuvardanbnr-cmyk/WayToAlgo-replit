@@ -254,9 +254,18 @@ export default function Withdrawals({ user }: { user: any }) {
                         data-testid="input-withdraw-wallet"
                         placeholder="0x0000000000000000000000000000000000000000"
                         {...field}
-                        style={INPUT_STYLE}
+                        readOnly
+                        style={{
+                          ...INPUT_STYLE,
+                          opacity: 0.7,
+                          cursor: "default",
+                          userSelect: "text",
+                        }}
                       />
                     </FormControl>
+                    <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.35)" }}>
+                      To change your withdrawal address, update it in your Profile.
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )} />
