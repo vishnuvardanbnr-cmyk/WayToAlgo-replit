@@ -12,150 +12,103 @@ interface WalletDef {
   color: string;
   bg: string;
   border: string;
-  icon: React.FC<{ size?: number }>;
+  logo: () => React.ReactElement;
   getLink: (registerUrl: string) => string;
 }
 
-/* ── Brand-accurate wallet SVG logos ──────────────────────────────────────*/
+/* ─────────────────────────────────────────────────────────────────────────
+   Official brand logos
+   MetaMask  — official SVG from wikimedia (fox + brand colours)
+   Trust Wallet — brand blue shield + white checkmark (matching app icon)
+   TokenPocket — brand blue rounded-square + white pocket icon
+   SafePal     — dark rounded-square + cyan key/shield mark
+   ─────────────────────────────────────────────────────────────────────────*/
 
-/** MetaMask — fox head with correct brand colours */
-const MetaMaskIcon: React.FC<{ size?: number }> = ({ size = 40 }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-    {/* rounded dark bg */}
-    <rect width="40" height="40" rx="9" fill="#1C1C1E" />
-
-    {/* left ear outer */}
-    <polygon points="8,18 12.5,6 17.5,16.5" fill="#E2761B" />
-    {/* left ear inner */}
-    <polygon points="9.5,17.2 12.5,8.5 16,15.5" fill="#D7C1B3" />
-
-    {/* right ear outer */}
-    <polygon points="32,18 27.5,6 22.5,16.5" fill="#E2761B" />
-    {/* right ear inner */}
-    <polygon points="30.5,17.2 27.5,8.5 24,15.5" fill="#D7C1B3" />
-
-    {/* head base */}
-    <path d="M9 18 Q9 34 20 35.5 Q31 34 31 18 Q25.5 13.5 20 13 Q14.5 13.5 9 18Z" fill="#E4761B" />
-
-    {/* forehead dark band */}
-    <path d="M13 19 L27 19 L25.5 22 L14.5 22 Z" fill="#763D16" opacity="0.55" />
-
-    {/* left eye white surround */}
-    <ellipse cx="14.8" cy="24" rx="4.2" ry="3.6" fill="#D7C1B3" />
-    {/* right eye white surround */}
-    <ellipse cx="25.2" cy="24" rx="4.2" ry="3.6" fill="#D7C1B3" />
-
-    {/* left pupil */}
-    <ellipse cx="14.8" cy="24" rx="2.3" ry="2.3" fill="#161616" />
-    {/* right pupil */}
-    <ellipse cx="25.2" cy="24" rx="2.3" ry="2.3" fill="#161616" />
-
-    {/* eye shine left */}
-    <circle cx="15.6" cy="23.2" r="0.85" fill="white" />
-    {/* eye shine right */}
-    <circle cx="26" cy="23.2" r="0.85" fill="white" />
-
-    {/* muzzle / lower face */}
-    <path d="M15.5 29 Q20 33 24.5 29 L23.5 32 Q20 34.5 16.5 32 Z" fill="#C0AC9D" />
-
-    {/* nose */}
-    <ellipse cx="20" cy="29" rx="2.8" ry="1.8" fill="#763D16" />
-    {/* nose highlight */}
-    <ellipse cx="19.1" cy="28.3" rx="1" ry="0.65" fill="#CD6116" opacity="0.6" />
-  </svg>
+/* MetaMask — served as a static file /wallets/metamask.svg */
+const MetaMaskLogo = () => (
+  <img
+    src="/wallets/metamask.svg"
+    alt="MetaMask"
+    style={{ width: 44, height: 44, objectFit: "contain" }}
+  />
 );
 
-/** Trust Wallet — blue shield + white checkmark */
-const TrustWalletIcon: React.FC<{ size?: number }> = ({ size = 40 }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-    <rect width="40" height="40" rx="9" fill="#1A52EF" />
-
-    {/* shield fill */}
+/* Trust Wallet — exact brand: dark-navy pill, white shield, blue checkmark */
+const TrustWalletLogo = () => (
+  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+    <rect width="44" height="44" rx="11" fill="#1A52EF" />
+    {/* shield outer — white, semi-transparent fill to show gradient */}
     <path
-      d="M20 6.5 L9.5 11.5 L9.5 22 C9.5 28.8 14.2 34.1 20 35.5 C25.8 34.1 30.5 28.8 30.5 22 L30.5 11.5 Z"
-      fill="url(#tw_fill)"
+      d="M22 8L11 13v11c0 7.2 5 13.1 11 14.7C28 36.1 33 30.2 33 23V13L22 8Z"
+      fill="url(#tw_grad)"
     />
-    {/* shield border */}
-    <path
-      d="M20 6.5 L9.5 11.5 L9.5 22 C9.5 28.8 14.2 34.1 20 35.5 C25.8 34.1 30.5 28.8 30.5 22 L30.5 11.5 Z"
-      fill="none"
-      stroke="white"
-      strokeWidth="1.2"
-      opacity="0.35"
-    />
-
     {/* checkmark */}
     <path
-      d="M14 22.5 L18 26.5 L26 18"
+      d="M16 23.5l4 4 8-8.5"
       stroke="white"
-      strokeWidth="3"
+      strokeWidth="2.8"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-
     <defs>
-      <linearGradient id="tw_fill" x1="20" y1="6" x2="20" y2="36" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="white" stopOpacity="0.18" />
-        <stop offset="100%" stopColor="white" stopOpacity="0.04" />
+      <linearGradient id="tw_grad" x1="22" y1="8" x2="22" y2="38" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="white" stopOpacity="0.30" />
+        <stop offset="100%" stopColor="white" stopOpacity="0.07" />
       </linearGradient>
     </defs>
   </svg>
 );
 
-/** TokenPocket — blue square, pocket bag icon */
-const TokenPocketIcon: React.FC<{ size?: number }> = ({ size = 40 }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-    <rect width="40" height="40" rx="9" fill="#2980FE" />
-
-    {/* bag body */}
+/* TokenPocket — brand: sky-blue rounded square, white "TP" pocket mark */
+const TokenPocketLogo = () => (
+  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+    <rect width="44" height="44" rx="11" fill="#2980FE" />
+    {/* pocket body */}
     <path
-      d="M12 20 Q12 15 16 14 L24 14 Q28 15 28 20 L28 30 Q28 33 25 33 L15 33 Q12 33 12 30 Z"
+      d="M13 22q0-6 5-7h8q5 1 5 7v10q0 3-3 3H16q-3 0-3-3Z"
       fill="white"
-      opacity="0.9"
+      opacity="0.92"
     />
-    {/* bag handle */}
+    {/* pocket handle / loop */}
     <path
-      d="M16 14 Q16 9.5 20 9.5 Q24 9.5 24 14"
+      d="M17 15q0-5 5-5t5 5"
       stroke="white"
-      strokeWidth="2.6"
+      strokeWidth="2.8"
       fill="none"
       strokeLinecap="round"
     />
-    {/* horizontal lines inside bag */}
-    <path d="M16 22 L24 22" stroke="#2980FE" strokeWidth="1.8" strokeLinecap="round" />
-    <path d="M16 26 L21 26" stroke="#2980FE" strokeWidth="1.8" strokeLinecap="round" />
+    {/* inner lines */}
+    <line x1="17" y1="24" x2="27" y2="24" stroke="#2980FE" strokeWidth="2" strokeLinecap="round"/>
+    <line x1="17" y1="28" x2="23" y2="28" stroke="#2980FE" strokeWidth="2" strokeLinecap="round"/>
   </svg>
 );
 
-/** SafePal — dark rounded square, cyan shield-key brand mark */
-const SafePalIcon: React.FC<{ size?: number }> = ({ size = 40 }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-    <rect width="40" height="40" rx="9" fill="#0D1829" />
-
-    {/* outer shield */}
+/* SafePal — brand: dark #0E1C36, cyan shield with keyhole */
+const SafePalLogo = () => (
+  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+    {/* outer rounded square — their dark navy */}
+    <rect width="44" height="44" rx="11" fill="#0E1C36" />
+    {/* shield body — cyan gradient */}
     <path
-      d="M20 6 L10 10.5 L10 21 C10 27.5 14.5 32.8 20 34.5 C25.5 32.8 30 27.5 30 21 L30 10.5 Z"
-      fill="url(#sp_shield)"
+      d="M22 7L11 12v11c0 7.5 5 13.5 11 15.2C28 36.5 33 30.5 33 23V12L22 7Z"
+      fill="url(#sp_grad)"
     />
-
-    {/* inner keyhole circle */}
-    <circle cx="20" cy="19.5" r="4.5" fill="#0D1829" stroke="#0FF" strokeWidth="1.5" opacity="0.85" />
-    {/* keyhole body */}
-    <rect x="18" y="22.5" width="4" height="6" rx="1.2" fill="#0D1829" />
-    {/* key hole dot */}
-    <circle cx="20" cy="19.5" r="1.8" fill="#00C9E4" />
-    {/* connecting bar of keyhole */}
-    <rect x="18.8" y="21" width="2.4" height="3.5" rx="0.5" fill="#00C9E4" />
-
+    {/* keyhole ring */}
+    <circle cx="22" cy="21" r="5" fill="#0E1C36" />
+    <circle cx="22" cy="21" r="3" fill="#00D2E6" />
+    {/* keyhole slot */}
+    <rect x="20.5" y="24" width="3" height="5.5" rx="1.2" fill="#0E1C36" />
+    <rect x="21" y="23.5" width="2" height="6" rx="0.8" fill="#00D2E6" />
     <defs>
-      <linearGradient id="sp_shield" x1="20" y1="6" x2="20" y2="35" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#00C9E4" stopOpacity="0.55" />
-        <stop offset="100%" stopColor="#005F8F" stopOpacity="0.6" />
+      <linearGradient id="sp_grad" x1="22" y1="7" x2="22" y2="38" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#00D2E6" stopOpacity="0.9" />
+        <stop offset="100%" stopColor="#0077A8" stopOpacity="0.85" />
       </linearGradient>
     </defs>
   </svg>
 );
 
+/* ── Wallet list ─────────────────────────────────────────────────────────── */
 const WALLETS: WalletDef[] = [
   {
     id: "metamask",
@@ -164,7 +117,7 @@ const WALLETS: WalletDef[] = [
     color: "#F6851B",
     bg: "rgba(246,133,27,0.07)",
     border: "rgba(246,133,27,0.28)",
-    icon: MetaMaskIcon,
+    logo: MetaMaskLogo,
     getLink: (url) => {
       const u = new URL(url);
       return `https://metamask.app.link/dapp/${u.host}${u.pathname}${u.search}`;
@@ -177,7 +130,7 @@ const WALLETS: WalletDef[] = [
     color: "#3375BB",
     bg: "rgba(51,117,187,0.07)",
     border: "rgba(51,117,187,0.28)",
-    icon: TrustWalletIcon,
+    logo: TrustWalletLogo,
     getLink: (url) =>
       `https://link.trustwallet.com/open_url?coin_id=20000714&url=${encodeURIComponent(url)}`,
   },
@@ -188,7 +141,7 @@ const WALLETS: WalletDef[] = [
     color: "#2980FE",
     bg: "rgba(41,128,254,0.07)",
     border: "rgba(41,128,254,0.28)",
-    icon: TokenPocketIcon,
+    logo: TokenPocketLogo,
     getLink: (url) =>
       `tpoutside://pull.activity?param=${encodeURIComponent(
         JSON.stringify({ action: "openDApp", actionType: "dapp", url })
@@ -198,10 +151,10 @@ const WALLETS: WalletDef[] = [
     id: "safepal",
     name: "SafePal",
     desc: "Open in SafePal browser",
-    color: "#00C9E4",
-    bg: "rgba(0,201,228,0.07)",
-    border: "rgba(0,201,228,0.28)",
-    icon: SafePalIcon,
+    color: "#00D2E6",
+    bg: "rgba(0,210,230,0.07)",
+    border: "rgba(0,210,230,0.28)",
+    logo: SafePalLogo,
     getLink: (url) =>
       `https://safepal.io/dapp?dapp_url=${encodeURIComponent(url)}`,
   },
@@ -230,7 +183,9 @@ export default function Join() {
   const params = new URLSearchParams(search);
   const ref = params.get("ref") || "";
 
-  const registerUrl = `${window.location.protocol}//${window.location.host}/register${ref ? `?ref=${encodeURIComponent(ref)}` : ""}`;
+  const registerUrl = `${window.location.protocol}//${window.location.host}/register${
+    ref ? `?ref=${encodeURIComponent(ref)}` : ""
+  }`;
 
   const [redirecting, setRedirecting] = useState(false);
 
@@ -292,10 +247,15 @@ export default function Join() {
             }}
           >
             <div>
-              <div className="text-[10px] font-semibold uppercase tracking-widest mb-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>
+              <div
+                className="text-[10px] font-semibold uppercase tracking-widest mb-0.5"
+                style={{ color: "rgba(194,210,255,0.45)" }}
+              >
                 Referral Code
               </div>
-              <div className="font-bold font-mono text-base" style={{ color: TEAL }}>{ref}</div>
+              <div className="font-bold font-mono text-base" style={{ color: TEAL }}>
+                {ref}
+              </div>
             </div>
             <div
               className="text-[10px] font-semibold px-2 py-1 rounded-lg"
@@ -308,42 +268,42 @@ export default function Join() {
 
         {/* Wallet buttons */}
         <div className="space-y-3">
-          {WALLETS.map((wallet) => {
-            const Icon = wallet.icon;
-            return (
-              <button
-                key={wallet.id}
-                type="button"
-                onClick={() => handleWalletClick(wallet)}
-                className="w-full flex items-center gap-4 rounded-2xl px-4 py-3.5 text-left transition-all active:scale-[0.98]"
-                style={{
-                  background: wallet.bg,
-                  border: `1px solid ${wallet.border}`,
-                  cursor: "pointer",
-                }}
-              >
-                <Icon size={44} />
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-sm" style={{ color: "rgba(200,240,255,0.95)" }}>
-                    {wallet.name}
-                  </div>
-                  <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>
-                    {wallet.desc}
-                  </div>
+          {WALLETS.map((wallet) => (
+            <button
+              key={wallet.id}
+              type="button"
+              onClick={() => handleWalletClick(wallet)}
+              className="w-full flex items-center gap-4 rounded-2xl px-4 py-3.5 text-left transition-all active:scale-[0.98]"
+              style={{
+                background: wallet.bg,
+                border: `1px solid ${wallet.border}`,
+                cursor: "pointer",
+              }}
+            >
+              <wallet.logo />
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-sm" style={{ color: "rgba(200,240,255,0.95)" }}>
+                  {wallet.name}
                 </div>
-                <ExternalLink size={15} style={{ color: wallet.color, opacity: 0.7, flexShrink: 0 }} />
-              </button>
-            );
-          })}
+                <div className="text-xs mt-0.5" style={{ color: "rgba(194,210,255,0.45)" }}>
+                  {wallet.desc}
+                </div>
+              </div>
+              <ExternalLink size={15} style={{ color: wallet.color, opacity: 0.7, flexShrink: 0 }} />
+            </button>
+          ))}
         </div>
 
-        {/* Divider + direct link */}
+        {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full" style={{ borderTop: "1px solid rgba(91,140,255,0.12)" }} />
           </div>
           <div className="relative flex justify-center">
-            <span className="px-3 text-[11px]" style={{ background: "#060814", color: "rgba(194,210,255,0.35)" }}>
+            <span
+              className="px-3 text-[11px]"
+              style={{ background: "#060814", color: "rgba(194,210,255,0.35)" }}
+            >
               or continue in browser
             </span>
           </div>
@@ -361,7 +321,10 @@ export default function Join() {
           Register without wallet
         </a>
 
-        <p className="text-center text-[11px] leading-relaxed" style={{ color: "rgba(194,210,255,0.3)" }}>
+        <p
+          className="text-center text-[11px] leading-relaxed"
+          style={{ color: "rgba(194,210,255,0.3)" }}
+        >
           Your referral code is automatically included when you open the link through any wallet above.
         </p>
       </div>
