@@ -2149,6 +2149,90 @@ router.get("/admin/token-allocations/pending", requireAdmin, async (_req, res) =
   res.json({ rows: enriched, total: enriched.length });
 });
 
+// GET /api/admin/token-allocations/:id/resolve
+// Returns the on-chain parameters needed for MetaMask-based settlement:
+// contractAddress, usdtContractAddress, usdtAmount, userWallet, referrers[10].
+router.get("/admin/token-allocations/:id/resolve", requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) { res.status(400).json({ message: "Invalid id" }); return; }
+
+  const [cfg] = await db.select().from(platformSettingsTable).limit(1);
+  const contractAddress = (cfg?.tokenContractAddress ?? "").trim();
+  const adminMasterWallet = (cfg?.adminMasterWallet ?? "").trim();
+
+  if (!contractAddress) { res.status(400).json({ message: "Token contract address not configured in Settings" }); return; }
+
+  const [row] = await db.select().from(userTokenPurchasesTable).where(eq(userTokenPurchasesTable.id, id)).limit(1);
+  if (!row || !row.txHash.startsWith("virtual:")) {
+    res.status(404).json({ message: "Pending allocation not found" }); return;
+  }
+
+  const [user] = await db.select({ walletAddress: usersTable.walletAddress }).from(usersTable).where(eq(usersTable.id, row.userId)).limit(1);
+  const userWallet = (user?.walletAddress ?? "").trim();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(userWallet)) {
+    res.status(400).json({ message: "User has no valid BSC wallet address" }); return;
+  }
+
+  const ADDR_RE_R = /^0x[0-9a-fA-F]{40}$/;
+  const fallback = ADDR_RE_R.test(adminMasterWallet) ? adminMasterWallet : "0x0000000000000000000000000000000000000000";
+  const SAFE_USER_LEVELS = 5;
+  const TOTAL_LEVELS = 10;
+
+  const referrers: string[] = [];
+  const [buyer] = await db.select({ sponsorId: usersTable.sponsorId }).from(usersTable).where(eq(usersTable.id, row.userId)).limit(1);
+  let currentSponsorId: number | null = buyer?.sponsorId ?? null;
+  const seen = new Set<number>([row.userId]);
+
+  for (let level = 0; level < SAFE_USER_LEVELS; level++) {
+    if (currentSponsorId == null || seen.has(currentSponsorId)) {
+      referrers.push(fallback); currentSponsorId = null; continue;
+    }
+    seen.add(currentSponsorId);
+    const [sponsor] = await db.select({ id: usersTable.id, walletAddress: usersTable.walletAddress, sponsorId: usersTable.sponsorId })
+      .from(usersTable).where(eq(usersTable.id, currentSponsorId)).limit(1);
+    if (!sponsor) { referrers.push(fallback); currentSponsorId = null; continue; }
+    const w = (sponsor.walletAddress ?? "").trim();
+    referrers.push(ADDR_RE_R.test(w) ? w : fallback);
+    currentSponsorId = sponsor.sponsorId ?? null;
+  }
+  referrers.push(fallback); // slot 5: admin cut
+  while (referrers.length < TOTAL_LEVELS) referrers.push(fallback); // slots 6–9
+
+  res.json({
+    id: row.id,
+    contractAddress,
+    usdtContractAddress: "0x55d398326f99059fF775485246999027B3197955",
+    usdtAmount: parseFloat(row.usdtSpent),
+    userWallet,
+    referrers,
+  });
+});
+
+// POST /api/admin/token-allocations/:id/confirm
+// Called by the frontend after MetaMask settle completes. Updates the allocation record
+// with the real txHash and tokens received — no on-chain operations.
+router.post("/admin/token-allocations/:id/confirm", requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id);
+  const parsed = z.object({
+    txHash: z.string().min(10),
+    wtaReceived: z.string(),
+    walletAddress: z.string(),
+  }).safeParse(req.body);
+  if (!parsed.success || !id) { res.status(400).json({ message: "Invalid input" }); return; }
+
+  const [row] = await db.select().from(userTokenPurchasesTable).where(eq(userTokenPurchasesTable.id, id)).limit(1);
+  if (!row || !row.txHash.startsWith("virtual:")) {
+    res.status(404).json({ message: "Pending allocation not found" }); return;
+  }
+
+  const { txHash, wtaReceived, walletAddress } = parsed.data;
+  await db.update(userTokenPurchasesTable)
+    .set({ txHash, wtaReceived, walletAddress })
+    .where(eq(userTokenPurchasesTable.id, id));
+
+  res.json({ id, txHash, wtaReceived, walletAddress });
+});
+
 // POST /api/admin/token-allocations/settle
 // Admin triggers on-chain token minting for pending allocations.
 // Body: { ids?: number[] } — if ids is provided, only those records are settled;
