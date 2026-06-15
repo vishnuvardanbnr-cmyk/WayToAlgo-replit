@@ -59,28 +59,13 @@ const TrustWalletLogo = () => (
   </svg>
 );
 
-/* TokenPocket — brand: sky-blue rounded square, white "TP" pocket mark */
+/* TokenPocket — official brand logo */
 const TokenPocketLogo = () => (
-  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-    <rect width="44" height="44" rx="11" fill="#2980FE" />
-    {/* pocket body */}
-    <path
-      d="M13 22q0-6 5-7h8q5 1 5 7v10q0 3-3 3H16q-3 0-3-3Z"
-      fill="white"
-      opacity="0.92"
-    />
-    {/* pocket handle / loop */}
-    <path
-      d="M17 15q0-5 5-5t5 5"
-      stroke="white"
-      strokeWidth="2.8"
-      fill="none"
-      strokeLinecap="round"
-    />
-    {/* inner lines */}
-    <line x1="17" y1="24" x2="27" y2="24" stroke="#2980FE" strokeWidth="2" strokeLinecap="round"/>
-    <line x1="17" y1="28" x2="23" y2="28" stroke="#2980FE" strokeWidth="2" strokeLinecap="round"/>
-  </svg>
+  <img
+    src="/wallets/tokenpocket.png"
+    alt="TokenPocket"
+    style={{ width: 44, height: 44, objectFit: "contain", borderRadius: 10 }}
+  />
 );
 
 /* SafePal — brand: dark #0E1C36, cyan shield with keyhole */
