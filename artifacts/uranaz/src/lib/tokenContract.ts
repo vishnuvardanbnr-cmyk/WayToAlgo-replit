@@ -24,7 +24,8 @@ export function isTokenConfigured(): boolean {
 
 /* Function selectors (keccak256 of the signature, first 4 bytes) */
 const SEL = {
-  buy: "5e1f417e", // buy(uint256,uint256,address[])
+  // buy(uint256,uint256,address[],bytes32,uint256,bytes)
+  buy: "95c89952",
   sell: "d79875eb", // sell(uint256,uint256)
   getBuyPrice: "018a25e8", // getBuyPrice()
   getSellPrice: "43d32e9c", // getSellPrice()
@@ -39,10 +40,14 @@ const SEL = {
   getLevelPercents: "0a732428", // getLevelPercents()
   setLevelPercents: "605efdc7", // setLevelPercents(uint256[10])
   owner: "8da5cb5b", // owner()
-  // Safe Invest flow — separate referral table (buySafe / safeLevelPercents).
-  buySafe: "79371dad", // buySafe(uint256,uint256,address[])
+  // Safe Invest flow — separate referral table.
+  // buySafe(uint256,uint256,address[],bytes32,uint256,bytes)
+  buySafe: "907c0a0d",
   getSafeLevelPercents: "147b66c7", // getSafeLevelPercents()
   setSafeLevelPercents: "758a06a0", // setSafeLevelPercents(uint256[10])
+  // Signature guard — setTrustedSigner(address)
+  setTrustedSigner: "56a1c701",
+  trustedSigner: "f74d5480", // trustedSigner()
 } as const;
 
 // Referral depth — must match WaytoAlgoToken.LEVELS.
@@ -322,34 +327,90 @@ export async function approveUsdt(amountWei: bigint): Promise<string> {
   return sendTx(USDT_CONTRACT, data, "0x186A0"); // 100,000
 }
 
+/**
+ * Encode calldata for buy(uint256,uint256,address[],bytes32,uint256,bytes).
+ *
+ * The ABI head has 6 static slots:
+ *   [0] uint256  usdtWei
+ *   [1] uint256  minTokensOut
+ *   [2] uint256  offset → address[] tail   (= 6*32 = 192 = 0xC0)
+ *   [3] bytes32  nonce
+ *   [4] uint256  expiry
+ *   [5] uint256  offset → bytes tail       (= (6 + 1 + refs.length) * 32)
+ * Followed by the address[] tail, then the bytes tail.
+ */
+function encBuyCalldata(
+  sel: string,
+  usdtWei: bigint,
+  minTokensOut: bigint,
+  refs: string[],
+  nonce: string,     // hex with or without 0x, 32 bytes
+  expiry: bigint,
+  sig: string,       // hex with or without 0x, 65 bytes (or empty in open mode)
+): string {
+  const STATIC_WORDS = 6;
+  const arrayOffset = STATIC_WORDS * 32; // 192
+  const arrayBodyWords = 1 + refs.length; // length word + elements
+  const sigOffset = (STATIC_WORDS + arrayBodyWords) * 32;
+
+  let arrayTail = encUint(BigInt(refs.length));
+  for (const a of refs) arrayTail += encAddress(a);
+
+  const sigHex = sig.replace(/^0x/, "");
+  const sigByteLen = sigHex.length / 2;
+  const sigPadded = sigHex.padEnd(Math.ceil(Math.max(sigByteLen, 1) / 32) * 64, "0");
+  const bytesTail = encUint(BigInt(sigByteLen)) + sigPadded;
+
+  const nonceHex = nonce.replace(/^0x/, "").padStart(64, "0");
+
+  return (
+    sel
+    + encUint(usdtWei)
+    + encUint(minTokensOut)
+    + encUint(BigInt(arrayOffset))
+    + nonceHex
+    + encUint(expiry)
+    + encUint(BigInt(sigOffset))
+    + arrayTail
+    + bytesTail
+  );
+}
+
 export async function buyTokens(
   usdtWei: bigint,
   minTokensOut: bigint,
   referrers: string[] = [],
+  nonce = "0x" + "00".repeat(32),
+  expiry = 0n,
+  sig = "",
 ): Promise<string> {
-  // buy(uint256 _usdtAmount, uint256 _minTokensOut, address[] _referrers)
-  // Trim to the contract's level cap so calldata stays bounded/deterministic.
   const refs = referrers.slice(0, REFERRAL_LEVELS);
-  const { head, tail } = encAddressArray(refs, 2); // 2 preceding static args
-  const data = SEL.buy + encUint(usdtWei) + encUint(minTokensOut) + head + tail;
-  // Referral payouts mint to extra addresses, so allow more gas headroom.
+  const data = encBuyCalldata(SEL.buy, usdtWei, minTokensOut, refs, nonce, expiry, sig);
   return sendTx(TOKEN_CONTRACT_ADDRESS, data, "0xF4240"); // 1,000,000
 }
 
 /**
- * Safe Invest on-chain buy — identical to buyTokens but routes through the
- * contract's `buySafe` so the SEPARATE `safeLevelPercents` referral table is
- * applied. `referrers` must be the Safe upline (5 sponsors + admin slot).
+ * Safe Invest on-chain buy — routes through the contract's `buySafe` so the
+ * SEPARATE `safeLevelPercents` referral table is applied.
+ * Same nonce/expiry/sig semantics as buyTokens.
  */
 export async function buySafeTokens(
   usdtWei: bigint,
   minTokensOut: bigint,
   referrers: string[] = [],
+  nonce = "0x" + "00".repeat(32),
+  expiry = 0n,
+  sig = "",
 ): Promise<string> {
   const refs = referrers.slice(0, REFERRAL_LEVELS);
-  const { head, tail } = encAddressArray(refs, 2); // 2 preceding static args
-  const data = SEL.buySafe + encUint(usdtWei) + encUint(minTokensOut) + head + tail;
+  const data = encBuyCalldata(SEL.buySafe, usdtWei, minTokensOut, refs, nonce, expiry, sig);
   return sendTx(TOKEN_CONTRACT_ADDRESS, data, "0xF4240"); // 1,000,000
+}
+
+/** Read the current trustedSigner address on-chain (zero = open mode). */
+export async function readTrustedSigner(): Promise<string> {
+  const raw = (await ethCall(TOKEN_CONTRACT_ADDRESS, SEL.trustedSigner)).replace(/^0x/, "");
+  return "0x" + raw.slice(-40);
 }
 
 /** Read the on-chain per-level referral percentages (basis points, length 10). */

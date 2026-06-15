@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
   Users, Search, CheckCircle, XCircle, Shield, Pencil, X,
-  Wallet, ArrowDownToLine, ArrowLeftRight, TrendingUp, Save, Ban, AlertTriangle,
+  Wallet, ArrowDownToLine, ArrowLeftRight, TrendingUp, Save, Ban, AlertTriangle, ShieldAlert,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -50,6 +50,38 @@ export default function AdminUsers() {
 
   const blockedCount = userList.filter(u => !u.isActive || u.withdrawalBlocked || u.p2pBlocked || u.investmentBlocked || u.roiBlocked).length;
 
+  // ── Legacy password audit ──
+  const [legacyCount, setLegacyCount] = useState<number | null>(null);
+  const [legacyResetting, setLegacyResetting] = useState(false);
+  const [legacyMsg, setLegacyMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/users/legacy-passwords", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}` },
+    })
+      .then(r => r.json())
+      .then(d => setLegacyCount(d.count ?? 0))
+      .catch(() => {});
+  }, []);
+
+  const handleResetLegacy = async (invalidate: boolean) => {
+    setLegacyResetting(true); setLegacyMsg(null);
+    try {
+      const r = await fetch("/api/admin/users/reset-legacy-passwords", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}`,
+        },
+        body: JSON.stringify({ invalidate }),
+      });
+      const d = await r.json();
+      setLegacyMsg(d.message ?? "Done");
+      if (invalidate) setLegacyCount(0);
+    } catch { setLegacyMsg("Request failed."); }
+    finally { setLegacyResetting(false); }
+  };
+
   return (
     <div className="px-4 py-6 max-w-4xl mx-auto space-y-5 pb-24 md:pb-8">
       <div className="flex items-center gap-3">
@@ -87,6 +119,49 @@ export default function AdminUsers() {
           <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>Restricted</div>
         </div>
       </div>
+
+      {/* Legacy password security banner — shown only when stale SHA-256 hashes exist */}
+      {legacyCount !== null && legacyCount > 0 && (
+        <div className="rounded-xl p-4 space-y-3" style={{ background: "rgba(251,191,36,0.07)", border: "1px solid rgba(251,191,36,0.28)" }}>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.35)", color: AMBER }}>
+              <ShieldAlert size={16} />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-semibold" style={{ color: AMBER }}>
+                {legacyCount} {legacyCount === 1 ? "user has" : "users have"} a legacy password hash
+              </div>
+              <div className="text-xs mt-1" style={{ color: "rgba(251,191,36,0.7)" }}>
+                These accounts were created before the bcrypt migration and still use the old SHA-256 hash. Their passwords are weaker and should be rotated. Send them a reset email — they will get a one-time code to set a new password, which will be stored as bcrypt on next login.
+              </div>
+              {legacyMsg && (
+                <div className="text-xs mt-2 font-medium" style={{ color: "rgba(52,211,153,0.9)" }}>{legacyMsg}</div>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              disabled={legacyResetting}
+              onClick={() => handleResetLegacy(false)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.35)", color: AMBER }}
+            >
+              {legacyResetting ? "Sending…" : "Send Reset Emails"}
+            </button>
+            <button
+              disabled={legacyResetting}
+              onClick={() => {
+                if (!confirm(`Force-invalidate ${legacyCount} legacy password(s)? Affected users will NOT be able to log in until they reset via email. Continue?`)) return;
+                handleResetLegacy(true);
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{ background: "rgba(248,113,113,0.10)", border: "1px solid rgba(248,113,113,0.30)", color: "#F87171" }}
+            >
+              Send Emails + Force Logout
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="relative">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(176,255,224,0.35)" }} />

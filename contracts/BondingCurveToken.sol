@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 /**
  * @title WaytoAlgoToken
@@ -74,6 +76,21 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     // affecting the direct Buy/Sell levels. Same MAX_TOTAL_BPS cap applies.
     uint256[LEVELS] public safeLevelPercents;
 
+    // ── Referral signature guard (optional, owner-controlled) ──
+    //
+    // When trustedSigner == address(0)  → OPEN mode (default): any caller can
+    //   pass any referrers array to buy() / buySafe() — no signature required.
+    //
+    // When trustedSigner != address(0)  → SIGNED mode: every buy() / buySafe()
+    //   call must carry a server-issued ECDSA signature that commits to the
+    //   exact (contract, chainId, buyer, referrers, nonce, expiry) tuple.
+    //   This prevents a user from bypassing the platform's referral tree by
+    //   passing their own secondary wallets as referrers (self-referral attack).
+    //
+    // Set via setTrustedSigner(); disable by passing address(0).
+    address public trustedSigner;
+    mapping(bytes32 => bool) public usedNonces;
+
     mapping(address => uint256) public totalReceivedByUser;
     mapping(address => uint256) public totalBurnedByUser;
     mapping(address => uint256) public totalReferralEarned;
@@ -93,6 +110,7 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     event ReferralPaid(address indexed buyer, address indexed sponsor, uint256 indexed level, uint256 amount);
     event LevelPercentsUpdated(uint256[LEVELS] percents);
     event SafeLevelPercentsUpdated(uint256[LEVELS] percents);
+    event TrustedSignerUpdated(address indexed signer);
 
     error ZeroAddress();
     error ZeroAmount();
@@ -100,6 +118,9 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     error InsufficientLiquidity();
     error SlippageExceeded();
     error InvalidPercents();
+    error InvalidSignature();
+    error SignatureExpired();
+    error NonceUsed();
 
     /**
      * @param _usdt   USDT (BEP-20) token address. BSC mainnet: 0x55d398326f99059fF775485246999027B3197955
@@ -111,6 +132,20 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     {
         if (_usdt == address(0)) revert ZeroAddress();
         usdtToken = IERC20(_usdt);
+    }
+
+    // ---------------------------------------------------------------------
+    // Admin: referral signature guard (owner-only)
+    // ---------------------------------------------------------------------
+
+    /**
+     * @notice Set the trusted signing address that must authorise every buy().
+     *         Pass address(0) to revert to OPEN mode (no signature required).
+     * @param _signer  The backend wallet whose ECDSA sig must accompany every buy.
+     */
+    function setTrustedSigner(address _signer) external onlyOwner {
+        trustedSigner = _signer;
+        emit TrustedSignerUpdated(_signer);
     }
 
     // ---------------------------------------------------------------------
@@ -174,15 +209,23 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
      * @param _referrers    Ordered upline sponsor addresses, level 1 first
      *                      (length 0..LEVELS). Zero address / self / empty
      *                      levels are skipped — their share stays with the buyer.
+     * @param _nonce        One-time random bytes32. Ignored when trustedSigner == 0.
+     * @param _expiry       Unix timestamp after which the signature is rejected.
+     *                      Ignored when trustedSigner == 0. Pass 0 in open mode.
+     * @param _sig          65-byte ECDSA signature from the platform's trusted signer
+     *                      over (address(this), chainId, msg.sender, _referrers, _nonce, _expiry).
+     *                      Ignored (may be empty bytes) when trustedSigner == 0.
      * @return mintAmount   Tokens minted to the caller (net of referral payouts).
      */
-    function buy(uint256 _usdtAmount, uint256 _minTokensOut, address[] calldata _referrers)
-        external
-        nonReentrant
-        returns (uint256 mintAmount)
-    {
-        // Direct Buy/Sell flow → uses the standalone levelPercents table.
-        return _buy(_usdtAmount, _minTokensOut, _referrers, levelPercents);
+    function buy(
+        uint256 _usdtAmount,
+        uint256 _minTokensOut,
+        address[] calldata _referrers,
+        bytes32 _nonce,
+        uint256 _expiry,
+        bytes calldata _sig
+    ) external nonReentrant returns (uint256 mintAmount) {
+        return _buy(_usdtAmount, _minTokensOut, _referrers, _nonce, _expiry, _sig, levelPercents);
     }
 
     /**
@@ -190,13 +233,17 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
      *         table. Called by the Safe Invest flow so it can run its own
      *         referral scheme (e.g. 5 user levels + a fixed admin cut) without
      *         touching the direct Buy/Sell levels. One token / one curve.
+     *         Same _nonce/_expiry/_sig semantics as buy().
      */
-    function buySafe(uint256 _usdtAmount, uint256 _minTokensOut, address[] calldata _referrers)
-        external
-        nonReentrant
-        returns (uint256 mintAmount)
-    {
-        return _buy(_usdtAmount, _minTokensOut, _referrers, safeLevelPercents);
+    function buySafe(
+        uint256 _usdtAmount,
+        uint256 _minTokensOut,
+        address[] calldata _referrers,
+        bytes32 _nonce,
+        uint256 _expiry,
+        bytes calldata _sig
+    ) external nonReentrant returns (uint256 mintAmount) {
+        return _buy(_usdtAmount, _minTokensOut, _referrers, _nonce, _expiry, _sig, safeLevelPercents);
     }
 
     /// @dev Shared buy implementation; `percents` selects which referral table.
@@ -204,9 +251,31 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
         uint256 _usdtAmount,
         uint256 _minTokensOut,
         address[] calldata _referrers,
+        bytes32 _nonce,
+        uint256 _expiry,
+        bytes calldata _sig,
         uint256[LEVELS] storage percents
     ) private returns (uint256 mintAmount) {
         if (_usdtAmount == 0) revert ZeroAmount();
+
+        // ── Signature guard (only enforced when trustedSigner is configured) ──
+        if (trustedSigner != address(0)) {
+            if (block.timestamp > _expiry) revert SignatureExpired();
+            if (usedNonces[_nonce]) revert NonceUsed();
+            // Build the message hash that the backend signed.
+            bytes32 dataHash = keccak256(abi.encode(
+                address(this),
+                block.chainid,
+                msg.sender,
+                _referrers,
+                _nonce,
+                _expiry
+            ));
+            bytes32 ethHash = MessageHashUtils.toEthSignedMessageHash(dataHash);
+            address recovered = ECDSA.recover(ethHash, _sig);
+            if (recovered == address(0) || recovered != trustedSigner) revert InvalidSignature();
+            usedNonces[_nonce] = true;
+        }
 
         // Price is captured BEFORE liquidity is added (front-running protection).
         uint256 buyPrice = getBuyPrice();

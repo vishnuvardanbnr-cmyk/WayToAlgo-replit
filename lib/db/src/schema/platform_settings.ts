@@ -134,6 +134,17 @@ export const platformSettingsTable = pgTable("platform_settings", {
   levelDirectsL8: integer("level_directs_l8").notNull().default(0),
   levelDirectsL9: integer("level_directs_l9").notNull().default(0),
   levelDirectsL10: integer("level_directs_l10").notNull().default(0),
+
+  // Token buy referral mode:
+  //   "open"   — no server signature required (any caller can pass any referrers array)
+  //   "signed" — every buy() / buySafe() call must carry a server-issued ECDSA signature
+  //              that commits to the exact referrers array, preventing self-referral abuse.
+  tokenReferralMode: text("token_referral_mode").notNull().default("open"),
+  // AES-256-GCM encrypted private key of the dedicated signing wallet.
+  tokenSignerPrivateKey: text("token_signer_private_key").notNull().default(""),
+  // The public address matching tokenSignerPrivateKey.
+  // Admin must call setTrustedSigner(tokenSignerAddress) on the contract after generating.
+  tokenSignerAddress: text("token_signer_address").notNull().default(""),
 });
 
 export const insertPlatformSettingsSchema = createInsertSchema(platformSettingsTable).omit({ id: true });

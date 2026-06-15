@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, usersTable, depositsTable, platformSettingsTable, depositWalletBackupsTable } from "@workspace/db";
-import { eq, desc, isNotNull, isNull, count, inArray } from "drizzle-orm";
+import { eq, desc, isNotNull, isNull, count, inArray, sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middlewares/auth";
 import { ensureDepositWallet, sweepUsdtToMaster, getUsdtBalance, USDT_DECIMALS, getSettings, generateDepositWallet } from "../lib/blockchain";
 import { ethers } from "ethers";
@@ -123,18 +123,25 @@ router.post("/deposits/check", requireAuth, async (req, res) => {
       return;
     }
 
-    // Credit user's wallet balance
-    const newBalance = parseFloat(freshUser.walletBalance ?? "0") + result.amount;
-    await db.update(usersTable).set({ walletBalance: newBalance.toString() }).where(eq(usersTable.id, user.id));
-
-    // Update deposit record
-    await db.update(depositsTable).set({
-      status: "credited",
-      txHash: null,
-      sweepTxHash: result.txHash,
-      creditedAt: new Date(),
-      amount: result.amount.toString(),
-    }).where(eq(depositsTable.id, deposit.id));
+    // Atomically credit user balance + mark deposit as credited in one transaction.
+    // Using sql`` expression for the balance update avoids any stale-read race
+    // if two sweeps somehow fire simultaneously.
+    await db.transaction(async (tx) => {
+      await tx.update(usersTable)
+        .set({ walletBalance: sql`${usersTable.walletBalance} + ${result.amount.toString()}` })
+        .where(eq(usersTable.id, user.id));
+      await tx.update(depositsTable).set({
+        status: "credited",
+        txHash: null,
+        sweepTxHash: result.txHash,
+        creditedAt: new Date(),
+        amount: result.amount.toString(),
+      }).where(eq(depositsTable.id, deposit.id));
+    });
+    // Fetch the post-transaction balance for the response.
+    const [updatedUser] = await db.select({ walletBalance: usersTable.walletBalance })
+      .from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
+    const newBalance = parseFloat(updatedUser?.walletBalance ?? "0");
 
     // Send deposit credited email (fire-and-forget)
     sendDepositCreditedEmail(freshUser.email, freshUser.name ?? "", result.amount).catch(() => {});

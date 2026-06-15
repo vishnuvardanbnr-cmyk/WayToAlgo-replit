@@ -64,7 +64,13 @@ router.get("/token/upline", requireAuth, async (req, res) => {
     currentSponsorId = sponsor.sponsorId ?? null;
   }
 
-  res.json({ levels: UPLINE_LEVELS, addresses, adminWallet: fallback });
+  res.json({
+    levels: UPLINE_LEVELS,
+    addresses,
+    adminWallet: fallback,
+    // Inform the frontend whether it must obtain a server sig before buy().
+    referralMode: settings?.tokenReferralMode ?? "open",
+  });
 });
 
 /**
@@ -412,6 +418,107 @@ router.get("/token/holdings", requireAuth, async (req, res) => {
       createdAt: p.createdAt.toISOString(),
     })),
   });
+});
+
+/**
+ * POST /api/token/sign-buy
+ *
+ * When the platform is in "signed" referral mode, the frontend calls this
+ * endpoint right before the on-chain buy() to obtain a one-time server
+ * signature that the contract verifies via ECDSA.
+ *
+ * The backend re-derives the canonical upline array for this user and
+ * rejects any submitted referrers array that doesn't match — preventing
+ * self-referral attacks even if the user calls the API directly.
+ *
+ * Body:    { buyerAddress: string, referrers: string[] }
+ * Returns (open mode):   { mode: "open" }
+ * Returns (signed mode): { mode: "signed", nonce: string, expiry: number, signature: string }
+ */
+router.post("/token/sign-buy", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+  const [settings] = await db.select().from(platformSettingsTable).limit(1);
+
+  if (!settings || settings.tokenReferralMode !== "signed") {
+    res.json({ mode: "open" });
+    return;
+  }
+
+  const { buyerAddress, referrers } = req.body;
+  if (!buyerAddress || !ADDR_RE.test(buyerAddress)) {
+    res.status(400).json({ message: "Invalid buyerAddress" });
+    return;
+  }
+  if (!Array.isArray(referrers) || referrers.length !== UPLINE_LEVELS) {
+    res.status(400).json({ message: `referrers must be an array of exactly ${UPLINE_LEVELS} addresses` });
+    return;
+  }
+
+  // Re-derive the canonical upline the same way GET /token/upline does,
+  // then reject if the submitted array doesn't match (prevents self-referral bypass).
+  const adminWallet = (settings.adminMasterWallet || "").trim();
+  const fallback = ADDR_RE.test(adminWallet) ? adminWallet : ZERO_ADDRESS;
+  const expected: string[] = [];
+  let currentSponsorId: number | null = user.sponsorId ?? null;
+  const seen = new Set<number>([user.id]);
+
+  for (let level = 0; level < UPLINE_LEVELS; level++) {
+    if (currentSponsorId == null || seen.has(currentSponsorId)) {
+      expected.push(fallback); currentSponsorId = null; continue;
+    }
+    seen.add(currentSponsorId);
+    const [sponsor] = await db.select().from(usersTable)
+      .where(eq(usersTable.id, currentSponsorId)).limit(1);
+    if (!sponsor) { expected.push(fallback); currentSponsorId = null; continue; }
+    const wallet = (sponsor.walletAddress || "").trim();
+    expected.push(ADDR_RE.test(wallet) ? wallet : fallback);
+    currentSponsorId = sponsor.sponsorId ?? null;
+  }
+
+  for (let i = 0; i < UPLINE_LEVELS; i++) {
+    if ((referrers[i] ?? "").toLowerCase() !== expected[i].toLowerCase()) {
+      res.status(400).json({ message: "Referrers array does not match the platform's upline tree for your account." });
+      return;
+    }
+  }
+
+  const rawKey = settings.tokenSignerPrivateKey;
+  if (!rawKey) {
+    res.status(503).json({ message: "Platform signer not configured. Ask admin to generate a signer key." });
+    return;
+  }
+  const contractAddress = (settings.tokenContractAddress || "").trim();
+  if (!contractAddress || !ADDR_RE.test(contractAddress)) {
+    res.status(503).json({ message: "Token contract address not configured." });
+    return;
+  }
+
+  try {
+    const plainKey = await resolveKey(rawKey);
+    const signerWallet = new ethers.Wallet(plainKey);
+    const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const network = await provider.getNetwork();
+    const chainId = network.chainId;
+
+    const nonce = ethers.hexlify(ethers.randomBytes(32));
+    const expiry = Math.floor(Date.now() / 1000) + 300; // 5-minute window
+
+    // Hash that the contract will reconstruct:
+    // keccak256(abi.encode(address(this), block.chainid, msg.sender, _referrers, _nonce, _expiry))
+    const dataHash = ethers.keccak256(
+      ethers.AbiCoder.defaultAbiCoder().encode(
+        ["address", "uint256", "address", "address[]", "bytes32", "uint256"],
+        [contractAddress, chainId, buyerAddress, referrers, nonce, expiry],
+      ),
+    );
+    // signMessage prepends "\x19Ethereum Signed Message:\n32" — matches MessageHashUtils.toEthSignedMessageHash
+    const signature = await signerWallet.signMessage(ethers.getBytes(dataHash));
+    res.json({ mode: "signed", nonce, expiry, signature });
+  } catch (err: any) {
+    logger.error({ err }, "sign-buy failed");
+    res.status(500).json({ message: "Signing failed: " + (err?.message ?? "Unknown error") });
+  }
 });
 
 export default router;

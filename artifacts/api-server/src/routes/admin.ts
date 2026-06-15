@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable, rankRewardSchedulesTable, userTokenPurchasesTable } from "@workspace/db";
+import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable, rankRewardSchedulesTable, userTokenPurchasesTable, otpCodesTable } from "@workspace/db";
 import { eq, desc, ilike, or, and, inArray, sql, like } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/auth";
 import { UpdateAdminUserBody, UpdateAdminInvestmentBody, UpdateAdminSettingsBody, ListAdminUsersQueryParams, ListAdminInvestmentsQueryParams, ListAdminWithdrawalsQueryParams } from "@workspace/api-zod";
@@ -2419,6 +2419,115 @@ router.post("/admin/reset-for-live", requireAdmin, async (req, res) => {
     .where(eq(usersTable.isAdmin, true));
 
   res.json({ success: true, message: "All non-admin data cleared and admin credentials updated" });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Legacy password audit
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/admin/users/legacy-passwords
+ * Returns the count of users still using the old SHA-256 password hash.
+ */
+router.get("/admin/users/legacy-passwords", requireAdmin, async (_req, res) => {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(usersTable)
+    .where(sql`${usersTable.passwordHash} NOT LIKE ${"$2%"}`);
+  res.json({ count: row?.count ?? 0 });
+});
+
+/**
+ * POST /api/admin/users/reset-legacy-passwords
+ * Sends a password-reset OTP email to every user with a legacy SHA-256 hash.
+ * Optional body: { invalidate: true } — also overwrites their hash with
+ * "RESET_REQUIRED" so they cannot log in until they reset their password.
+ */
+router.post("/admin/users/reset-legacy-passwords", requireAdmin, async (req, res) => {
+  const { invalidate = false } = req.body as { invalidate?: boolean };
+  const legacyUsers = await db
+    .select({ id: usersTable.id, email: usersTable.email, name: usersTable.name })
+    .from(usersTable)
+    .where(sql`${usersTable.passwordHash} NOT LIKE ${"$2%"}`);
+
+  if (legacyUsers.length === 0) {
+    res.json({ sent: 0, total: 0, message: "No users with legacy password hashes found." });
+    return;
+  }
+
+  const { sendOtpEmail } = await import("../lib/email.js");
+  let sent = 0;
+  for (const u of legacyUsers) {
+    try {
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24-hour window for admin-triggered resets
+      await db.update(otpCodesTable)
+        .set({ used: true })
+        .where(and(eq(otpCodesTable.email, u.email), eq(otpCodesTable.purpose, "password_reset")));
+      await db.insert(otpCodesTable).values({ email: u.email, code, purpose: "password_reset", expiresAt });
+      await sendOtpEmail(u.email, code, "password_reset");
+      sent++;
+    } catch { /* skip individual failures — continue with remaining users */ }
+  }
+
+  if (invalidate) {
+    await db.update(usersTable)
+      .set({ passwordHash: "RESET_REQUIRED" })
+      .where(sql`${usersTable.passwordHash} NOT LIKE ${"$2%"}`);
+  }
+
+  res.json({ sent, total: legacyUsers.length, message: `Reset emails sent to ${sent} of ${legacyUsers.length} legacy-hash users.` });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Token referral security — signer key management
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/admin/token/signer-info
+ * Current referral security mode, signer address, and whether a key is stored.
+ */
+router.get("/admin/token/signer-info", requireAdmin, async (_req, res) => {
+  const [settings] = await db.select().from(platformSettingsTable).limit(1);
+  res.json({
+    mode: settings?.tokenReferralMode ?? "open",
+    signerAddress: settings?.tokenSignerAddress ?? "",
+    hasSignerKey: !!(settings?.tokenSignerPrivateKey),
+  });
+});
+
+/**
+ * PUT /api/admin/token/signer-mode
+ * Toggle between "open" (no sig required) and "signed" (ECDSA sig required).
+ */
+router.put("/admin/token/signer-mode", requireAdmin, async (req, res) => {
+  const { mode } = req.body as { mode?: string };
+  if (!["open", "signed"].includes(mode ?? "")) {
+    res.status(400).json({ message: "mode must be 'open' or 'signed'" });
+    return;
+  }
+  await db.update(platformSettingsTable).set({ tokenReferralMode: mode as "open" | "signed" });
+  res.json({ mode });
+});
+
+/**
+ * POST /api/admin/token/generate-signer
+ * Creates a fresh random ECDSA keypair. Stores the private key (AES-256-GCM encrypted)
+ * and the public address in platform_settings.
+ * After calling this, the admin must call setTrustedSigner(signerAddress) on the contract.
+ */
+router.post("/admin/token/generate-signer", requireAdmin, async (_req, res) => {
+  const { ethers } = await import("ethers");
+  const wallet = ethers.Wallet.createRandom();
+  const encryptedKey = await ensureEncrypted(wallet.privateKey);
+  await db.update(platformSettingsTable).set({
+    tokenSignerPrivateKey: encryptedKey,
+    tokenSignerAddress: wallet.address,
+  });
+  res.json({
+    signerAddress: wallet.address,
+    message: "New signer key generated and stored. Copy the address and call setTrustedSigner() on your contract owner wallet.",
+  });
 });
 
 export default router;

@@ -554,6 +554,14 @@ export default function AdminSettings() {
   const [walletSaving, setWalletSaving] = useState(false);
   const [showGasKey, setShowGasKey] = useState(false);
   const [gasWalletKeySet, setGasWalletKeySet] = useState(false);
+
+  // ── Token referral security ──
+  const [tokenSecMode, setTokenSecMode] = useState<"open" | "signed">("open");
+  const [tokenSignerAddr, setTokenSignerAddr] = useState("");
+  const [tokenSignerHasKey, setTokenSignerHasKey] = useState(false);
+  const [tokenSignerLoading, setTokenSignerLoading] = useState(false);
+  const [tokenSignerGenerating, setTokenSignerGenerating] = useState(false);
+  const [tokenSignerSaving, setTokenSignerSaving] = useState(false);
   const walletForm = useForm<{
     adminMasterWallet: string;
     gasWalletPrivateKey: string;
@@ -588,6 +596,19 @@ export default function AdminSettings() {
       .finally(() => setWalletLoading(false));
     loadWalletStats();
     loadServerStatus();
+  }, []);
+
+  useEffect(() => {
+    setTokenSignerLoading(true);
+    fetch("/api/admin/token/signer-info", { headers: { Authorization: `Bearer ${getToken()}` } })
+      .then(r => r.json())
+      .then(d => {
+        setTokenSecMode(d.mode ?? "open");
+        setTokenSignerAddr(d.signerAddress ?? "");
+        setTokenSignerHasKey(!!d.hasSignerKey);
+      })
+      .catch(() => {})
+      .finally(() => setTokenSignerLoading(false));
   }, []);
 
   const onWalletSubmit = async (data: { adminMasterWallet: string; gasWalletPrivateKey: string; bscRpcUrl: string; minDepositUsdt: number; tokenContractAddress: string }) => {
@@ -1116,6 +1137,120 @@ export default function AdminSettings() {
           description="Separate per-level scheme that applies only to Safe Invest token purchases. Level 6 is reserved for the admin master wallet. Set via the contract owner wallet in MetaMask."
         >
           <AdminTokenSafeReferral />
+        </SectionCard>
+
+        <SectionCard
+          icon={ShieldAlert}
+          title="Token Buy — Referral Security Mode"
+          description="Controls whether every on-chain buy() must carry a server-issued ECDSA signature that locks in the referrers array. SIGNED mode prevents users from bypassing the platform's referral tree."
+        >
+          {tokenSignerLoading ? (
+            <div className="space-y-3">
+              {[1,2,3].map(i => <div key={i} className="h-11 rounded-xl animate-pulse" style={{ background: "rgba(0,255,148,0.04)" }} />)}
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {/* Mode toggle */}
+              <div className="flex gap-3 items-start p-4 rounded-xl" style={{ background: tokenSecMode === "signed" ? "rgba(0,255,148,0.07)" : "rgba(255,255,255,0.03)", border: `1px solid ${tokenSecMode === "signed" ? "rgba(0,255,148,0.25)" : "rgba(255,255,255,0.08)"}` }}>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold" style={{ color: "rgba(176,255,224,0.9)" }}>
+                    {tokenSecMode === "signed" ? "SIGNED mode — server signature required" : "OPEN mode — no signature required"}
+                  </div>
+                  <div className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.45)" }}>
+                    {tokenSecMode === "signed"
+                      ? "Every buy() call is authorised by the backend. Referrers are locked server-side — users cannot self-refer."
+                      : "Anyone can pass any referrers array. Suitable only while testing or when referral fraud risk is acceptable."}
+                  </div>
+                </div>
+                <button
+                  disabled={tokenSignerSaving}
+                  onClick={async () => {
+                    const next = tokenSecMode === "open" ? "signed" : "open";
+                    if (next === "signed" && !tokenSignerHasKey) {
+                      toast({ title: "Generate a signer key first", description: "Click 'Generate New Signer Key' before enabling signed mode.", variant: "destructive" });
+                      return;
+                    }
+                    setTokenSignerSaving(true);
+                    try {
+                      await fetch("/api/admin/token/signer-mode", {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+                        body: JSON.stringify({ mode: next }),
+                      });
+                      setTokenSecMode(next);
+                      toast({ title: `Switched to ${next.toUpperCase()} mode` });
+                    } catch { toast({ title: "Save failed", variant: "destructive" }); }
+                    finally { setTokenSignerSaving(false); }
+                  }}
+                  className="relative w-11 h-6 rounded-full transition-all shrink-0"
+                  style={{
+                    background: tokenSecMode === "signed" ? "rgba(0,255,148,0.18)" : "rgba(255,255,255,0.06)",
+                    border: `1px solid ${tokenSecMode === "signed" ? "rgba(0,255,148,0.45)" : "rgba(255,255,255,0.10)"}`,
+                  }}
+                >
+                  <span className="absolute top-0.5 w-4 h-4 rounded-full transition-all" style={{
+                    left: tokenSecMode === "signed" ? "22px" : "2px",
+                    background: tokenSecMode === "signed" ? TEAL : "rgba(176,255,224,0.5)",
+                    boxShadow: tokenSecMode === "signed" ? `0 0 8px ${TEAL}` : "none",
+                  }} />
+                </button>
+              </div>
+
+              {/* Signer address */}
+              <div className="rounded-xl px-4 py-3 space-y-1" style={{ background: "rgba(0,15,30,0.5)", border: "1px solid rgba(0,255,148,0.08)" }}>
+                <div className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(176,255,224,0.35)" }}>Platform Signer Address</div>
+                <div className="font-mono text-xs break-all" style={{ color: tokenSignerAddr ? "rgba(176,255,224,0.85)" : "rgba(176,255,224,0.3)" }}>
+                  {tokenSignerAddr || "— not generated yet —"}
+                </div>
+                {tokenSignerAddr && (
+                  <div className="text-[10px] mt-1" style={{ color: "rgba(251,191,36,0.75)" }}>
+                    Call <strong>setTrustedSigner("{tokenSignerAddr}")</strong> on the contract via the owner wallet to activate SIGNED mode on-chain.
+                  </div>
+                )}
+              </div>
+
+              {/* Generate button */}
+              <div className="flex gap-3 items-center">
+                <button
+                  disabled={tokenSignerGenerating}
+                  onClick={async () => {
+                    if (!confirm("Generate a NEW signer key? The old key (if any) will be overwritten and on-chain txs that used the old address will stop working until you call setTrustedSigner() with the new address.")) return;
+                    setTokenSignerGenerating(true);
+                    try {
+                      const r = await fetch("/api/admin/token/generate-signer", {
+                        method: "POST",
+                        headers: { Authorization: `Bearer ${getToken()}` },
+                      });
+                      const d = await r.json();
+                      setTokenSignerAddr(d.signerAddress ?? "");
+                      setTokenSignerHasKey(true);
+                      toast({ title: "New signer key generated", description: d.message });
+                    } catch { toast({ title: "Key generation failed", variant: "destructive" }); }
+                    finally { setTokenSignerGenerating(false); }
+                  }}
+                  className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                  style={{ background: "rgba(0,255,148,0.12)", border: "1px solid rgba(0,255,148,0.30)", color: TEAL }}
+                >
+                  {tokenSignerGenerating ? "Generating…" : (tokenSignerHasKey ? "Regenerate Signer Key" : "Generate New Signer Key")}
+                </button>
+                <div className="text-xs" style={{ color: "rgba(176,255,224,0.4)" }}>
+                  The private key is stored AES-256-GCM encrypted in the database.
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(91,140,255,0.06)", border: "1px solid rgba(91,140,255,0.18)" }}>
+                <div className="text-xs font-semibold" style={{ color: "rgba(176,210,255,0.85)" }}>Setup checklist</div>
+                <ol className="list-decimal list-inside space-y-1 text-xs" style={{ color: "rgba(176,210,255,0.65)" }}>
+                  <li>Click <em>Generate New Signer Key</em> to create a fresh keypair.</li>
+                  <li>Copy the signer address shown above.</li>
+                  <li>Open your contract owner wallet (MetaMask) and call <code className="px-1 rounded" style={{ background: "rgba(255,255,255,0.08)" }}>setTrustedSigner(address)</code> on the contract.</li>
+                  <li>Once the transaction confirms, enable SIGNED mode with the toggle above.</li>
+                  <li>To disable: flip the toggle to OPEN, then call <code className="px-1 rounded" style={{ background: "rgba(255,255,255,0.08)" }}>setTrustedSigner(0x000…000)</code>.</li>
+                </ol>
+              </div>
+            </div>
+          )}
         </SectionCard>
         </>
       )}

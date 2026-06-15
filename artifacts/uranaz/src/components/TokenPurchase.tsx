@@ -26,13 +26,14 @@ const GLASS = {
 type Mode = "buy" | "sell";
 type Stage =
   | "idle" | "switch_network" | "approving" | "approve_confirm"
-  | "sending" | "confirming" | "success" | "failed";
+  | "signing" | "sending" | "confirming" | "success" | "failed";
 
 const STAGE_LABEL: Record<Stage, string> = {
   idle: "",
   switch_network: "Switching to BSC…",
   approving: "Confirm USDT approval in wallet…",
   approve_confirm: "Waiting for approval confirmation…",
+  signing: "Authorizing with platform server…",
   sending: "Confirm transaction in wallet…",
   confirming: "Waiting for confirmation…",
   success: "Done!",
@@ -61,6 +62,8 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   const [uplines, setUplines] = useState<string[]>([]);
   const [levelPercents, setLevelPercents] = useState<number[]>([]);
   const [adminWalletAddr, setAdminWalletAddr] = useState<string>("");
+  // "open" = any referrers pass through; "signed" = server signature required per buy.
+  const [referralMode, setReferralMode] = useState<"open" | "signed">("open");
 
   const [stage, setStage] = useState<Stage>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -95,6 +98,10 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
         if (Array.isArray(data?.addresses)) setUplines(data.addresses);
         // Backend fills empty slots with admin wallet and tells us which it is.
         if (data?.adminWallet) setAdminWalletAddr(data.adminWallet);
+        // Mode is included in the upline response so the buy handler knows
+        // whether to request a server signature before submitting the tx.
+        if (data?.referralMode === "signed") setReferralMode("signed");
+        else setReferralMode("open");
       }
     } catch { /* non-fatal */ }
   }, []);
@@ -212,8 +219,37 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
         const refBps = BigInt(activeReferralBps);
         const net = gross - (gross * refBps) / BigInt(BPS_DENOMINATOR);
         const minOut = applySlippage(net);
+        // In "signed" mode, request a one-time server signature that the
+        // contract verifies via ECDSA.  This prevents self-referral attacks
+        // where a user swaps out the referrers array before sending to BSC.
+        let buyNonce = "0x" + "00".repeat(32);
+        let buyExpiry = 0n;
+        let buySig = "";
+        if (referralMode === "signed") {
+          setStage("signing");
+          const sigRes = await fetch("/api/token/sign-buy", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}`,
+            },
+            body: JSON.stringify({ buyerAddress: from, referrers: uplines }),
+          });
+          if (!sigRes.ok) {
+            const errData = await sigRes.json().catch(() => ({}));
+            setStage("failed");
+            setErrorMsg(errData.message ?? "Server authorization failed. Please try again.");
+            return;
+          }
+          const sigData = await sigRes.json();
+          if (sigData.mode === "signed") {
+            buyNonce = sigData.nonce;
+            buyExpiry = BigInt(sigData.expiry);
+            buySig = sigData.signature;
+          }
+        }
         setStage("sending");
-        const hash = await buyTokens(wei, minOut, uplines);
+        const hash = await buyTokens(wei, minOut, uplines, buyNonce, buyExpiry, buySig);
         setTxHash(hash);
         setStage("confirming");
         const receipt = await waitForReceipt(hash);
