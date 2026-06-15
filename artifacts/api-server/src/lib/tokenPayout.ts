@@ -177,6 +177,8 @@ async function loadEligibility(settings: SettingsRow): Promise<Eligibility> {
   const eligible = advancing.filter((inv) => {
     const u = userById.get(inv.userId);
     if (!u || !u.isActive) return false;
+    // ROI-blocked users earn no trading profit and generate no level commission for uplines
+    if (u.roiBlocked) return false;
     if (cs.enabled) {
       const cap = capMap.get(u.id) ?? Infinity;
       const earned = earnedMap.get(u.id) ?? 0;

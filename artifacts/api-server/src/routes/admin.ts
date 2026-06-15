@@ -47,10 +47,12 @@ function userToResponse(user: typeof usersTable.$inferSelect) {
     withdrawalBlocked: user.withdrawalBlocked,
     p2pBlocked: user.p2pBlocked,
     investmentBlocked: user.investmentBlocked,
+    roiBlocked: user.roiBlocked,
     blockReason: user.blockReason,
     withdrawalBlockReason: user.withdrawalBlockReason,
     p2pBlockReason: user.p2pBlockReason,
     investmentBlockReason: user.investmentBlockReason,
+    roiBlockReason: user.roiBlockReason,
     walletBalance: parseFloat(user.walletBalance ?? "0"),
     hyperCoinBalance: parseFloat(user.hyperCoinBalance ?? "0"),
     profileComplete: user.profileComplete,
@@ -163,10 +165,12 @@ router.put("/admin/users/:id", requireAdmin, async (req, res) => {
   if (d.withdrawalBlocked !== undefined) updates.withdrawalBlocked = d.withdrawalBlocked;
   if (d.p2pBlocked !== undefined) updates.p2pBlocked = d.p2pBlocked;
   if (d.investmentBlocked !== undefined) updates.investmentBlocked = d.investmentBlocked;
+  if (d.roiBlocked !== undefined) updates.roiBlocked = d.roiBlocked;
   if (d.blockReason !== undefined) updates.blockReason = d.blockReason;
   if (d.withdrawalBlockReason !== undefined) updates.withdrawalBlockReason = d.withdrawalBlockReason;
   if (d.p2pBlockReason !== undefined) updates.p2pBlockReason = d.p2pBlockReason;
   if (d.investmentBlockReason !== undefined) updates.investmentBlockReason = d.investmentBlockReason;
+  if (d.roiBlockReason !== undefined) updates.roiBlockReason = d.roiBlockReason;
   if (d.currentLevel !== undefined) updates.currentLevel = d.currentLevel;
   if (d.walletBalance !== undefined) updates.walletBalance = d.walletBalance.toString();
   if (d.hyperCoinBalance !== undefined) updates.hyperCoinBalance = d.hyperCoinBalance.toString();

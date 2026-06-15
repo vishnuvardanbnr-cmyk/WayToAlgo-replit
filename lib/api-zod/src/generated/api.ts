@@ -578,13 +578,20 @@ export const UpdateAdminUserBody = zod.object({
   walletAddress: zod.string().nullish(),
   isActive: zod.boolean().optional(),
   isAdmin: zod.boolean().optional(),
+  isBlocked: zod.boolean().optional(),
   withdrawalBlocked: zod.boolean().optional(),
   p2pBlocked: zod.boolean().optional(),
   investmentBlocked: zod.boolean().optional(),
+  roiBlocked: zod.boolean().optional(),
   blockReason: zod.string().nullish(),
+  withdrawalBlockReason: zod.string().nullish(),
+  p2pBlockReason: zod.string().nullish(),
+  investmentBlockReason: zod.string().nullish(),
+  roiBlockReason: zod.string().nullish(),
   currentLevel: zod.number().optional(),
   walletBalance: zod.number().optional(),
   hyperCoinBalance: zod.number().optional(),
+  totalEarnings: zod.number().optional(),
 });
 
 export const UpdateAdminUserResponse = zod.object({

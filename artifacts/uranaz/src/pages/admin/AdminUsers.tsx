@@ -23,11 +23,12 @@ type AdminUser = {
   id: number; name: string; email: string; phone: string; country?: string | null;
   walletAddress?: string | null; referralCode: string;
   isAdmin: boolean; isActive: boolean; isBlocked: boolean;
-  withdrawalBlocked: boolean; p2pBlocked: boolean; investmentBlocked: boolean;
+  withdrawalBlocked: boolean; p2pBlocked: boolean; investmentBlocked: boolean; roiBlocked: boolean;
   blockReason?: string | null;
   withdrawalBlockReason?: string | null;
   p2pBlockReason?: string | null;
   investmentBlockReason?: string | null;
+  roiBlockReason?: string | null;
   walletBalance: number; hyperCoinBalance: number;
   totalInvested: number; totalEarnings: number;
   currentLevel: number; createdAt: string;
@@ -47,7 +48,7 @@ export default function AdminUsers() {
     u.referralCode.toLowerCase().includes(search.toLowerCase())
   ), [userList, search]);
 
-  const blockedCount = userList.filter(u => !u.isActive || u.withdrawalBlocked || u.p2pBlocked || u.investmentBlocked).length;
+  const blockedCount = userList.filter(u => !u.isActive || u.withdrawalBlocked || u.p2pBlocked || u.investmentBlocked || u.roiBlocked).length;
 
   return (
     <div className="px-4 py-6 max-w-4xl mx-auto space-y-5 pb-24 md:pb-8">
@@ -111,7 +112,7 @@ export default function AdminUsers() {
       ) : (
         <div className="space-y-2">
           {filtered.map(user => {
-            const restricted = !user.isActive || user.withdrawalBlocked || user.p2pBlocked || user.investmentBlocked;
+            const restricted = !user.isActive || user.withdrawalBlocked || user.p2pBlocked || user.investmentBlocked || user.roiBlocked;
             return (
               <button
                 key={user.id}
@@ -164,7 +165,7 @@ export default function AdminUsers() {
                       <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
                         style={{ background: "rgba(251,191,36,0.10)", border: "1px solid rgba(251,191,36,0.25)", color: AMBER }}>
                         <AlertTriangle size={10} />
-                        {[user.withdrawalBlocked && "WD", user.p2pBlocked && "P2P", user.investmentBlocked && "INV"].filter(Boolean).join(" ")}
+                        {[user.withdrawalBlocked && "WD", user.p2pBlocked && "P2P", user.investmentBlocked && "INV", user.roiBlocked && "ROI"].filter(Boolean).join(" ")}
                       </span>
                     )}
                   </div>
@@ -232,10 +233,12 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
   const [withdrawalBlocked, setWithdrawalBlocked] = useState(user.withdrawalBlocked);
   const [p2pBlocked, setP2pBlocked] = useState(user.p2pBlocked);
   const [investmentBlocked, setInvestmentBlocked] = useState(user.investmentBlocked);
+  const [roiBlocked, setRoiBlocked] = useState(user.roiBlocked);
   const [blockReason, setBlockReason] = useState(user.blockReason ?? "");
   const [withdrawalBlockReason, setWithdrawalBlockReason] = useState(user.withdrawalBlockReason ?? "");
   const [p2pBlockReason, setP2pBlockReason] = useState(user.p2pBlockReason ?? "");
   const [investmentBlockReason, setInvestmentBlockReason] = useState(user.investmentBlockReason ?? "");
+  const [roiBlockReason, setRoiBlockReason] = useState(user.roiBlockReason ?? "");
 
   const [currentLevel, setCurrentLevel] = useState(user.currentLevel.toString());
   const [liveUser, setLiveUser] = useState(user);
@@ -268,10 +271,12 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
     if (withdrawalBlocked !== user.withdrawalBlocked) body.withdrawalBlocked = withdrawalBlocked;
     if (p2pBlocked !== user.p2pBlocked) body.p2pBlocked = p2pBlocked;
     if (investmentBlocked !== user.investmentBlocked) body.investmentBlocked = investmentBlocked;
+    if (roiBlocked !== user.roiBlocked) body.roiBlocked = roiBlocked;
     if ((blockReason || null) !== (user.blockReason || null)) body.blockReason = blockReason.trim() || null;
     if ((withdrawalBlockReason || null) !== (user.withdrawalBlockReason || null)) body.withdrawalBlockReason = withdrawalBlockReason.trim() || null;
     if ((p2pBlockReason || null) !== (user.p2pBlockReason || null)) body.p2pBlockReason = p2pBlockReason.trim() || null;
     if ((investmentBlockReason || null) !== (user.investmentBlockReason || null)) body.investmentBlockReason = investmentBlockReason.trim() || null;
+    if ((roiBlockReason || null) !== (user.roiBlockReason || null)) body.roiBlockReason = roiBlockReason.trim() || null;
     const lvl = parseInt(currentLevel, 10);
     if (!Number.isNaN(lvl) && lvl !== user.currentLevel) body.currentLevel = lvl;
 
@@ -491,6 +496,29 @@ function EditUserDrawer({ user, onClose, onSaved }: { user: AdminUser; onClose: 
                       className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
                       style={INPUT_STYLE}
                       placeholder="e.g. Account under review"
+                    />
+                  </div>
+                )}
+              </div>
+              <div>
+                <Toggle
+                  testId="toggle-roi-blocked"
+                  label="Block ROI"
+                  description="User earns no trading profit. Their uplines also get no level commission sourced from this user."
+                  icon={<TrendingUp size={14} />}
+                  value={roiBlocked}
+                  onChange={setRoiBlocked}
+                />
+                {roiBlocked && (
+                  <div className="mt-2 ml-1">
+                    <p className="text-[10px] mb-1" style={{ color: "rgba(194,210,255,0.4)" }}>Internal reason (optional)</p>
+                    <input
+                      data-testid="input-roi-block-reason"
+                      value={roiBlockReason}
+                      onChange={e => setRoiBlockReason(e.target.value)}
+                      className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
+                      style={INPUT_STYLE}
+                      placeholder="e.g. Fraudulent activity suspected"
                     />
                   </div>
                 )}
