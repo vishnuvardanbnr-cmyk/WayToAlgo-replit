@@ -933,10 +933,12 @@ export default function WalletPage({ user }: { user: any }) {
   const tradingBal = localTradingBal ?? (parseFloat(user?.tradingProfitBalance ?? "0") || 0);
   const teamBal = localTeamBal ?? (parseFloat(user?.teamBenefitBalance ?? "0") || 0);
 
-  // Fetch token price from public settings
+  // Fetch live WTA buy price from token/info
   useEffect(() => {
-    fetch("/api/settings/public").then(r => r.json()).then(d => {
-      if (d.hyperCoinPrice) setTokenPrice(parseFloat(d.hyperCoinPrice));
+    fetch("/api/token/info", {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    }).then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.buyPrice && parseFloat(d.buyPrice) > 0) setTokenPrice(parseFloat(d.buyPrice));
     }).catch(() => {});
   }, []);
 

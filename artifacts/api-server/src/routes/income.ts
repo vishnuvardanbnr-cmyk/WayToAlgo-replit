@@ -34,9 +34,9 @@ const TOKEN_TYPE_TO_UI: Record<string, string> = {
 const INCOME_TABLE_TYPES = ["spot_referral", "rank_bonus", "token_sale"];
 
 function tokenRewardToResponse(tr: typeof tokenRewardsTable.$inferSelect) {
-  // tokenAmount is stored as the full bigint wei value as a numeric string.
-  // Divide by 1e18 to get human-readable WTA token amount.
-  const tokenAmountHuman = Number(BigInt(tr.tokenAmount.split(".")[0])) / 1e18;
+  // tokenAmount is stored as a human-readable decimal string (e.g. "54.695300…")
+  // by ethers.formatUnits at distribution time — just parse it directly.
+  const tokenAmountHuman = parseFloat(tr.tokenAmount);
   const uiType = TOKEN_TYPE_TO_UI[tr.type] ?? tr.type;
   const description = tr.type === "level"
     ? `Level ${tr.level} commission from ${tr.fromUserName ?? ""}`
