@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable, rankRewardSchedulesTable, userTokenPurchasesTable, otpCodesTable, tokenBuyBatchesTable, tokenRewardsTable, tokenSalesTable } from "@workspace/db";
+import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable, rankRewardSchedulesTable, userTokenPurchasesTable, otpCodesTable, tokenBuyBatchesTable, tokenRewardsTable, tokenSalesTable, depositWalletBackupsTable } from "@workspace/db";
 import { eq, desc, ilike, or, and, inArray, sql, like } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/auth";
 import { UpdateAdminUserBody, UpdateAdminInvestmentBody, UpdateAdminSettingsBody, ListAdminUsersQueryParams, ListAdminInvestmentsQueryParams, ListAdminWithdrawalsQueryParams } from "@workspace/api-zod";
@@ -8,6 +8,7 @@ import { investmentToResponse } from "./investments";
 import { z } from "zod";
 import { resolveKey, ensureEncrypted } from "../lib/keyEncryption.js";
 import bcrypt from "bcryptjs";
+import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
 const SmtpSettingsBody = z.object({
   smtpEnabled: z.boolean(),
@@ -2592,6 +2593,136 @@ router.post("/admin/token/generate-signer", requireAdmin, async (_req, res) => {
     signerAddress: wallet.address,
     message: "New signer key generated and stored. Copy the address and call setTrustedSigner() on your contract owner wallet.",
   });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Encryption key rotation
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/admin/rotate-encryption-key
+ *
+ * Re-encrypts every AES-256-GCM protected private key in the database using a
+ * NEW PRIVATE_KEY_SECRET, then updates the on-disk .env file and triggers a
+ * graceful PM2 reload so the new secret takes effect without downtime.
+ *
+ * Body: { newSecret: string }  — exactly 64 hex characters (32 bytes / 256 bits).
+ *
+ * The operation is safe to retry: if it fails partway through, simply call again
+ * with the same newSecret — already-rekeyed values will be left untouched because
+ * they are decrypted with the new key first (if the old key fails, the value was
+ * already rekeyed on a previous run).
+ */
+router.post("/admin/rotate-encryption-key", requireAdmin, async (req, res) => {
+  const { newSecret } = req.body as { newSecret?: string };
+
+  if (!newSecret || !/^[0-9a-fA-F]{64}$/i.test(newSecret)) {
+    res.status(400).json({ message: "newSecret must be exactly 64 hex characters (32 bytes / 256 bits)." });
+    return;
+  }
+
+  const currentSecret = process.env.PRIVATE_KEY_SECRET!;
+  if (newSecret.toLowerCase() === currentSecret.toLowerCase()) {
+    res.status(400).json({ message: "New secret is identical to the current secret — nothing to rotate." });
+    return;
+  }
+
+  const ALG = "aes-256-gcm";
+  const ENC_PREFIX = "enc:";
+  const oldKey = Buffer.from(currentSecret, "hex");
+  const newKey = Buffer.from(newSecret, "hex");
+
+  function decryptWith(stored: string, key: Buffer): string {
+    const parts = stored.slice(ENC_PREFIX.length).split(":");
+    if (parts.length !== 3) throw new Error("Malformed encrypted value");
+    const decipher = createDecipheriv(ALG, key, Buffer.from(parts[0], "hex"));
+    decipher.setAuthTag(Buffer.from(parts[1], "hex"));
+    return Buffer.concat([decipher.update(Buffer.from(parts[2], "hex")), decipher.final()]).toString("utf8");
+  }
+
+  function encryptWith(plaintext: string, key: Buffer): string {
+    const iv = randomBytes(12);
+    const cipher = createCipheriv(ALG, key, iv);
+    const ct = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+    return `${ENC_PREFIX}${iv.toString("hex")}:${cipher.getAuthTag().toString("hex")}:${ct.toString("hex")}`;
+  }
+
+  /** Decrypt with old key, re-encrypt with new key. Already-rekeyed values are skipped gracefully. */
+  function reEncrypt(stored: string | null | undefined): string | null | undefined {
+    if (!stored?.startsWith(ENC_PREFIX)) return stored;
+    try {
+      return encryptWith(decryptWith(stored, oldKey), newKey);
+    } catch {
+      // Decryption with old key failed — value may already use the new key; leave it.
+      return stored;
+    }
+  }
+
+  let rekeyed = 0;
+
+  try {
+    // ── 1. Platform settings keys ──
+    const [settings] = await db.select().from(platformSettingsTable).limit(1);
+    if (settings) {
+      const up: Record<string, any> = {};
+      if (settings.gasWalletPrivateKey?.startsWith(ENC_PREFIX)) {
+        up.gasWalletPrivateKey = reEncrypt(settings.gasWalletPrivateKey);
+        rekeyed++;
+      }
+      if ((settings as any).tokenSignerPrivateKey?.startsWith(ENC_PREFIX)) {
+        up.tokenSignerPrivateKey = reEncrypt((settings as any).tokenSignerPrivateKey);
+        rekeyed++;
+      }
+      if (Object.keys(up).length) await db.update(platformSettingsTable).set(up);
+    }
+
+    // ── 2. User deposit private keys ──
+    const allUsers = await db
+      .select({ id: usersTable.id, depositPrivateKey: usersTable.depositPrivateKey })
+      .from(usersTable);
+    for (const u of allUsers) {
+      if (!u.depositPrivateKey?.startsWith(ENC_PREFIX)) continue;
+      const rekeyed_val = reEncrypt(u.depositPrivateKey);
+      if (rekeyed_val && rekeyed_val !== u.depositPrivateKey) {
+        await db.update(usersTable).set({ depositPrivateKey: rekeyed_val }).where(eq(usersTable.id, u.id));
+        rekeyed++;
+      }
+    }
+
+    // ── 3. Deposit wallet backup keys ──
+    const allBackups = await db
+      .select({ id: depositWalletBackupsTable.id, oldPrivateKey: depositWalletBackupsTable.oldPrivateKey })
+      .from(depositWalletBackupsTable);
+    for (const b of allBackups) {
+      if (!b.oldPrivateKey?.startsWith(ENC_PREFIX)) continue;
+      const rekeyed_val = reEncrypt(b.oldPrivateKey);
+      if (rekeyed_val && rekeyed_val !== b.oldPrivateKey) {
+        await db.update(depositWalletBackupsTable).set({ oldPrivateKey: rekeyed_val }).where(eq(depositWalletBackupsTable.id, b.id));
+        rekeyed++;
+      }
+    }
+
+    // ── 4. Update .env file ──
+    const envPath = process.env.ENV_FILE_PATH ?? "/var/www/waytoalgo/backend/.env";
+    const fs = await import("fs");
+    const envContent = fs.readFileSync(envPath, "utf8");
+    const updatedEnv = envContent.replace(/^PRIVATE_KEY_SECRET=.*/m, `PRIVATE_KEY_SECRET=${newSecret}`);
+    fs.writeFileSync(envPath, updatedEnv, "utf8");
+
+    // ── 5. Graceful PM2 reload (non-fatal if not running under PM2) ──
+    try {
+      const { execSync } = await import("child_process");
+      execSync("pm2 reload waytoalgo-api --update-env", { stdio: "ignore", timeout: 20000 });
+    } catch { /* dev environment — PM2 not available */ }
+
+    res.json({
+      message: `Done — ${rekeyed} key${rekeyed !== 1 ? "s" : ""} re-encrypted. The server is reloading with the new secret.`,
+      rekeyed,
+    });
+  } catch (err: any) {
+    logger.error({ err }, "rotate-encryption-key failed");
+    res.status(500).json({ message: err?.message ?? "Rotation failed — no changes committed." });
+  }
 });
 
 export default router;

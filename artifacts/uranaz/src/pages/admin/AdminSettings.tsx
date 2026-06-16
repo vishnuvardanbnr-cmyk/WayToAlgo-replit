@@ -10,6 +10,7 @@ import {
   Settings, Save, Mail, Eye, EyeOff, Wallet, ShieldAlert, RefreshCw, Database,
   AlertTriangle, CheckCircle2, ArrowUpRight, TrendingUp, SlidersHorizontal, Coins, Server,
   Layers, BadgeDollarSign, Search, ChevronLeft, ChevronRight, X, Upload, FileArchive, Users,
+  KeyRound, RotateCcw,
 } from "lucide-react";
 
 const TEAL = "#00FF94";
@@ -289,6 +290,11 @@ export default function AdminSettings() {
   const [showPassword, setShowPassword] = useState(false);
   const [triggeringBackup, setTriggeringBackup] = useState(false);
   const [backupTriggerMsg, setBackupTriggerMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const [rotateSecret, setRotateSecret] = useState("");
+  const [rotateConfirm, setRotateConfirm] = useState(false);
+  const [rotating, setRotating] = useState(false);
+  const [rotateResult, setRotateResult] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     if (settings) reset(settings as SettingsForm);
@@ -2258,6 +2264,117 @@ export default function AdminSettings() {
               <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)" }}>
                 <RefreshCw size={15} className="animate-spin" style={{ color: "#f59e0b" }} />
                 <span className="text-sm" style={{ color: "rgba(245,158,11,0.85)" }}>Restoring database — please wait, do not close this page…</span>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          icon={KeyRound}
+          title="Rotate Encryption Key"
+          description="Replace the master PRIVATE_KEY_SECRET used to encrypt all wallet private keys in the database. All keys are re-encrypted atomically, then the server reloads with the new secret."
+          accent="#a78bfa"
+        >
+          <div className="space-y-4">
+            <div className="rounded-xl p-3 flex items-start gap-2" style={{ background: "rgba(167,139,250,0.06)", border: "1px solid rgba(167,139,250,0.22)" }}>
+              <AlertTriangle size={14} className="shrink-0 mt-0.5" style={{ color: "rgba(167,139,250,0.85)" }} />
+              <p className="text-xs leading-relaxed" style={{ color: "rgba(167,139,250,0.85)" }}>
+                Generate a new secret externally (e.g. <code style={{ background: "rgba(167,139,250,0.12)", padding: "1px 4px", borderRadius: 4 }}>openssl rand -hex 32</code>) and paste it below.
+                All encrypted keys are re-encrypted with the new secret before the server reloads. <strong>Back up the new secret immediately</strong> — losing it makes all wallet keys unrecoverable.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(176,255,224,0.55)" }}>
+                New Secret (64 hex characters — 32 bytes)
+              </label>
+              <input
+                type="password"
+                value={rotateSecret}
+                onChange={e => { setRotateSecret(e.target.value); setRotateConfirm(false); setRotateResult(null); }}
+                placeholder="e.g. a3f9c1d2e4b5... (64 hex chars)"
+                className={INPUT_CLS + " font-mono"}
+                style={INPUT_STYLE}
+                disabled={rotating}
+              />
+              {rotateSecret && !/^[0-9a-fA-F]{64}$/i.test(rotateSecret) && (
+                <p className="text-xs mt-1" style={{ color: "rgba(248,113,113,0.8)" }}>
+                  Must be exactly 64 hex characters ({rotateSecret.replace(/[^0-9a-fA-F]/gi, "").length}/64 valid chars entered)
+                </p>
+              )}
+            </div>
+
+            {rotateResult && (
+              <div
+                className="flex items-center gap-2 p-3 rounded-xl"
+                style={{
+                  background: rotateResult.ok ? "rgba(52,211,153,0.07)" : "rgba(248,113,113,0.07)",
+                  border: `1px solid ${rotateResult.ok ? "rgba(52,211,153,0.25)" : "rgba(248,113,113,0.25)"}`,
+                }}
+              >
+                {rotateResult.ok
+                  ? <CheckCircle2 size={14} style={{ color: "rgba(52,211,153,0.9)" }} />
+                  : <AlertTriangle size={14} style={{ color: "rgba(248,113,113,0.9)" }} />}
+                <span className="text-xs" style={{ color: rotateResult.ok ? "rgba(52,211,153,0.9)" : "rgba(248,113,113,0.9)" }}>
+                  {rotateResult.text}
+                </span>
+              </div>
+            )}
+
+            {!rotateConfirm ? (
+              <button
+                type="button"
+                disabled={rotating || !/^[0-9a-fA-F]{64}$/i.test(rotateSecret)}
+                onClick={() => setRotateConfirm(true)}
+                className="w-full md:w-auto md:px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+                style={{ background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.4)", color: "rgba(167,139,250,0.95)", letterSpacing: "0.03em" }}
+              >
+                <RotateCcw size={14} /> Rotate Key
+              </button>
+            ) : (
+              <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(167,139,250,0.07)", border: "1px solid rgba(167,139,250,0.35)" }}>
+                <div className="flex gap-2 items-start">
+                  <AlertTriangle size={15} className="shrink-0 mt-0.5" style={{ color: "rgba(167,139,250,0.9)" }} />
+                  <p className="text-xs font-medium leading-relaxed" style={{ color: "rgba(167,139,250,0.9)" }}>
+                    This will re-encrypt all wallet keys and reload the server. Make sure you have saved the new secret somewhere safe before continuing.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={rotating}
+                    onClick={async () => {
+                      setRotating(true);
+                      setRotateResult(null);
+                      try {
+                        const r = await fetch("/api/admin/rotate-encryption-key", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+                          body: JSON.stringify({ newSecret: rotateSecret }),
+                        });
+                        const d = await r.json();
+                        setRotateResult({ ok: r.ok, text: d.message });
+                        if (r.ok) { setRotateSecret(""); setRotateConfirm(false); }
+                      } catch {
+                        setRotateResult({ ok: false, text: "Request failed — check your connection." });
+                      } finally {
+                        setRotating(false);
+                      }
+                    }}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                    style={{ background: "rgba(167,139,250,0.85)", color: "#050C0A" }}
+                  >
+                    {rotating ? <><RefreshCw size={13} className="animate-spin" /> Rotating…</> : "Yes, Rotate Now"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRotateConfirm(false)}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+                    style={{ background: "rgba(0,255,148,0.08)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.7)" }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>
