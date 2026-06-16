@@ -429,9 +429,16 @@ export async function previewTokenDistribution(
 
   const e = await loadEligibility(settings, bypassCooling);
   const totalRoiPrincipalUsd = Number(e.totalMicro) / 1e6;
-  const dailyRoiRate = parseFloat(settings.dailyRoiRate ?? "0") || 0;
+  // Use each investment's own stored dailyRate (set at creation) rather than
+  // the global settings.dailyRoiRate so the preview reflects the actual plan rates.
+  let expectedInvestorUsd = 0;
+  for (const inv of e.eligible) {
+    const principal = Number(e.principalMicro.get(inv.id) ?? 0n) / 1e6;
+    const rate = parseFloat((inv as any).dailyRate ?? "0") || 0;
+    expectedInvestorUsd += principal * rate;
+  }
+  const dailyRoiRate = totalRoiPrincipalUsd > 0 ? expectedInvestorUsd / totalRoiPrincipalUsd : 0;
   const levelCommissionPct = e.levelCommissionPoolPct;
-  const expectedInvestorUsd = totalRoiPrincipalUsd * dailyRoiRate;
   const expectedLevelUsd = expectedInvestorUsd * levelCommissionPct;
   const out: TokenPreviewResult = {
     success: true,
@@ -594,13 +601,17 @@ async function _runTokenDistribute(
   }
 
   // ── Daily payout minimum (additive model) ──
-  // The admin may distribute the same or more than this amount, but never less.
-  // Required = investor ROI (eligible principal × dailyRoiRate) + level commission on top
-  // (pct of that ROI). Any excess is recorded as "extra".
-  const dailyRoiRate = parseFloat(settings.dailyRoiRate ?? "0") || 0;
+  // Required = investor ROI (each investment's principal × its own stored dailyRate)
+  // + level commission on top. Any excess is recorded as "extra".
   const pct = e.levelCommissionPoolPct;
-  const investorRoiUsd = (Number(e.totalMicro) / 1e6) * dailyRoiRate;
-  const expectedDailyUsd = investorRoiUsd * (1 + pct); // investor ROI + level commission on top
+  let investorRoiUsd = 0;
+  for (const inv of e.eligible) {
+    const principal = Number(e.principalMicro.get(inv.id) ?? 0n) / 1e6;
+    const rate = parseFloat((inv as any).dailyRate ?? "0") || 0;
+    investorRoiUsd += principal * rate;
+  }
+  const dailyRoiRate = (Number(e.totalMicro) / 1e6) > 0 ? investorRoiUsd / (Number(e.totalMicro) / 1e6) : 0;
+  const expectedDailyUsd = investorRoiUsd * (1 + pct);
   if (expectedDailyUsd > 0 && profitUsdt + 1e-6 < expectedDailyUsd) {
     return {
       success: false,
@@ -845,14 +856,18 @@ async function _runTokenDistributeMetaMask(
     return { success: false, error: "Eligible investment principal is zero" };
   }
 
-  const dailyRoiRate = parseFloat(settings.dailyRoiRate ?? "0") || 0;
   const pct = e.levelCommissionPoolPct;
-  const investorRoiUsd = (Number(e.totalMicro) / 1e6) * dailyRoiRate;
-  const expectedDailyUsd = investorRoiUsd * (1 + pct);
-  if (expectedDailyUsd > 0 && profitUsdt + 1e-6 < expectedDailyUsd) {
+  let investorRoiUsdMM = 0;
+  for (const inv of e.eligible) {
+    const principal = Number(e.principalMicro.get(inv.id) ?? 0n) / 1e6;
+    const rate = parseFloat((inv as any).dailyRate ?? "0") || 0;
+    investorRoiUsdMM += principal * rate;
+  }
+  const expectedDailyUsdMM = investorRoiUsdMM * (1 + pct);
+  if (expectedDailyUsdMM > 0 && profitUsdt + 1e-6 < expectedDailyUsdMM) {
     return {
       success: false,
-      error: `Amount is below the required daily minimum of $${expectedDailyUsd.toFixed(2)}.`,
+      error: `Amount is below the required daily minimum of $${expectedDailyUsdMM.toFixed(2)}.`,
     };
   }
 
