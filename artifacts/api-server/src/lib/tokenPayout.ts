@@ -126,7 +126,7 @@ interface Eligibility {
  *  - investor account is active
  * Returns everything the distribution math needs, with no chain/DB writes.
  */
-async function loadEligibility(settings: SettingsRow): Promise<Eligibility> {
+async function loadEligibility(settings: SettingsRow, bypassCooling = false): Promise<Eligibility> {
   const cfg = levelConfig(settings);
   // Model A: each per-level rate IS a direct fraction of ROI; the total level
   // commission pool = the sum of the 10 level rates. Investors always receive the
@@ -144,6 +144,7 @@ async function loadEligibility(settings: SettingsRow): Promise<Eligibility> {
     .where(eq(investmentsTable.status, "active"));
 
   const advancing = activeInvestments.filter((inv) => {
+    if (bypassCooling) return true;
     const hoursElapsed = (now.getTime() - new Date(inv.createdAt).getTime()) / 3_600_000;
     return hoursElapsed >= cfg.coolingHours;
   });
@@ -413,6 +414,7 @@ export interface TokenPreviewResult {
 export async function previewTokenDistribution(
   profitUsdt: number,
   mode: DistributeMode,
+  bypassCooling = false,
 ): Promise<TokenPreviewResult> {
   const [settings] = await db.select().from(platformSettingsTable).limit(1);
   if (!settings) {
@@ -425,7 +427,7 @@ export async function previewTokenDistribution(
   const contractAddress = (settings.tokenContractAddress || "").trim();
   const configured = isValidAddress(contractAddress);
 
-  const e = await loadEligibility(settings);
+  const e = await loadEligibility(settings, bypassCooling);
   const totalRoiPrincipalUsd = Number(e.totalMicro) / 1e6;
   const dailyRoiRate = parseFloat(settings.dailyRoiRate ?? "0") || 0;
   const levelCommissionPct = e.levelCommissionPoolPct;
@@ -542,13 +544,14 @@ let distributionInProgress = false;
 export async function runTokenDistribute(
   profitUsdt: number,
   mode: DistributeMode,
+  bypassCooling = false,
 ): Promise<TokenDistributeResult> {
   if (distributionInProgress) {
     return { success: false, error: "Another distribution is already running — please wait for it to finish." };
   }
   distributionInProgress = true;
   try {
-    return await _runTokenDistribute(profitUsdt, mode);
+    return await _runTokenDistribute(profitUsdt, mode, bypassCooling);
   } finally {
     distributionInProgress = false;
   }
@@ -557,6 +560,7 @@ export async function runTokenDistribute(
 async function _runTokenDistribute(
   profitUsdt: number,
   mode: DistributeMode,
+  bypassCooling = false,
 ): Promise<TokenDistributeResult> {
   if (!Number.isFinite(profitUsdt) || profitUsdt <= 0) {
     return { success: false, error: "Profit amount must be a positive number" };
@@ -581,7 +585,7 @@ async function _runTokenDistribute(
   const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
 
   // ── 1. Eligibility BEFORE acting so we never act with nobody to pay ──
-  const e = await loadEligibility(settings);
+  const e = await loadEligibility(settings, bypassCooling);
   if (e.eligible.length === 0) {
     return { success: false, error: "No eligible active investments to distribute to (check cooling period and active investors)" };
   }
@@ -798,13 +802,14 @@ export async function runTokenDistributeMetaMask(
   profitUsdt: number,
   tokensBoughtWei: bigint,
   buyTxHash: string,
+  bypassCooling = false,
 ): Promise<TokenDistributeResult> {
   if (distributionInProgress) {
     return { success: false, error: "Another distribution is already running — please wait." };
   }
   distributionInProgress = true;
   try {
-    return await _runTokenDistributeMetaMask(profitUsdt, tokensBoughtWei, buyTxHash);
+    return await _runTokenDistributeMetaMask(profitUsdt, tokensBoughtWei, buyTxHash, bypassCooling);
   } finally {
     distributionInProgress = false;
   }
@@ -814,6 +819,7 @@ async function _runTokenDistributeMetaMask(
   profitUsdt: number,
   tokensBoughtWei: bigint,
   buyTxHash: string,
+  bypassCooling = false,
 ): Promise<TokenDistributeResult> {
   if (!Number.isFinite(profitUsdt) || profitUsdt <= 0) {
     return { success: false, error: "Profit amount must be a positive number" };
@@ -831,7 +837,7 @@ async function _runTokenDistributeMetaMask(
   }
   const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
 
-  const e = await loadEligibility(settings);
+  const e = await loadEligibility(settings, bypassCooling);
   if (e.eligible.length === 0) {
     return { success: false, error: "No eligible active investments to distribute to (check cooling period and active investors)" };
   }

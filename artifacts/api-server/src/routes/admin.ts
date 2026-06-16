@@ -1636,11 +1636,13 @@ router.post("/admin/run-daily-payout", requireAdmin, async (req, res) => {
 router.get("/admin/token/preview", requireAdmin, async (req, res) => {
   const profitUsdt = parseFloat(String(req.query.profitUsdt ?? "0"));
   const mode = req.query.mode === "held" ? "held" : "buy";
+  const bypassCooling = req.query.bypassCooling === "true";
   try {
     const { previewTokenDistribution } = await import("../lib/tokenPayout");
     const result = await previewTokenDistribution(
       Number.isFinite(profitUsdt) ? profitUsdt : 0,
       mode as "buy" | "held",
+      bypassCooling,
     );
     res.json(result);
   } catch (err: any) {
@@ -1648,7 +1650,7 @@ router.get("/admin/token/preview", requireAdmin, async (req, res) => {
   }
 });
 
-// POST /api/admin/token/distribute  { profitUsdt: number, mode?: "buy" | "held" }
+// POST /api/admin/token/distribute  { profitUsdt: number, mode?: "buy" | "held", bypassCooling?: boolean }
 // Admin enters the day's trading profit (USDT). mode "buy" buys that much token
 // on-chain (raising the live price); mode "held" distributes tokens already sent
 // to the withdraw wallet (no buy). Both distribute the tokens virtually to
@@ -1656,13 +1658,14 @@ router.get("/admin/token/preview", requireAdmin, async (req, res) => {
 router.post("/admin/token/distribute", requireAdmin, async (req, res) => {
   const profitUsdt = parseFloat(req.body?.profitUsdt);
   const mode = req.body?.mode === "held" ? "held" : "buy";
+  const bypassCooling = req.body?.bypassCooling === true;
   if (!Number.isFinite(profitUsdt) || profitUsdt <= 0) {
     res.status(400).json({ success: false, message: "Enter a positive profit amount (USDT)" });
     return;
   }
   try {
     const { runTokenDistribute } = await import("../lib/tokenPayout");
-    const result = await runTokenDistribute(profitUsdt, mode as "buy" | "held");
+    const result = await runTokenDistribute(profitUsdt, mode as "buy" | "held", bypassCooling);
     if (!result.success) {
       res.status(400).json(result);
       return;
@@ -1682,19 +1685,20 @@ router.post("/admin/token/distribute-metamask", requireAdmin, async (req, res) =
     profitUsdt: z.number().positive(),
     tokensBoughtWei: z.string().min(1),
     buyTxHash: z.string().min(10),
+    bypassCooling: z.boolean().optional(),
   }).safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ success: false, message: "Invalid input — need profitUsdt, tokensBoughtWei, buyTxHash" });
     return;
   }
-  const { profitUsdt, tokensBoughtWei, buyTxHash } = parsed.data;
+  const { profitUsdt, tokensBoughtWei, buyTxHash, bypassCooling } = parsed.data;
   let wei: bigint;
   try { wei = BigInt(tokensBoughtWei); } catch {
     res.status(400).json({ success: false, message: "tokensBoughtWei must be a valid integer string" }); return;
   }
   try {
     const { runTokenDistributeMetaMask } = await import("../lib/tokenPayout");
-    const result = await runTokenDistributeMetaMask(profitUsdt, wei, buyTxHash);
+    const result = await runTokenDistributeMetaMask(profitUsdt, wei, buyTxHash, bypassCooling ?? false);
     if (!result.success) { res.status(400).json(result); return; }
     res.json(result);
   } catch (err: any) {

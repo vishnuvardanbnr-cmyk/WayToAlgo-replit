@@ -123,6 +123,7 @@ export default function AdminTokenDistribution() {
 
   const [mode, setMode] = useState<Mode>("buy");
   const [amount, setAmount] = useState("");
+  const [bypassCooling, setBypassCooling] = useState(false);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
@@ -176,6 +177,7 @@ export default function AdminTokenDistribution() {
         const q = new URLSearchParams({
           profitUsdt: Number.isFinite(amt) && amt > 0 ? String(amt) : "0",
           mode,
+          ...(bypassCooling ? { bypassCooling: "true" } : {}),
         });
         const r = await fetch(`/api/admin/token/preview?${q}`, { headers: authHeaders() });
         setPreview(await r.json());
@@ -188,7 +190,7 @@ export default function AdminTokenDistribution() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [amount, mode]);
+  }, [amount, mode, bypassCooling]);
 
   const amt = parseFloat(amount);
   const amtValid = Number.isFinite(amt) && amt > 0;
@@ -255,7 +257,7 @@ export default function AdminTokenDistribution() {
       const r = await fetch("/api/admin/token/distribute", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ profitUsdt: amt, mode: "held" }),
+        body: JSON.stringify({ profitUsdt: amt, mode: "held", bypassCooling }),
       });
       const data = await r.json();
       if (r.ok && data.success) {
@@ -331,7 +333,7 @@ export default function AdminTokenDistribution() {
       const r = await fetch("/api/admin/token/distribute-metamask", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ profitUsdt: amt, tokensBoughtWei: tokensBoughtWei.toString(), buyTxHash: receipt.hash }),
+        body: JSON.stringify({ profitUsdt: amt, tokensBoughtWei: tokensBoughtWei.toString(), buyTxHash: receipt.hash, bypassCooling }),
       });
       const data = await r.json();
       if (r.ok && data.success) {
@@ -416,6 +418,25 @@ export default function AdminTokenDistribution() {
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* Bypass cooling toggle (testing) */}
+      <div
+        className="rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer select-none"
+        style={{ background: bypassCooling ? "rgba(251,191,36,0.07)" : "rgba(10,14,30,0.45)", border: `1px solid ${bypassCooling ? "rgba(251,191,36,0.35)" : "rgba(176,255,224,0.10)"}` }}
+        onClick={() => { setBypassCooling(v => !v); setResult(null); setConfirming(false); }}
+      >
+        <div>
+          <div className="text-xs font-semibold" style={{ color: bypassCooling ? "rgb(251,191,36)" : "rgba(176,255,224,0.6)" }}>
+            Bypass cooling period (testing only)
+          </div>
+          <div className="text-[11px] mt-0.5" style={{ color: "rgba(176,255,224,0.35)" }}>
+            Include investments that haven't passed the {preview?.coolingHours ?? 24}h cooling window yet.
+          </div>
+        </div>
+        <div className="shrink-0 w-10 h-5 rounded-full transition-colors relative" style={{ background: bypassCooling ? "rgb(251,191,36)" : "rgba(176,255,224,0.15)" }}>
+          <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all" style={{ left: bypassCooling ? "calc(100% - 1.1rem)" : "0.15rem" }} />
         </div>
       </div>
 
