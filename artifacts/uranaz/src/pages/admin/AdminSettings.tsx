@@ -60,6 +60,7 @@ type SettingsForm = {
   launchOfferEndDate: string;
   hcDepositUsername: string;
   withdrawalCoolingHours: number;
+  maxTokenBuyUsdt: number;
 };
 
 type IncomeForm = {
@@ -1082,15 +1083,30 @@ export default function AdminSettings() {
               </div>
 
               <SubHeader hint="The deployed WTA token smart contract on BSC. Required for on-chain buy/sell and ROI distribution.">Token Contract</SubHeader>
-              <div>
-                <FieldLabel>WTA Token Contract Address (BEP-20)</FieldLabel>
-                <input
-                  type="text"
-                  placeholder="0x... deployed contract address"
-                  {...walletForm.register("tokenContractAddress")}
-                  className={INPUT_CLS + " font-mono"}
-                  style={INPUT_STYLE}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <FieldLabel>WTA Token Contract Address (BEP-20)</FieldLabel>
+                  <input
+                    type="text"
+                    placeholder="0x... deployed contract address"
+                    {...walletForm.register("tokenContractAddress")}
+                    className={INPUT_CLS + " font-mono"}
+                    style={INPUT_STYLE}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Max Token Buy per Transaction (USDT)</FieldLabel>
+                  <input
+                    type="number" step="1" min="1"
+                    placeholder="100"
+                    {...register("maxTokenBuyUsdt", { valueAsNumber: true })}
+                    className={INPUT_CLS}
+                    style={INPUT_STYLE}
+                  />
+                  <p className="text-xs mt-1" style={{ color: "rgba(176,255,224,0.35)" }}>
+                    Cap enforced per on-chain buy transaction. Saved with General Settings.
+                  </p>
+                </div>
               </div>
 
               <SubHeader>Network</SubHeader>

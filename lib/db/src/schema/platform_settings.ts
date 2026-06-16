@@ -135,6 +135,9 @@ export const platformSettingsTable = pgTable("platform_settings", {
   levelDirectsL9: integer("level_directs_l9").notNull().default(0),
   levelDirectsL10: integer("level_directs_l10").notNull().default(0),
 
+  // Maximum USDT a user may spend in a single on-chain buy transaction.
+  // Enforced server-side in sign-buy and returned via /api/token/info for UI capping.
+  maxTokenBuyUsdt: numeric("max_token_buy_usdt", { precision: 10, scale: 2 }).notNull().default("100"),
   // Token buy referral mode:
   //   "open"   — no server signature required (any caller can pass any referrers array)
   //   "signed" — every buy() / buySafe() call must carry a server-issued ECDSA signature

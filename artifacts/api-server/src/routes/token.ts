@@ -140,17 +140,18 @@ router.get("/token/upline-safe", requireAuth, async (req, res) => {
 router.get("/token/info", requireAuth, async (_req, res) => {
   const [settings] = await db.select().from(platformSettingsTable).limit(1);
   const contractAddress = (settings?.tokenContractAddress || "").trim();
+  const maxTokenBuyUsdt = settings ? parseFloat(settings.maxTokenBuyUsdt) : 100;
   if (!settings || !isValidAddress(contractAddress)) {
-    res.json({ configured: false, buyPrice: "0", sellPrice: "0" });
+    res.json({ configured: false, buyPrice: "0", sellPrice: "0", maxTokenBuyUsdt });
     return;
   }
   const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
   try {
     const prices = await getTokenPrices(contractAddress, rpcUrl);
-    res.json({ configured: true, contractAddress, buyPrice: prices.buyPrice, sellPrice: prices.sellPrice });
+    res.json({ configured: true, contractAddress, buyPrice: prices.buyPrice, sellPrice: prices.sellPrice, maxTokenBuyUsdt });
   } catch (err: any) {
     logger.warn({ err }, "token/info price read failed");
-    res.json({ configured: true, contractAddress, buyPrice: "0", sellPrice: "0", priceError: true });
+    res.json({ configured: true, contractAddress, buyPrice: "0", sellPrice: "0", priceError: true, maxTokenBuyUsdt });
   }
 });
 
@@ -444,10 +445,20 @@ router.post("/token/sign-buy", requireAuth, async (req, res) => {
     return;
   }
 
-  const { buyerAddress, referrers } = req.body;
+  const { buyerAddress, referrers, usdtAmount } = req.body;
   if (!buyerAddress || !ADDR_RE.test(buyerAddress)) {
     res.status(400).json({ message: "Invalid buyerAddress" });
     return;
+  }
+
+  // Enforce per-transaction buy cap
+  const maxBuy = parseFloat(settings.maxTokenBuyUsdt ?? "100");
+  if (usdtAmount !== undefined) {
+    const amt = parseFloat(usdtAmount);
+    if (!isNaN(amt) && amt > maxBuy) {
+      res.status(400).json({ message: `Maximum buy per transaction is $${maxBuy} USDT.` });
+      return;
+    }
   }
   if (!Array.isArray(referrers) || referrers.length !== UPLINE_LEVELS) {
     res.status(400).json({ message: `referrers must be an array of exactly ${UPLINE_LEVELS} addresses` });

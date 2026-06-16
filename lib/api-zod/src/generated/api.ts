@@ -772,6 +772,7 @@ export const UpdateAdminSettingsBody = zod.object({
   spotReferralRate: zod.number(),
   launchOfferActive: zod.boolean(),
   withdrawalEnabled: zod.boolean(),
+  maxTokenBuyUsdt: zod.number().optional(),
 });
 
 export const UpdateAdminSettingsResponse = zod.object({

@@ -65,6 +65,8 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
   // "open" = any referrers pass through; "signed" = server signature required per buy.
   const [referralMode, setReferralMode] = useState<"open" | "signed">("open");
 
+  const [maxBuyUsdt, setMaxBuyUsdt] = useState<number>(100);
+
   const [stage, setStage] = useState<Stage>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -134,6 +136,13 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
 
   useEffect(() => {
     if (configured) { refreshChain(null); loadReferral(); }
+    // Fetch maxTokenBuyUsdt regardless of configured state
+    fetch("/api/token/info", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.maxTokenBuyUsdt) setMaxBuyUsdt(Number(d.maxTokenBuyUsdt)); })
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configured]);
 
@@ -188,6 +197,10 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
     if (!configured) { setErrorMsg("Trading is not enabled yet — the contract address has not been set."); return; }
     const parsed = parseFloat(amount);
     if (!amount || isNaN(parsed) || parsed <= 0) { setErrorMsg("Enter a valid amount."); return; }
+    if (mode === "buy" && parsed > maxBuyUsdt) {
+      setErrorMsg(`Maximum buy per transaction is $${maxBuyUsdt} USDT.`);
+      return;
+    }
 
     try {
       setStage("switch_network");
@@ -480,15 +493,22 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs" style={{ color: "rgba(176,255,224,0.55)" }}>
-                  You pay ({balLabel})
+                  You pay ({balLabel}){mode === "buy" && <span style={{ color: "rgba(176,255,224,0.35)" }}> · max ${maxBuyUsdt}/tx</span>}
                 </label>
                 <button
-                  onClick={() => setAmount(formatUnits18(balForMode, mode === "buy" ? 2 : 6))}
+                  onClick={() => {
+                    if (mode === "buy") {
+                      const walletMax = parseFloat(formatUnits18(usdtBal, 2));
+                      setAmount(Math.min(walletMax, maxBuyUsdt).toFixed(2));
+                    } else {
+                      setAmount(formatUnits18(balForMode, 6));
+                    }
+                  }}
                   disabled={busy}
                   className="text-xs font-semibold"
                   style={{ color: TEAL }}
                 >
-                  Max: {formatUnits18(balForMode, mode === "buy" ? 2 : 4)}
+                  Max: {mode === "buy" ? Math.min(parseFloat(formatUnits18(usdtBal, 2)), maxBuyUsdt).toFixed(2) : formatUnits18(tokenBal, 4)}
                 </button>
               </div>
               <div className="relative">

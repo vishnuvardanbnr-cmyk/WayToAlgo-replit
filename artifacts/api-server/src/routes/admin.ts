@@ -446,6 +446,7 @@ router.get("/admin/settings", requireAdmin, async (req, res) => {
     launchOfferEndDate: settings.launchOfferEndDate ? settings.launchOfferEndDate.toISOString().slice(0, 16) : "",
     hcDepositUsername: settings.hcDepositUsername,
     withdrawalCoolingHours: settings.withdrawalCoolingHours,
+    maxTokenBuyUsdt: parseFloat(settings.maxTokenBuyUsdt),
   });
 });
 
@@ -475,6 +476,7 @@ router.put("/admin/settings", requireAdmin, async (req, res) => {
     if (parsed.data.hcDepositUsername !== undefined) updates.hcDepositUsername = parsed.data.hcDepositUsername;
     if (parsed.data.autoRoiEnabled !== undefined) updates.autoRoiEnabled = parsed.data.autoRoiEnabled;
     if (parsed.data.withdrawalCoolingHours !== undefined) updates.withdrawalCoolingHours = parsed.data.withdrawalCoolingHours;
+    if (parsed.data.maxTokenBuyUsdt !== undefined) updates.maxTokenBuyUsdt = parsed.data.maxTokenBuyUsdt.toString();
     [updated] = await db.update(platformSettingsTable).set(updates).where(eq(platformSettingsTable.id, existing.id)).returning();
   } else {
     [updated] = await db.insert(platformSettingsTable).values({}).returning();
@@ -493,6 +495,7 @@ router.put("/admin/settings", requireAdmin, async (req, res) => {
     launchOfferEndDate: updated.launchOfferEndDate ? updated.launchOfferEndDate.toISOString().slice(0, 16) : "",
     hcDepositUsername: updated.hcDepositUsername,
     withdrawalCoolingHours: updated.withdrawalCoolingHours,
+    maxTokenBuyUsdt: parseFloat(updated.maxTokenBuyUsdt),
   });
 });
 
