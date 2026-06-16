@@ -57,7 +57,14 @@ async function fetchUsdtBalance(walletAddress: string): Promise<bigint> {
 
 type Stage = "idle" | "switch_network" | "sending" | "confirming" | "sweeping" | "credited" | "failed";
 
-export default function Deposit({ user }: { user: any }) {
+async function refreshUser(onUpdate: (u: any) => void) {
+  try {
+    const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${getToken()}` } });
+    if (res.ok) onUpdate(await res.json());
+  } catch {}
+}
+
+export default function Deposit({ user, onUpdate }: { user: any; onUpdate?: (u: any) => void }) {
   const { toast } = useToast();
   const [depositAddress, setDepositAddress] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
@@ -178,6 +185,7 @@ export default function Deposit({ user }: { user: any }) {
         setAmount("");
         toast({ title: `+$${data2.amount?.toFixed(2)} USDT Credited!`, description: "Your wallet balance has been updated." });
         fetchHistory();
+        if (onUpdate) refreshUser(onUpdate);
       } else {
         setStage("failed");
         toast({ title: data2.message ?? "Sweep failed", variant: "destructive" });

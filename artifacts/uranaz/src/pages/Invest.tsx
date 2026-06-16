@@ -300,7 +300,7 @@ const schema = z.object({
   investmentType: z.enum(["safe", "risky"]),
 });
 
-export default function Invest({ user }: { user: any }) {
+export default function Invest({ user, onUpdate }: { user: any; onUpdate?: (u: any) => void }) {
   const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
   const [limitModal, setLimitModal] = useState<{ currentTotal: number; remaining: number; maxTotal: number } | null>(null);
   const [maxTotalInvestment, setMaxTotalInvestment] = useState<number>(DEFAULT_MAX_TOTAL);
@@ -355,6 +355,13 @@ export default function Invest({ user }: { user: any }) {
     try {
       await createInvestment.mutateAsync({ data: { amount: data.amount, investmentType: data.investmentType } as any });
       await queryClient.invalidateQueries({ queryKey: getListInvestmentsQueryKey() });
+      // Refresh user so wallet balance updates immediately without a page reload
+      if (onUpdate) {
+        try {
+          const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}` } });
+          if (res.ok) onUpdate(await res.json());
+        } catch {}
+      }
       toast({
         title: "Investment created!",
         description: data.investmentType === "safe"

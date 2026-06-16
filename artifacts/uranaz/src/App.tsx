@@ -130,7 +130,7 @@ function Router({ user, setUser }: { user: any; setUser: (u: any) => void }) {
         </Route>
         <Route path="/invest">
           <RequireAuth user={user}>
-            <Invest user={user} />
+            <Invest user={user} onUpdate={setUser} />
           </RequireAuth>
         </Route>
         <Route path="/income">
@@ -175,7 +175,7 @@ function Router({ user, setUser }: { user: any; setUser: (u: any) => void }) {
         </Route>
         <Route path="/deposit">
           <RequireAuth user={user}>
-            <Deposit user={user} />
+            <Deposit user={user} onUpdate={setUser} />
           </RequireAuth>
         </Route>
         <Route path="/support">

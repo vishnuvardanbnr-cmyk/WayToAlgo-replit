@@ -180,9 +180,12 @@ router.post("/investments", requireAuth, async (req, res) => {
 
       // Auto-activate user on their first investment
       const isFirstInvestment = parseFloat(lockedUser.totalInvested) === 0;
+      // For Safe Invest, only the ROI half (50%) counts toward the earnings cap
+      // basis and team volume — the token half earns no daily ROI.
+      const roiPrincipalAdded = isSafe ? amount * 0.5 : amount;
       await tx.update(usersTable)
         .set({
-          totalInvested: (parseFloat(lockedUser.totalInvested) + amount).toString(),
+          totalInvested: (parseFloat(lockedUser.totalInvested) + roiPrincipalAdded).toString(),
           walletBalance: (latestUsdt - usdtAmount).toString(),
           ...(isFirstInvestment ? { isActive: true } : {}),
         })
