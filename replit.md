@@ -153,7 +153,7 @@ lib/
 - `trust proxy: 1` set so nginx's X-Forwarded-For is used for real client IP
 
 ### CORS
-- Restricted to `https://uranustrades.net`, `https://www.uranustrades.net`, and localhost
+- Restricted to `https://way2algo.io`, `https://www.way2algo.io`, and localhost
 - All other origins rejected
 
 ### DB Transactions (Race Condition Protection)
