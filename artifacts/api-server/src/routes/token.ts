@@ -465,33 +465,38 @@ router.post("/token/sign-buy", requireAuth, async (req, res) => {
     return;
   }
 
-  // Re-derive the canonical upline the same way GET /token/upline does,
-  // then reject if the submitted array doesn't match (prevents self-referral bypass).
-  const adminWallet = (settings.adminMasterWallet || "").trim();
-  const fallback = ADDR_RE.test(adminWallet) ? adminWallet : ZERO_ADDRESS;
-  const expected: string[] = [];
-  let currentSponsorId: number | null = user.sponsorId ?? null;
-  const seen = new Set<number>([user.id]);
+  // Admins sign on behalf of other users (Safe Invest settlement, ROI distribution).
+  // The referrers array for admin calls is computed server-side by the resolve endpoint,
+  // so upline verification is skipped — there is no self-referral risk.
+  if (!user.isAdmin) {
+    // Re-derive the canonical upline the same way GET /token/upline does,
+    // then reject if the submitted array doesn't match (prevents self-referral bypass).
+    const adminWallet = (settings.adminMasterWallet || "").trim();
+    const fallback = ADDR_RE.test(adminWallet) ? adminWallet : ZERO_ADDRESS;
+    const expected: string[] = [];
+    let currentSponsorId: number | null = user.sponsorId ?? null;
+    const seen = new Set<number>([user.id]);
 
-  for (let level = 0; level < UPLINE_LEVELS; level++) {
-    if (currentSponsorId == null || seen.has(currentSponsorId)) {
-      expected.push(fallback); currentSponsorId = null; continue;
+    for (let level = 0; level < UPLINE_LEVELS; level++) {
+      if (currentSponsorId == null || seen.has(currentSponsorId)) {
+        expected.push(fallback); currentSponsorId = null; continue;
+      }
+      seen.add(currentSponsorId);
+      const [sponsor] = await db.select().from(usersTable)
+        .where(eq(usersTable.id, currentSponsorId)).limit(1);
+      if (!sponsor) { expected.push(fallback); currentSponsorId = null; continue; }
+      const wallet = (sponsor.walletAddress || "").trim();
+      expected.push(ADDR_RE.test(wallet) ? wallet : fallback);
+      currentSponsorId = sponsor.sponsorId ?? null;
     }
-    seen.add(currentSponsorId);
-    const [sponsor] = await db.select().from(usersTable)
-      .where(eq(usersTable.id, currentSponsorId)).limit(1);
-    if (!sponsor) { expected.push(fallback); currentSponsorId = null; continue; }
-    const wallet = (sponsor.walletAddress || "").trim();
-    expected.push(ADDR_RE.test(wallet) ? wallet : fallback);
-    currentSponsorId = sponsor.sponsorId ?? null;
-  }
 
-  for (let i = 0; i < UPLINE_LEVELS; i++) {
-    if ((referrers[i] ?? "").toLowerCase() !== expected[i].toLowerCase()) {
-      res.status(400).json({ message: "Referrers array does not match the platform's upline tree for your account." });
-      return;
+    for (let i = 0; i < UPLINE_LEVELS; i++) {
+      if ((referrers[i] ?? "").toLowerCase() !== expected[i].toLowerCase()) {
+        res.status(400).json({ message: "Referrers array does not match the platform's upline tree for your account." });
+        return;
+      }
     }
-  }
+  } // end if (!user.isAdmin)
 
   const rawKey = settings.tokenSignerPrivateKey;
   if (!rawKey) {
