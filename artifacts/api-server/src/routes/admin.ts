@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable, rankRewardSchedulesTable, userTokenPurchasesTable, otpCodesTable } from "@workspace/db";
+import { db, usersTable, investmentsTable, withdrawalsTable, incomeTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, depositsTable, walletAddressChangesTable, p2pTransfersTable, ranksTable, userRewardsTable, adminBalanceAdjustmentsTable, rankRewardSchedulesTable, userTokenPurchasesTable, otpCodesTable, tokenBuyBatchesTable, tokenRewardsTable, tokenSalesTable } from "@workspace/db";
 import { eq, desc, ilike, or, and, inArray, sql, like } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/auth";
 import { UpdateAdminUserBody, UpdateAdminInvestmentBody, UpdateAdminSettingsBody, ListAdminUsersQueryParams, ListAdminInvestmentsQueryParams, ListAdminWithdrawalsQueryParams } from "@workspace/api-zod";
@@ -2443,6 +2443,14 @@ router.post("/admin/reset-for-live", requireAdmin, async (req, res) => {
     return;
   }
 
+  // Token / distribution tables (added with WTA token system)
+  await db.delete(tokenRewardsTable);
+  await db.delete(tokenBuyBatchesTable);
+  await db.delete(tokenSalesTable);
+  await db.delete(userTokenPurchasesTable);
+  // Rank reward schedules (tied to users, must go before users delete)
+  await db.delete(rankRewardSchedulesTable);
+  // Core transactional tables
   await db.delete(incomeTable);
   await db.delete(investmentsTable);
   await db.delete(withdrawalsTable);
@@ -2463,7 +2471,10 @@ router.post("/admin/reset-for-live", requireAdmin, async (req, res) => {
     .set({
       email: parsed.data.newEmail,
       passwordHash,
+      // Reset ALL balance fields on the admin account
       totalEarnings: "0", walletBalance: "0", totalInvested: "0",
+      withdrawBalance: "0", roiTokenBalance: "0",
+      tradingProfitBalance: "0", teamBenefitBalance: "0",
       hyperCoinBalance: "0", currentRankId: null, currentLevel: 0,
     })
     .where(eq(usersTable.isAdmin, true));
