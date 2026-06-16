@@ -459,7 +459,7 @@ async function saveBackupToDisk(buffer: Buffer, filename: string): Promise<strin
   await writeFile(filePath, buffer);
   // Prune oldest backups — keep only latest BACKUP_KEEP files
   const files = (await readdir(BACKUP_DIR))
-    .filter(f => f.startsWith("uranaz-backup-") && f.endsWith(".sql.gz"))
+    .filter(f => f.startsWith("waytoalgo-backup-") && f.endsWith(".sql.gz"))
     .sort();
   for (const old of files.slice(0, Math.max(0, files.length - BACKUP_KEEP))) {
     await unlink(join(BACKUP_DIR, old)).catch(() => {});
@@ -502,7 +502,7 @@ export async function sendDatabaseBackupEmail(): Promise<{ sent: boolean; error?
 
   const now = new Date();
   const stamp = now.toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const filename = `uranaz-backup-${stamp}.sql.gz`;
+  const filename = `waytoalgo-backup-${stamp}.sql.gz`;
 
   // Save to VPS disk (keeps last 7 backups)
   let savedPath: string | null = null;
