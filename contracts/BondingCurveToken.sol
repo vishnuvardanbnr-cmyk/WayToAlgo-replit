@@ -246,6 +246,30 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
         return _buy(_usdtAmount, _minTokensOut, _referrers, _nonce, _expiry, _sig, safeLevelPercents);
     }
 
+    /// @dev Verifies the backend signature and marks the nonce used.
+    ///      Extracted to its own function to keep _buy's stack depth under the EVM limit.
+    function _verifySig(
+        address[] calldata _referrers,
+        bytes32 _nonce,
+        uint256 _expiry,
+        bytes calldata _sig
+    ) private {
+        if (block.timestamp > _expiry) revert SignatureExpired();
+        if (usedNonces[_nonce]) revert NonceUsed();
+        bytes32 dataHash = keccak256(abi.encode(
+            address(this),
+            block.chainid,
+            msg.sender,
+            _referrers,
+            _nonce,
+            _expiry
+        ));
+        bytes32 ethHash = MessageHashUtils.toEthSignedMessageHash(dataHash);
+        address recovered = ECDSA.recover(ethHash, _sig);
+        if (recovered == address(0) || recovered != trustedSigner) revert InvalidSignature();
+        usedNonces[_nonce] = true;
+    }
+
     /// @dev Shared buy implementation; `percents` selects which referral table.
     function _buy(
         uint256 _usdtAmount,
@@ -260,21 +284,7 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
 
         // ── Signature guard (only enforced when trustedSigner is configured) ──
         if (trustedSigner != address(0)) {
-            if (block.timestamp > _expiry) revert SignatureExpired();
-            if (usedNonces[_nonce]) revert NonceUsed();
-            // Build the message hash that the backend signed.
-            bytes32 dataHash = keccak256(abi.encode(
-                address(this),
-                block.chainid,
-                msg.sender,
-                _referrers,
-                _nonce,
-                _expiry
-            ));
-            bytes32 ethHash = MessageHashUtils.toEthSignedMessageHash(dataHash);
-            address recovered = ECDSA.recover(ethHash, _sig);
-            if (recovered == address(0) || recovered != trustedSigner) revert InvalidSignature();
-            usedNonces[_nonce] = true;
+            _verifySig(_referrers, _nonce, _expiry, _sig);
         }
 
         // Price is captured BEFORE liquidity is added (front-running protection).
