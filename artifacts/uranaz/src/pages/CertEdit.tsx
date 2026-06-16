@@ -15,9 +15,9 @@ const BTN_STYLE = {
   color: "#00FF94",
 };
 
-function Field({ label, value, onChange, placeholder, type = "text", required = true }: {
+function Field({ label, value, onChange, placeholder, type = "text" }: {
   label: string; value: string; onChange: (v: string) => void;
-  placeholder?: string; type?: string; required?: boolean;
+  placeholder?: string; type?: string;
 }) {
   return (
     <div>
@@ -29,7 +29,6 @@ function Field({ label, value, onChange, placeholder, type = "text", required = 
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        required={required}
         className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
         style={INPUT_STYLE}
       />
@@ -50,86 +49,41 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function CertEdit() {
-  const [key, setKey]             = useState("");
-  const [authed, setAuthed]       = useState(false);
-  const [checking, setChecking]   = useState(false);
-  const [keyError, setKeyError]   = useState("");
+  const [key, setKey]           = useState("");
+  const [authed, setAuthed]     = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [keyError, setKeyError] = useState("");
 
-  // Cert fields
-  const [companyName, setCompanyName]             = useState("");
-  const [companyNumber, setCompanyNumber]         = useState("");
-  const [incorporatedDate, setIncorporatedDate]   = useState("");
-  const [savingCert, setSavingCert] = useState(false);
-  const [savedCert, setSavedCert]   = useState(false);
-  const [certError, setCertError]   = useState("");
-
-  // Fee fields
-  const [feeFlat, setFeeFlat]       = useState("");
-  const [feePct, setFeePct]         = useState("");
-  const [savingFee, setSavingFee]   = useState(false);
-  const [savedFee, setSavedFee]     = useState(false);
-  const [feeError, setFeeError]     = useState("");
+  const [feeFlat, setFeeFlat]     = useState("");
+  const [feePct, setFeePct]       = useState("");
+  const [savingFee, setSavingFee] = useState(false);
+  const [savedFee, setSavedFee]   = useState(false);
+  const [feeError, setFeeError]   = useState("");
 
   async function handleUnlock(e: React.FormEvent) {
     e.preventDefault();
     setKeyError("");
     setChecking(true);
     try {
-      const probe = await fetch(`${BASE}/api/cert-config`, {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-cert-key": key },
-        body: JSON.stringify({ companyName: "_probe_", companyNumber: "_probe_", incorporatedDate: "_probe_" }),
-      });
-      if (probe.status === 401) { setKeyError("Wrong key. Try again."); return; }
+      const feeCur = await fetch(`${BASE}/api/fee-config`).then(r => r.json());
 
-      const [certCur, feeCur] = await Promise.all([
-        fetch(`${BASE}/api/cert-config`).then(r => r.json()),
-        fetch(`${BASE}/api/fee-config`).then(r => r.json()),
-      ]);
-
-      setCompanyName(certCur.companyName);
-      setCompanyNumber(certCur.companyNumber);
-      setIncorporatedDate(certCur.incorporatedDate);
-      setFeeFlat(String(feeCur.depositFeeFlat));
-      setFeePct(String((feeCur.depositFeePercent * 100).toFixed(3)));
-
-      // Restore probe overwrite
-      await fetch(`${BASE}/api/cert-config`, {
+      const probe = await fetch(`${BASE}/api/fee-config`, {
         method: "POST",
         headers: { "content-type": "application/json", "x-cert-key": key },
         body: JSON.stringify({
-          companyName: certCur.companyName,
-          companyNumber: certCur.companyNumber,
-          incorporatedDate: certCur.incorporatedDate,
+          depositFeeFlat: feeCur.depositFeeFlat,
+          depositFeePercent: feeCur.depositFeePercent,
         }),
       });
+      if (probe.status === 401) { setKeyError("Wrong key. Try again."); return; }
 
+      setFeeFlat(String(feeCur.depositFeeFlat));
+      setFeePct(String((feeCur.depositFeePercent * 100).toFixed(3)));
       setAuthed(true);
     } catch {
       setKeyError("Connection error. Try again.");
     } finally {
       setChecking(false);
-    }
-  }
-
-  async function handleSaveCert(e: React.FormEvent) {
-    e.preventDefault();
-    setCertError("");
-    setSavedCert(false);
-    setSavingCert(true);
-    try {
-      const res = await fetch(`${BASE}/api/cert-config`, {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-cert-key": key },
-        body: JSON.stringify({ companyName, companyNumber, incorporatedDate }),
-      });
-      if (!res.ok) { setCertError("Save failed. Try again."); return; }
-      setSavedCert(true);
-      setTimeout(() => setSavedCert(false), 3000);
-    } catch {
-      setCertError("Connection error. Try again.");
-    } finally {
-      setSavingCert(false);
     }
   }
 
@@ -173,7 +127,6 @@ export default function CertEdit() {
       />
 
       <div className="relative z-10 w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-8">
           <div
             className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
@@ -188,7 +141,7 @@ export default function CertEdit() {
             Platform Config
           </h1>
           <p className="text-xs" style={{ color: "rgba(176,255,224,0.35)" }}>
-            Edit certificate details and platform fees
+            Manage platform fee settings
           </p>
         </div>
 
@@ -236,87 +189,52 @@ export default function CertEdit() {
               </button>
             </form>
           ) : (
-            <div className="flex flex-col gap-6">
-
-              {/* ── Certificate Section ── */}
-              <form onSubmit={handleSaveCert} className="flex flex-col gap-4">
-                <SectionTitle>Certificate of Incorporation</SectionTitle>
-                <Field label="Company Name"      value={companyName}      onChange={setCompanyName}      placeholder="e.g. WaytoAlgo INVESTMENT LTD" />
-                <Field label="Company Number"    value={companyNumber}    onChange={setCompanyNumber}    placeholder="e.g. 14309852" />
-                <Field label="Incorporated Date" value={incorporatedDate} onChange={setIncorporatedDate} placeholder="e.g. 22nd August 2022" />
-                {certError && (
-                  <p className="text-xs flex items-center gap-1" style={{ color: "#f87171" }}>
-                    <AlertCircle size={12} /> {certError}
-                  </p>
-                )}
-                {savedCert && (
-                  <p className="text-xs flex items-center gap-1" style={{ color: "#34d399" }}>
-                    <CheckCircle size={12} /> Certificate saved!
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  disabled={savingCert}
-                  className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110 disabled:opacity-50"
-                  style={BTN_STYLE}
-                >
-                  <Save size={14} />
-                  {savingCert ? "Saving…" : "Save Certificate"}
-                </button>
-                <p className="text-center text-xs" style={{ color: "rgba(176,255,224,0.25)" }}>
-                  Changes appear immediately on the About page.
+            <form onSubmit={handleSaveFee} className="flex flex-col gap-4">
+              <SectionTitle>Platform Fees (Deposit &amp; Withdrawal)</SectionTitle>
+              <div
+                className="rounded-xl px-4 py-3 text-xs"
+                style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.09)", color: "rgba(176,255,224,0.5)" }}
+              >
+                These rates apply to <strong style={{ color: "rgba(176,255,224,0.75)" }}>both deposits and withdrawals</strong>.
+                Under $100 → flat fee. $100+ → percentage fee.
+              </div>
+              <Field
+                label="Flat Fee (USD) — for deposits & withdrawals under $100"
+                value={feeFlat}
+                onChange={setFeeFlat}
+                placeholder="e.g. 0.5"
+                type="number"
+              />
+              <Field
+                label="Percentage Fee (%) — for deposits & withdrawals $100 and above"
+                value={feePct}
+                onChange={setFeePct}
+                placeholder="e.g. 0.5"
+                type="number"
+              />
+              {feeError && (
+                <p className="text-xs flex items-center gap-1" style={{ color: "#f87171" }}>
+                  <AlertCircle size={12} /> {feeError}
                 </p>
-              </form>
-
-              {/* ── Fee Section ── */}
-              <form onSubmit={handleSaveFee} className="flex flex-col gap-4">
-                <SectionTitle>Platform Fees (Deposit &amp; Withdrawal)</SectionTitle>
-                <div
-                  className="rounded-xl px-4 py-3 text-xs"
-                  style={{ background: "rgba(0,255,148,0.04)", border: "1px solid rgba(0,255,148,0.09)", color: "rgba(176,255,224,0.5)" }}
-                >
-                  These rates apply to <strong style={{ color: "rgba(176,255,224,0.75)" }}>both deposits and withdrawals</strong>.
-                  Under $100 → flat fee. $100+ → percentage fee.
-                </div>
-                <Field
-                  label="Flat Fee (USD) — for deposits under $100"
-                  value={feeFlat}
-                  onChange={setFeeFlat}
-                  placeholder="e.g. 0.5"
-                  type="number"
-                />
-                <Field
-                  label="Percentage Fee (%) — for deposits $100 and above"
-                  value={feePct}
-                  onChange={setFeePct}
-                  placeholder="e.g. 0.5"
-                  type="number"
-                />
-                {feeError && (
-                  <p className="text-xs flex items-center gap-1" style={{ color: "#f87171" }}>
-                    <AlertCircle size={12} /> {feeError}
-                  </p>
-                )}
-                {savedFee && (
-                  <p className="text-xs flex items-center gap-1" style={{ color: "#34d399" }}>
-                    <CheckCircle size={12} /> Fees saved!
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  disabled={savingFee}
-                  className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110 disabled:opacity-50"
-                  style={BTN_STYLE}
-                >
-                  <Save size={14} />
-                  {savingFee ? "Saving…" : "Save Fees"}
-                </button>
-                <p className="text-center text-xs" style={{ color: "rgba(176,255,224,0.25)" }}>
-                  Fee changes apply to the next deposit sweep.
+              )}
+              {savedFee && (
+                <p className="text-xs flex items-center gap-1" style={{ color: "#34d399" }}>
+                  <CheckCircle size={12} /> Fees saved!
                 </p>
-              </form>
-
-            </div>
+              )}
+              <button
+                type="submit"
+                disabled={savingFee}
+                className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110 disabled:opacity-50"
+                style={BTN_STYLE}
+              >
+                <Save size={14} />
+                {savingFee ? "Saving…" : "Save Fees"}
+              </button>
+              <p className="text-center text-xs" style={{ color: "rgba(176,255,224,0.25)" }}>
+                Fee changes apply immediately to all new deposits and withdrawals.
+              </p>
+            </form>
           )}
         </div>
       </div>
