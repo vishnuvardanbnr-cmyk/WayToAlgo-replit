@@ -106,26 +106,41 @@ router.get("/income", requireAuth, async (req, res) => {
 router.get("/income/summary", requireAuth, async (req, res) => {
   const user = (req as any).user;
 
+  // USDT-denominated income from incomeTable (spot_referral, rank_bonus, token_sale)
   const allIncome = await db.select().from(incomeTable).where(eq(incomeTable.userId, user.id));
 
-  let dailyReturnTotal = 0;
   let spotReferralTotal = 0;
-  let levelCommissionTotal = 0;
   let rankBonusTotal = 0;
   let tokenSaleTotal = 0;
 
   for (const rec of allIncome) {
     const amt = parseFloat(rec.amount);
-    if (rec.type === "daily_return") dailyReturnTotal += amt;
-    else if (rec.type === "spot_referral") spotReferralTotal += amt;
-    else if (rec.type === "level_commission") levelCommissionTotal += amt;
+    if (rec.type === "spot_referral") spotReferralTotal += amt;
     else if (rec.type === "rank_bonus") rankBonusTotal += amt;
     else if (rec.type === "token_sale") tokenSaleTotal += amt;
   }
 
+  // WTA-denominated income from tokenRewardsTable (roi → dailyReturn, level → levelCommission)
+  // These were NEVER written to incomeTable — they live in tokenRewardsTable with usdValue.
+  const tokenRewardSummary = await db
+    .select({
+      type: tokenRewardsTable.type,
+      total: sql<string>`coalesce(sum(${tokenRewardsTable.usdValue}), 0)`,
+    })
+    .from(tokenRewardsTable)
+    .where(and(eq(tokenRewardsTable.userId, user.id), inArray(tokenRewardsTable.type, ["roi", "level"])))
+    .groupBy(tokenRewardsTable.type);
+
+  let dailyReturnTotal = 0;
+  let levelCommissionTotal = 0;
+  for (const row of tokenRewardSummary) {
+    if (row.type === "roi") dailyReturnTotal = parseFloat(row.total) || 0;
+    else if (row.type === "level") levelCommissionTotal = parseFloat(row.total) || 0;
+  }
+
   // USDT-denominated income — these are the only types withdrawable in USDT
   const usdtEarningsTotal = spotReferralTotal + rankBonusTotal + tokenSaleTotal;
-  // WTA-denominated income — stored as token amounts, NOT directly withdrawable
+  // WTA-denominated income (as USD equivalent) — must be sold first to become withdrawable
   const wtaEarningsTotal  = dailyReturnTotal + levelCommissionTotal;
 
   const withdrawals = await db.select().from(withdrawalsTable).where(eq(withdrawalsTable.userId, user.id));
@@ -151,11 +166,8 @@ router.get("/income/summary", requireAuth, async (req, res) => {
     .from(usersTable)
     .where(eq(usersTable.sponsorId, user.id));
   const directVolume = directRows.reduce((s, r) => s + (parseFloat(r.ti ?? "0") || 0), 0);
-  const [earnedRow] = await db
-    .select({ total: sql<string>`coalesce(sum(${tokenRewardsTable.usdValue}), 0)` })
-    .from(tokenRewardsTable)
-    .where(and(eq(tokenRewardsTable.userId, user.id), inArray(tokenRewardsTable.type, ["roi", "level"])));
-  const capEarned = parseFloat(earnedRow?.total ?? "0") || 0;
+  // capEarned is the combined roi+level USD already computed above
+  const capEarned = dailyReturnTotal + levelCommissionTotal;
   const cs = settingsRow ? capSettingsFrom(settingsRow) : { enabled: true, base: 2, boosted: 3 };
   const capInfo = capForUser(u ?? { isAdmin: user.isAdmin, totalInvested: "0" }, directVolume, capEarned, cs);
   const earningsCap = {
