@@ -29,3 +29,9 @@ id = "Q2pQ0Ld6kAZkZaHcDcaY8"
 uri = "file://URANUS_TRADES_Audit_Report_2026.pdf"
 type = "pdf"
 title = "URANUS TRADES — Platform Audit Report 2026"
+
+[[outputs]]
+id = "rsVya7895TA3N2Xcv5pm2"
+uri = "file://attached_assets/Pasted--mcp-version-1-0-0-security-allowedFileTypes-sol-178158_1781586683680.txt"
+type = "text"
+title = "Remix MCP Config (viaIR enabled)"
