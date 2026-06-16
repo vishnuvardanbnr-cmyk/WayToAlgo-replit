@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import "@openzeppelin/contracts@5.0.2/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts@5.0.2/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts@5.0.2/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts@5.0.2/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts@5.0.2/access/Ownable.sol";
+import "@openzeppelin/contracts@5.0.2/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts@5.0.2/utils/cryptography/MessageHashUtils.sol";
 
 /**
  * @title WaytoAlgoToken
