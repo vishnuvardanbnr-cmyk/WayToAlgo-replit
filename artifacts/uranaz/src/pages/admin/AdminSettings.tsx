@@ -354,6 +354,7 @@ export default function AdminSettings() {
   const [resetNewEmail, setResetNewEmail] = useState("");
   const [resetNewPassword, setResetNewPassword] = useState("");
   const [resetConfirmPassword, setResetConfirmPassword] = useState("");
+  const [resetNewWalletAddress, setResetNewWalletAddress] = useState("");
   const [resetShowPass, setResetShowPass] = useState(false);
   const [resetShowConfirmPass, setResetShowConfirmPass] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -365,6 +366,7 @@ export default function AdminSettings() {
     setResetNewEmail("");
     setResetNewPassword("");
     setResetConfirmPassword("");
+    setResetNewWalletAddress("");
     setResetShowPass(false);
     setResetShowConfirmPass(false);
   };
@@ -391,7 +393,7 @@ export default function AdminSettings() {
       const r = await fetch("/api/admin/reset-for-live", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ confirm: "RESET FOR LIVE", newEmail: resetNewEmail, newPassword: resetNewPassword }),
+        body: JSON.stringify({ confirm: "RESET FOR LIVE", newEmail: resetNewEmail, newPassword: resetNewPassword, ...(resetNewWalletAddress ? { newWalletAddress: resetNewWalletAddress } : {}) }),
       });
       if (!r.ok) { const e = await r.json(); throw new Error(e.message || "Failed"); }
       setResetDone(true);
@@ -2324,6 +2326,21 @@ export default function AdminSettings() {
                 <p className="text-xs font-semibold" style={{ color: "rgba(248,113,113,0.9)" }}>
                   Set new admin credentials for after the reset:
                 </p>
+                {/* Admin wallet address */}
+                <div>
+                  <label className="text-xs mb-1 block" style={{ color: "rgba(176,255,224,0.55)" }}>Admin Wallet Address <span style={{ color: "rgba(248,113,113,0.7)" }}>(required for wallet-connect login)</span></label>
+                  <input
+                    type="text"
+                    value={resetNewWalletAddress}
+                    onChange={e => setResetNewWalletAddress(e.target.value.trim())}
+                    placeholder="0x..."
+                    className="w-full rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none"
+                    style={{ background: "rgba(0,15,30,0.7)", border: "1px solid rgba(0,255,148,0.2)", color: "rgba(176,255,224,0.9)" }}
+                  />
+                  {resetNewWalletAddress && !/^0x[a-fA-F0-9]{40}$/.test(resetNewWalletAddress) && (
+                    <p className="text-xs mt-1" style={{ color: "rgba(248,113,113,0.85)" }}>Invalid wallet address format</p>
+                  )}
+                </div>
                 {/* New admin email */}
                 <div>
                   <label className="text-xs mb-1 block" style={{ color: "rgba(176,255,224,0.55)" }}>New Admin Email</label>

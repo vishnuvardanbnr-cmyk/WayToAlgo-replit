@@ -2437,6 +2437,7 @@ router.post("/admin/reset-for-live", requireAdmin, async (req, res) => {
     confirm: z.literal("RESET FOR LIVE"),
     newEmail: z.string().email("Valid email required"),
     newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    newWalletAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid wallet address format").optional(),
   }).safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ message: parsed.error.errors[0]?.message ?? "Validation failed" });
@@ -2467,17 +2468,19 @@ router.post("/admin/reset-for-live", requireAdmin, async (req, res) => {
   await db.delete(usersTable).where(eq(usersTable.isAdmin, false));
 
   const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
-  await db.update(usersTable)
-    .set({
-      email: parsed.data.newEmail,
-      passwordHash,
-      // Reset ALL balance fields on the admin account
-      totalEarnings: "0", walletBalance: "0", totalInvested: "0",
-      withdrawBalance: "0", roiTokenBalance: "0",
-      tradingProfitBalance: "0", teamBenefitBalance: "0",
-      hyperCoinBalance: "0", currentRankId: null, currentLevel: 0,
-    })
-    .where(eq(usersTable.isAdmin, true));
+  const adminUpdate: Record<string, unknown> = {
+    email: parsed.data.newEmail,
+    passwordHash,
+    // Reset ALL balance fields on the admin account
+    totalEarnings: "0", walletBalance: "0", totalInvested: "0",
+    withdrawBalance: "0", roiTokenBalance: "0",
+    tradingProfitBalance: "0", teamBenefitBalance: "0",
+    hyperCoinBalance: "0", currentRankId: null, currentLevel: 0,
+  };
+  if (parsed.data.newWalletAddress) {
+    adminUpdate.walletAddress = parsed.data.newWalletAddress;
+  }
+  await db.update(usersTable).set(adminUpdate).where(eq(usersTable.isAdmin, true));
 
   res.json({ success: true, message: "All non-admin data cleared and admin credentials updated" });
 });
