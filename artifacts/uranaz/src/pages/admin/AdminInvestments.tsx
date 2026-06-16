@@ -20,7 +20,7 @@ const BSC_CHAIN_PARAMS = {
 };
 
 const TOKEN_ABI = [
-  "function buy(uint256 usdtAmount, uint256 minTokensOut, address[] referrers)",
+  "function buy(uint256 usdtAmount, uint256 minTokensOut, address[] referrers, bytes32 nonce, uint256 expiry, bytes sig)",
   "function balanceOf(address owner) view returns (uint256)",
   "function transfer(address to, uint256 amount) returns (bool)",
 ];
@@ -49,6 +49,7 @@ type ResolveData = {
   usdtAmount: number;
   userWallet: string;
   referrers: string[];
+  referralMode: "open" | "signed";
 };
 
 type RowStatus =
@@ -161,11 +162,35 @@ function PendingAllocations() {
       setStatus(id, { phase: "buying" });
       const balBefore: bigint = await tokenContract.balanceOf(adminAddr);
 
-      // 3. Buy tokens (contract distributes to referrers automatically)
-      const buyTx = await tokenContract.buy(usdtWei, 0n, resolve.referrers);
+      // 3. Get server signature if platform is in signed referral mode
+      let buyNonce: string = "0x" + "00".repeat(32);
+      let buyExpiry: bigint = 0n;
+      let buySig: string = "0x";
+      if (resolve.referralMode === "signed") {
+        setStatus(id, { phase: "buying" }); // reuse "buying" phase label while signing
+        const sigRes = await fetch("/api/token/sign-buy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ buyerAddress: adminAddr, referrers: resolve.referrers, usdtAmount: resolve.usdtAmount }),
+        });
+        if (!sigRes.ok) {
+          const errBody = await sigRes.json().catch(() => ({}));
+          throw new Error(errBody.message ?? "Server signature request failed");
+        }
+        const sigData = await sigRes.json();
+        if (sigData.mode === "signed") {
+          buyNonce = sigData.nonce;
+          buyExpiry = BigInt(sigData.expiry);
+          buySig = sigData.signature;
+        }
+      }
+
+      // 4. Buy tokens (contract distributes referral commissions automatically)
+      setStatus(id, { phase: "buying" });
+      const buyTx = await tokenContract.buy(usdtWei, 0n, resolve.referrers, buyNonce, buyExpiry, buySig);
       await buyTx.wait(1);
 
-      // 4. Compute tokens received
+      // 5. Compute tokens received
       const balAfter: bigint = await tokenContract.balanceOf(adminAddr);
       const tokensReceived = balAfter - balBefore;
       if (tokensReceived <= 0n) throw new Error("No tokens received — check USDT balance and contract address");

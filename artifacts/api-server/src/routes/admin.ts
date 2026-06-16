@@ -2288,6 +2288,7 @@ router.get("/admin/token-allocations/:id/resolve", requireAdmin, async (req, res
     usdtAmount: parseFloat(row.usdtSpent),
     userWallet,
     referrers,
+    referralMode: cfg?.tokenReferralMode ?? "open",
   });
 });
 
