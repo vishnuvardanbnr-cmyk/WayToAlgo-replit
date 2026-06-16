@@ -149,6 +149,31 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     }
 
     // ---------------------------------------------------------------------
+    // Admin: emergency USDT recovery (owner-only)
+    // ---------------------------------------------------------------------
+
+    event EmergencyWithdraw(address indexed to, uint256 amount);
+
+    /**
+     * @notice Withdraw USDT from the contract in an emergency.
+     *         Only the owner can call this. Resets totalLiquidity to match
+     *         the remaining contract USDT balance so the curve stays consistent.
+     * @param _amount  USDT amount to withdraw (18 decimals). Pass 0 to withdraw all.
+     * @param _to      Address to send USDT to.
+     */
+    function emergencyWithdrawUsdt(uint256 _amount, address _to) external onlyOwner {
+        if (_to == address(0)) revert ZeroAddress();
+        uint256 balance = usdtToken.balanceOf(address(this));
+        uint256 amount = _amount == 0 ? balance : _amount;
+        if (amount > balance) amount = balance;
+        if (amount == 0) revert ZeroAmount();
+        // Keep totalLiquidity in sync with the actual contract balance after withdrawal.
+        totalLiquidity = balance - amount;
+        usdtToken.safeTransfer(_to, amount);
+        emit EmergencyWithdraw(_to, amount);
+    }
+
+    // ---------------------------------------------------------------------
     // Admin: referral percentages (on-chain, owner-only)
     // ---------------------------------------------------------------------
 
