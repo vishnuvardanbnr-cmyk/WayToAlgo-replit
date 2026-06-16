@@ -32,7 +32,7 @@ const USDT_ABI = [
   "function approve(address spender, uint256 amount) returns (bool)",
   "function allowance(address owner, address spender) view returns (uint256)",
 ];
-const TOKEN_BUY_ABI = ["function buy(uint256 usdtAmount, uint256 minTokens, address[] calldata referrers) returns (uint256)"];
+const TOKEN_BUY_ABI = ["function buy(uint256 usdtAmount, uint256 minTokens, address[] calldata referrers, bytes32 nonce, uint256 expiry, bytes sig) returns (uint256)"];
 const ERC20_TRANSFER_ABI = ["function transfer(address to, uint256 amount) returns (bool)"];
 const ERC20_BALANCE_ABI = ["function balanceOf(address) view returns (uint256)"];
 
@@ -49,6 +49,7 @@ interface TokenStatus {
   walletUsdtBalance?: string;
   priceError?: string;
   balanceError?: string;
+  referralMode?: "open" | "signed";
 }
 
 interface Preview {
@@ -284,11 +285,34 @@ export default function AdminTokenDistribution() {
       const approveTx = await usdt.approve(status.contractAddress, usdtWei);
       await approveTx.wait();
 
-      // 2. Buy tokens on-chain (no referrers for daily ROI buy)
+      // 2. Get server signature if platform is in signed referral mode
+      //    ROI buys use an empty referrers array (no commissions on daily distribution).
+      let buyNonce: string = "0x" + "00".repeat(32);
+      let buyExpiry: bigint = 0n;
+      let buySig: string = "0x";
+      if (status.referralMode === "signed") {
+        const sigRes = await fetch("/api/token/sign-buy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify({ buyerAddress: connectedAddr, referrers: Array(10).fill("0x0000000000000000000000000000000000000000"), usdtAmount: amt }),
+        });
+        if (!sigRes.ok) {
+          const errBody = await sigRes.json().catch(() => ({}));
+          throw new Error(errBody.message ?? "Server signature request failed");
+        }
+        const sigData = await sigRes.json();
+        if (sigData.mode === "signed") {
+          buyNonce = sigData.nonce;
+          buyExpiry = BigInt(sigData.expiry);
+          buySig = sigData.signature;
+        }
+      }
+
+      // 3. Buy tokens on-chain (no referrers for daily ROI buy)
       setBuyStep("buying");
       const tokenContract = new ethers.Contract(status.contractAddress, TOKEN_BUY_ABI, signer);
       const balBefore: bigint = await (new ethers.Contract(status.contractAddress, ERC20_BALANCE_ABI, provider)).balanceOf(connectedAddr);
-      const buyTx = await tokenContract.buy(usdtWei, 0n, []);
+      const buyTx = await tokenContract.buy(usdtWei, 0n, Array(10).fill("0x0000000000000000000000000000000000000000"), buyNonce, buyExpiry, buySig);
       const receipt = await buyTx.wait();
       const balAfter: bigint = await (new ethers.Contract(status.contractAddress, ERC20_BALANCE_ABI, provider)).balanceOf(connectedAddr);
       const tokensBoughtWei = balAfter - balBefore;

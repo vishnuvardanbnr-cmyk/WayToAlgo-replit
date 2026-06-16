@@ -1737,7 +1737,7 @@ router.get("/admin/token/status", requireAdmin, async (_req, res) => {
   const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
   const withdrawKey = resolveKey(settings.withdrawWalletPrivateKey);
 
-  const out: any = { configured: true, contractAddress, walletConfigured: !!withdrawKey };
+  const out: any = { configured: true, contractAddress, walletConfigured: !!withdrawKey, referralMode: settings.tokenReferralMode ?? "open" };
   try {
     const prices = await getTokenPrices(contractAddress, rpcUrl);
     out.buyPrice = prices.buyPrice;
