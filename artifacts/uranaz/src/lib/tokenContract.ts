@@ -9,7 +9,7 @@
    ──────────────────────────────────────────────────────────────── */
 
 // WaytoAlgoToken deployed on BSC mainnet.
-export const TOKEN_CONTRACT_ADDRESS = "0x81321895560887229979485DC36886436a0D38b7";
+export const TOKEN_CONTRACT_ADDRESS = "0xe4753b3b3FB71F2C62b2525F2a17FD7d8E3B7964";
 
 // BSC mainnet BEP-20 USDT (18 decimals) — same token the platform already uses.
 export const USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955";
