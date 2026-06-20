@@ -365,15 +365,40 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
      * @notice Sell (burn) tokens and receive USDT.
      * @param _amount     Tokens to sell.
      * @param _minUsdtOut Minimum USDT to accept (slippage guard; use 0 to disable).
+     * @param _nonce      One-time random bytes32. Ignored when trustedSigner == 0.
+     * @param _expiry     Unix timestamp after which the signature is rejected.
+     *                    Ignored when trustedSigner == 0. Pass 0 in open mode.
+     * @param _sig        65-byte ECDSA signature from the platform's trusted signer
+     *                    over (address(this), chainId, msg.sender, _nonce, _expiry).
+     *                    Ignored (may be empty bytes) when trustedSigner == 0.
      * @return usdtOut    USDT sent to the caller.
      */
-    function sell(uint256 _amount, uint256 _minUsdtOut)
-        external
-        nonReentrant
-        returns (uint256 usdtOut)
-    {
+    function sell(
+        uint256 _amount,
+        uint256 _minUsdtOut,
+        bytes32 _nonce,
+        uint256 _expiry,
+        bytes calldata _sig
+    ) external nonReentrant returns (uint256 usdtOut) {
         if (_amount == 0) revert ZeroAmount();
         if (balanceOf(msg.sender) < _amount) revert InsufficientBalance();
+
+        // ── Signature guard (only enforced when trustedSigner is configured) ──
+        if (trustedSigner != address(0)) {
+            if (block.timestamp > _expiry) revert SignatureExpired();
+            if (usedNonces[_nonce]) revert NonceUsed();
+            bytes32 dataHash = keccak256(abi.encode(
+                address(this),
+                block.chainid,
+                msg.sender,
+                _nonce,
+                _expiry
+            ));
+            bytes32 ethHash = MessageHashUtils.toEthSignedMessageHash(dataHash);
+            address recovered = ECDSA.recover(ethHash, _sig);
+            if (recovered == address(0) || recovered != trustedSigner) revert InvalidSignature();
+            usedNonces[_nonce] = true;
+        }
 
         usdtOut = (_amount * getSellPrice()) / 1e18;
         if (usdtOut == 0) revert ZeroAmount();

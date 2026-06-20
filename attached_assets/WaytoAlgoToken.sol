@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 /**
  * @title WaytoAlgoToken
@@ -22,14 +24,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *      - Sell: burn tokens -> receive 90% of the current sell value in USDT.
  *      - Buy price is read BEFORE liquidity is added (front-running protection).
  *
- *      Differences from the reference (all are user-protections — see the
- *      project notes for how to revert any of them):
- *        1. `buy()` is PUBLIC (any user, after approving USDT to this contract).
- *        2. `buy`/`sell` accept a minimum-output argument (slippage protection).
- *        3. There is NO owner withdrawal of curve USDT. Every USDT held backs
- *           the curve, making the token fully trustless (no rug vector). The
- *           10% spread stays in the curve and is reflected as a rising price.
- *
  *      MULTI-LEVEL REFERRAL REWARDS (carved from the buyer):
  *        - `buy()` accepts an ordered list of the buyer's upline sponsor
  *          addresses (level 1 = direct sponsor, up to LEVELS deep). These are
@@ -41,6 +35,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *          curve's USDT backing per token is therefore unaffected by rewards.
  *        - Slippage protection (`_minTokensOut`) is checked against the amount
  *          the buyer ACTUALLY receives (net of referral payouts).
+ *
+ *      SIGNATURE GUARD (buy + sell):
+ *        - When trustedSigner != address(0), every buy() and sell() must carry
+ *          a server-issued ECDSA signature. This prevents users from bypassing
+ *          the platform's referral tree or calling sell() without platform approval.
+ *        - Set via setTrustedSigner(); disable by passing address(0).
  *
  *      ASSUMES an 18-decimal USDT (BSC BEP-20 USDT, 0x55d3...7955 is 18 dp) and
  *      a non fee-on-transfer token.
@@ -59,13 +59,15 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     uint256 public constant SELL_PERCENTAGE = 90;
 
     // ── Referral configuration ──
-    uint256 public constant LEVELS = 10;          // upline depth rewarded
-    uint256 public constant BPS_DENOMINATOR = 10000; // 100% = 10000 bps
-    // Maximum combined referral payout, leaving the buyer at least 10%.
+    uint256 public constant LEVELS = 10;
+    uint256 public constant BPS_DENOMINATOR = 10000;
     uint256 public constant MAX_TOTAL_BPS = 9000;
 
-    // Per-level reward percentage in basis points (index 0 = level 1).
     uint256[LEVELS] public levelPercents;
+
+    // ── Signature guard ──
+    address public trustedSigner;
+    mapping(bytes32 => bool) public usedNonces;
 
     // ── Holder tracking ──
     uint256 public holderCount;
@@ -89,6 +91,7 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     event TokensSold(address indexed seller, uint256 tokenAmount, uint256 usdtAmount);
     event ReferralPaid(address indexed buyer, address indexed sponsor, uint256 indexed level, uint256 amount);
     event LevelPercentsUpdated(uint256[LEVELS] percents);
+    event TrustedSignerUpdated(address indexed signer);
 
     error ZeroAddress();
     error ZeroAmount();
@@ -96,6 +99,9 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     error InsufficientLiquidity();
     error SlippageExceeded();
     error InvalidPercents();
+    error InvalidSignature();
+    error SignatureExpired();
+    error NonceUsed();
 
     /**
      * @param _usdt   USDT (BEP-20) token address. BSC mainnet: 0x55d398326f99059fF775485246999027B3197955
@@ -111,14 +117,22 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     }
 
     // ---------------------------------------------------------------------
-    // Admin: referral percentages (on-chain, owner-only)
+    // Admin: signature guard (owner-only)
     // ---------------------------------------------------------------------
 
     /**
-     * @notice Set the per-level referral reward percentages (basis points).
-     *         Index 0 = level 1 (direct sponsor). The combined total may not
-     *         exceed MAX_TOTAL_BPS so the buyer always keeps a share.
+     * @notice Set the trusted signing address that must authorise every buy() and sell().
+     *         Pass address(0) to revert to OPEN mode (no signature required).
      */
+    function setTrustedSigner(address _signer) external onlyOwner {
+        trustedSigner = _signer;
+        emit TrustedSignerUpdated(_signer);
+    }
+
+    // ---------------------------------------------------------------------
+    // Admin: referral percentages (on-chain, owner-only)
+    // ---------------------------------------------------------------------
+
     function setLevelPercents(uint256[LEVELS] calldata _percents) external onlyOwner {
         uint256 total;
         for (uint256 i = 0; i < LEVELS; i++) {
@@ -129,7 +143,6 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
         emit LevelPercentsUpdated(_percents);
     }
 
-    /// @notice Read the configured per-level reward percentages (basis points).
     function getLevelPercents() external view returns (uint256[LEVELS] memory) {
         return levelPercents;
     }
@@ -143,24 +156,45 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     // ---------------------------------------------------------------------
 
     /**
-     * @notice Buy WTA tokens by depositing USDT. Caller must first
+     * @notice Buy tokens by depositing USDT. Caller must first
      *         `approve(thisContract, _usdtAmount)` on the USDT token.
      * @param _usdtAmount   USDT to spend (18 decimals).
-     * @param _minTokensOut Minimum WTA tokens the BUYER will accept after referral
+     * @param _minTokensOut Minimum tokens the BUYER will accept after referral
      *                      payouts (slippage guard; use 0 to disable).
-     * @param _referrers    Ordered upline sponsor addresses, level 1 first
-     *                      (length 0..LEVELS). Zero address / self / empty
-     *                      levels are skipped and stay with the buyer.
-     * @return mintAmount   WTA tokens minted to the caller (net of referral payouts).
+     * @param _referrers    Ordered upline sponsor addresses, level 1 first.
+     * @param _nonce        One-time random bytes32. Ignored when trustedSigner == 0.
+     * @param _expiry       Unix timestamp after which the signature is rejected.
+     * @param _sig          ECDSA signature over (address(this), chainId, msg.sender,
+     *                      _referrers, _nonce, _expiry). Ignored when trustedSigner == 0.
+     * @return mintAmount   Tokens minted to the caller (net of referral payouts).
      */
-    function buy(uint256 _usdtAmount, uint256 _minTokensOut, address[] calldata _referrers)
-        external
-        nonReentrant
-        returns (uint256 mintAmount)
-    {
+    function buy(
+        uint256 _usdtAmount,
+        uint256 _minTokensOut,
+        address[] calldata _referrers,
+        bytes32 _nonce,
+        uint256 _expiry,
+        bytes calldata _sig
+    ) external nonReentrant returns (uint256 mintAmount) {
         if (_usdtAmount == 0) revert ZeroAmount();
 
-        // Price is captured BEFORE liquidity is added (front-running protection).
+        if (trustedSigner != address(0)) {
+            if (block.timestamp > _expiry) revert SignatureExpired();
+            if (usedNonces[_nonce]) revert NonceUsed();
+            bytes32 dataHash = keccak256(abi.encode(
+                address(this),
+                block.chainid,
+                msg.sender,
+                _referrers,
+                _nonce,
+                _expiry
+            ));
+            bytes32 ethHash = MessageHashUtils.toEthSignedMessageHash(dataHash);
+            address recovered = ECDSA.recover(ethHash, _sig);
+            if (recovered == address(0) || recovered != trustedSigner) revert InvalidSignature();
+            usedNonces[_nonce] = true;
+        }
+
         uint256 buyPrice = getBuyPrice();
 
         usdtToken.safeTransferFrom(msg.sender, address(this), _usdtAmount);
@@ -170,7 +204,6 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
         uint256 gross = (tokensToMint * MINT_PERCENTAGE) / 100;
         if (gross == 0) revert ZeroAmount();
 
-        // ── Distribute per-level referral rewards, carved from `gross` ──
         uint256 referralTotal = _payReferrals(gross, _referrers);
 
         mintAmount = gross - referralTotal;
@@ -188,7 +221,6 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
         emit PriceUpdated(getBuyPrice(), getSellPrice());
     }
 
-    /// @dev Mints each eligible sponsor their per-level cut of `gross`.
     function _payReferrals(uint256 gross, address[] calldata _referrers)
         private
         returns (uint256 referralTotal)
@@ -208,18 +240,40 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice Sell (burn) WTA tokens and receive USDT.
-     * @param _amount     WTA tokens to sell.
+     * @notice Sell (burn) tokens and receive USDT.
+     * @param _amount     Tokens to sell.
      * @param _minUsdtOut Minimum USDT to accept (slippage guard; use 0 to disable).
+     * @param _nonce      One-time random bytes32. Ignored when trustedSigner == 0.
+     * @param _expiry     Unix timestamp after which the signature is rejected.
+     * @param _sig        ECDSA signature over (address(this), chainId, msg.sender,
+     *                    _nonce, _expiry). Ignored when trustedSigner == 0.
      * @return usdtOut    USDT sent to the caller.
      */
-    function sell(uint256 _amount, uint256 _minUsdtOut)
-        external
-        nonReentrant
-        returns (uint256 usdtOut)
-    {
+    function sell(
+        uint256 _amount,
+        uint256 _minUsdtOut,
+        bytes32 _nonce,
+        uint256 _expiry,
+        bytes calldata _sig
+    ) external nonReentrant returns (uint256 usdtOut) {
         if (_amount == 0) revert ZeroAmount();
         if (balanceOf(msg.sender) < _amount) revert InsufficientBalance();
+
+        if (trustedSigner != address(0)) {
+            if (block.timestamp > _expiry) revert SignatureExpired();
+            if (usedNonces[_nonce]) revert NonceUsed();
+            bytes32 dataHash = keccak256(abi.encode(
+                address(this),
+                block.chainid,
+                msg.sender,
+                _nonce,
+                _expiry
+            ));
+            bytes32 ethHash = MessageHashUtils.toEthSignedMessageHash(dataHash);
+            address recovered = ECDSA.recover(ethHash, _sig);
+            if (recovered == address(0) || recovered != trustedSigner) revert InvalidSignature();
+            usedNonces[_nonce] = true;
+        }
 
         usdtOut = (_amount * getSellPrice()) / 1e18;
         if (usdtOut == 0) revert ZeroAmount();
@@ -253,17 +307,12 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
         return (getBuyPrice() * SELL_PERCENTAGE) / 100;
     }
 
-    /// @notice Gross WTA tokens (before referral payouts) for `_usdtAmount`.
     function quoteBuy(uint256 _usdtAmount) public view returns (uint256 mintAmount) {
         uint256 buyPrice = getBuyPrice();
         uint256 tokensToMint = (_usdtAmount * 1e18) / buyPrice;
         mintAmount = (tokensToMint * MINT_PERCENTAGE) / 100;
     }
 
-    /**
-     * @notice What the BUYER would receive in WTA for `_usdtAmount` given
-     *         `_referrers`, after per-level referral payouts are carved out.
-     */
     function quoteBuyNet(uint256 _usdtAmount, address[] calldata _referrers)
         external
         view
@@ -274,14 +323,12 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
         for (uint256 i = 0; i < n; i++) {
             address sponsor = _referrers[i];
             uint256 pct = levelPercents[i];
-            // Mirror _payReferrals: skip zero-address, self, and zero-percent levels.
             if (sponsor == address(0) || sponsor == msg.sender || pct == 0) continue;
             referralTotal += (gross * pct) / BPS_DENOMINATOR;
         }
         buyerAmount = gross - referralTotal;
     }
 
-    /// @notice USDT a seller would receive for `_amount` WTA tokens at the current price.
     function quoteSell(uint256 _amount) external view returns (uint256 usdtOut) {
         usdtOut = (_amount * getSellPrice()) / 1e18;
     }
@@ -294,21 +341,14 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     // Holder tracking hook
     // ---------------------------------------------------------------------
 
-    /**
-     * @dev Called by OpenZeppelin on every mint, burn, and transfer.
-     *      Maintains `holderCount` by watching when balances cross zero.
-     *      address(0) (the mint/burn sentinel) is always excluded.
-     */
     function _update(address from, address to, uint256 value) internal override {
         super._update(from, to, value);
 
-        // New holder: `to` is a real address that had no balance before this transfer.
         if (to != address(0) && !_isHolder[to] && balanceOf(to) > 0) {
             _isHolder[to] = true;
             holderCount++;
         }
 
-        // Lost holder: `from` is a real address whose balance is now zero.
         if (from != address(0) && _isHolder[from] && balanceOf(from) == 0) {
             _isHolder[from] = false;
             holderCount--;
@@ -316,7 +356,7 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     }
 
     // ---------------------------------------------------------------------
-    // Views (parity with reference)
+    // Views
     // ---------------------------------------------------------------------
 
     function getTotalLiquidity() external view returns (uint256) { return totalLiquidity; }
@@ -326,11 +366,7 @@ contract WaytoAlgoToken is ERC20, ReentrancyGuard, Ownable {
     function getTotalReceivedByUser(address user) external view returns (uint256) { return totalReceivedByUser[user]; }
     function getTotalBurnedByUser(address user) external view returns (uint256) { return totalBurnedByUser[user]; }
     function getUserTransferCount(address user) external view returns (uint256) { return userTransferHistory[user].length; }
-
-    /// @notice Returns the current number of addresses holding a non-zero WTA balance.
     function getHolderCount() external view returns (uint256) { return holderCount; }
-
-    /// @notice Returns true if `account` currently holds a non-zero WTA balance.
     function isHolder(address account) external view returns (bool) { return _isHolder[account]; }
 
     function getUserTransferHistory(address user, uint256 start, uint256 limit)
