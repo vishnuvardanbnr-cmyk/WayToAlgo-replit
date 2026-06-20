@@ -42,6 +42,10 @@ export const usersTable = pgTable("users", {
   // Separate earning wallets — must be converted to main wallet via token buy/sell
   tradingProfitBalance: numeric("trading_profit_balance", { precision: 20, scale: 6 }).notNull().default("0"),
   teamBenefitBalance: numeric("team_benefit_balance", { precision: 20, scale: 6 }).notNull().default("0"),
+  // Sell limit: each on-chain WTA purchase adds usdt_spent × 3 to this.
+  // sign-sell deducts the quoted USDT value before issuing a signature.
+  // When this hits 0, the backend refuses to sign and the user cannot sell on-chain.
+  sellLimitUsdt: numeric("sell_limit_usdt", { precision: 20, scale: 6 }).notNull().default("0"),
   depositAddress: text("deposit_address"),
   depositPrivateKey: text("deposit_private_key"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

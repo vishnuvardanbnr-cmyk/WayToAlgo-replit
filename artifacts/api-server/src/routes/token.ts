@@ -353,14 +353,29 @@ router.post("/token/record-purchase", requireAuth, async (req, res) => {
   }
 
   try {
-    await db.insert(userTokenPurchasesTable).values({
-      userId: user.id,
-      walletAddress: String(walletAddress).toLowerCase(),
-      txHash: String(txHash).toLowerCase(),
-      usdtSpent: String(parseFloat(usdtSpent) || 0),
-      wtaReceived: String(parseFloat(wtaReceived) || 0),
-      buyPrice: String(parseFloat(buyPrice ?? "0") || 0),
-    }).onConflictDoNothing();
+    await db.transaction(async (tx) => {
+      const inserted = await tx.insert(userTokenPurchasesTable).values({
+        userId: user.id,
+        walletAddress: String(walletAddress).toLowerCase(),
+        txHash: String(txHash).toLowerCase(),
+        usdtSpent: String(parseFloat(usdtSpent) || 0),
+        wtaReceived: String(parseFloat(wtaReceived) || 0),
+        buyPrice: String(parseFloat(buyPrice ?? "0") || 0),
+      }).onConflictDoNothing().returning({ id: userTokenPurchasesTable.id });
+
+      if (inserted.length > 0) {
+        // New purchase confirmed — unlock 3× the USDT spent as sell limit
+        const add = parseFloat(usdtSpent) * 3;
+        if (add > 0) {
+          const [fresh] = await tx.select({ sellLimitUsdt: usersTable.sellLimitUsdt })
+            .from(usersTable).where(eq(usersTable.id, user.id)).limit(1);
+          const current = parseFloat(fresh?.sellLimitUsdt ?? "0");
+          await tx.update(usersTable)
+            .set({ sellLimitUsdt: (current + add).toFixed(6) })
+            .where(eq(usersTable.id, user.id));
+        }
+      }
+    });
     res.json({ success: true });
   } catch (err: any) {
     logger.warn({ err }, "token/record-purchase failed");
@@ -549,6 +564,7 @@ router.post("/token/sign-buy", requireAuth, async (req, res) => {
  * Returns (signed mode): { mode: "signed", nonce: string, expiry: number, signature: string }
  */
 router.post("/token/sign-sell", requireAuth, async (req, res) => {
+  const user = (req as any).user;
   const [settings] = await db.select().from(platformSettingsTable).limit(1);
 
   if (!settings || settings.tokenReferralMode !== "signed") {
@@ -556,7 +572,7 @@ router.post("/token/sign-sell", requireAuth, async (req, res) => {
     return;
   }
 
-  const { sellerAddress } = req.body;
+  const { sellerAddress, tokenAmount } = req.body;
   if (!sellerAddress || !ADDR_RE.test(sellerAddress)) {
     res.status(400).json({ message: "Invalid sellerAddress" });
     return;
@@ -581,6 +597,56 @@ router.post("/token/sign-sell", requireAuth, async (req, res) => {
     const network = await provider.getNetwork();
     const chainId = network.chainId;
 
+    // ── Sell limit check ──────────────────────────────────────────────────────
+    // tokenAmount is the WTA token amount the user wants to sell (as a decimal string, e.g. "1234.5678").
+    // We quote it on-chain to get the USDT value, then deduct from the user's
+    // remaining sell_limit_usdt.  If insufficient, the signature is refused.
+    if (tokenAmount) {
+      const tokenAmountFloat = parseFloat(tokenAmount);
+      if (tokenAmountFloat > 0) {
+        const quoteSellAbi = ["function quoteSell(uint256 tokenAmount) view returns (uint256 usdtOut)"];
+        const tokenContract = new ethers.Contract(contractAddress, quoteSellAbi, provider);
+        // Convert decimal token string → 18-dp wei bigint
+        const tokenWei = ethers.parseUnits(tokenAmountFloat.toFixed(18), 18);
+        const usdtOutWei: bigint = await tokenContract.quoteSell(tokenWei);
+        // quoteSell returns USDT in 18-decimal (same precision as the bonding-curve price)
+        const usdtOutFloat = parseFloat(ethers.formatUnits(usdtOutWei, 18));
+
+        // Atomic check-and-deduct inside a DB transaction
+        const limitExceeded = await db.transaction(async (tx) => {
+          const [fresh] = await tx
+            .select({ sellLimitUsdt: usersTable.sellLimitUsdt })
+            .from(usersTable)
+            .where(eq(usersTable.id, user.id))
+            .limit(1);
+          const remaining = parseFloat(fresh?.sellLimitUsdt ?? "0");
+          if (usdtOutFloat > remaining + 0.000001) {
+            return true; // exceeded
+          }
+          const newLimit = Math.max(0, remaining - usdtOutFloat).toFixed(6);
+          await tx.update(usersTable)
+            .set({ sellLimitUsdt: newLimit })
+            .where(eq(usersTable.id, user.id));
+          return false;
+        });
+
+        if (limitExceeded) {
+          const [fresh] = await db
+            .select({ sellLimitUsdt: usersTable.sellLimitUsdt })
+            .from(usersTable)
+            .where(eq(usersTable.id, user.id))
+            .limit(1);
+          const remaining = parseFloat(fresh?.sellLimitUsdt ?? "0").toFixed(2);
+          res.status(403).json({
+            message: `Sell limit exceeded. You can sell up to $${remaining} USDT worth of tokens. Buy more WTA tokens to unlock a higher sell limit (each $1 invested unlocks $3 in sell capacity).`,
+            sellLimitUsdt: remaining,
+          });
+          return;
+        }
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const nonce = ethers.hexlify(ethers.randomBytes(32));
     const expiry = Math.floor(Date.now() / 1000) + 300;
 
@@ -597,6 +663,23 @@ router.post("/token/sign-sell", requireAuth, async (req, res) => {
     logger.error({ err }, "sign-sell failed");
     res.status(500).json({ message: "Signing failed: " + (err?.message ?? "Unknown error") });
   }
+});
+
+/**
+ * GET /api/token/sell-limit
+ *
+ * Returns the current user's remaining WTA token sell limit in USDT.
+ * Limit is replenished by buying tokens (each $1 spent → $3 sell limit).
+ * It is consumed when a sell signature is issued by sign-sell.
+ */
+router.get("/token/sell-limit", requireAuth, async (req, res) => {
+  const user = (req as any).user;
+  const [fresh] = await db
+    .select({ sellLimitUsdt: usersTable.sellLimitUsdt })
+    .from(usersTable)
+    .where(eq(usersTable.id, user.id))
+    .limit(1);
+  res.json({ sellLimitUsdt: parseFloat(fresh?.sellLimitUsdt ?? "0").toFixed(6) });
 });
 
 export default router;

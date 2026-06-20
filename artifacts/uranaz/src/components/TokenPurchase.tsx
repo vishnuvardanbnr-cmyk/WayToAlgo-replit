@@ -67,6 +67,10 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
 
   const [maxBuyUsdt, setMaxBuyUsdt] = useState<number>(100);
 
+  // Platform sell limit — how much USDT worth of tokens this user can still sell.
+  // Replenished by buying tokens (each $1 spent → $3 sell limit unlocked).
+  const [sellLimitUsdt, setSellLimitUsdt] = useState<number | null>(null);
+
   const [stage, setStage] = useState<Stage>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -145,6 +149,17 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configured]);
+
+  /* ── fetch remaining sell limit from platform (refreshes when mode changes) ── */
+  useEffect(() => {
+    if (mode !== "sell") return;
+    fetch("/api/token/sell-limit", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.sellLimitUsdt != null) setSellLimitUsdt(parseFloat(d.sellLimitUsdt)); })
+      .catch(() => {});
+  }, [mode]);
 
   /* ── auto-detect an already-connected wallet (no popup) + react to changes ── */
   useEffect(() => {
@@ -616,6 +631,42 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
                 {mode === "buy" && activeReferralBps > 0 ? " · referral reward" : ""}
               </div>
             </div>
+
+            {/* Sell limit banner — only visible in sell mode */}
+            {mode === "sell" && (
+              (() => {
+                const quoteFloat = quoteOut !== null ? parseFloat(formatUnits18(quoteOut, 18)) : 0;
+                const wouldExceed = sellLimitUsdt !== null && quoteFloat > sellLimitUsdt + 0.000001;
+                const limitKnown = sellLimitUsdt !== null;
+                return (
+                  <div
+                    className="rounded-xl px-4 py-3 mb-4"
+                    style={{
+                      background: wouldExceed ? "rgba(248,113,113,0.08)" : "rgba(251,191,36,0.06)",
+                      border: `1px solid ${wouldExceed ? "rgba(248,113,113,0.3)" : "rgba(251,191,36,0.2)"}`,
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold" style={{ color: wouldExceed ? "#f87171" : "#fbbf24" }}>
+                        Sell Limit
+                      </span>
+                      <span className="text-xs font-bold" style={{ color: wouldExceed ? "#f87171" : "#fbbf24" }}>
+                        {limitKnown ? `$${sellLimitUsdt!.toFixed(2)} USDT remaining` : "Loading…"}
+                      </span>
+                    </div>
+                    {wouldExceed ? (
+                      <p className="text-xs" style={{ color: "rgba(248,113,113,0.75)", lineHeight: "1.4" }}>
+                        This sell (${ quoteFloat.toFixed(2)}) exceeds your limit. Buy more WTA tokens to unlock more sell capacity — every $1 you invest unlocks $3 in sell limit.
+                      </p>
+                    ) : (
+                      <p className="text-xs" style={{ color: "rgba(251,191,36,0.55)", lineHeight: "1.4" }}>
+                        Your sell limit resets with new token purchases. Every $1 invested unlocks $3 sell capacity.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()
+            )}
 
             {/* stage indicator */}
             {stage !== "idle" && (
