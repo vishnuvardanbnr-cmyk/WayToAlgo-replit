@@ -478,6 +478,32 @@ router.post("/wallet/p2p/transfer", requireAuth, async (req, res) => {
 });
 
 /**
+ * GET /api/admin/wallet/user-token-balance?address=0x...
+ * Returns a user's virtual WTA balances (tradingProfitBalance + teamBenefitBalance) by wallet address.
+ */
+router.get("/admin/wallet/user-token-balance", requireAdmin, async (req, res) => {
+  const address = (req.query.address as string || "").trim().toLowerCase();
+  if (!/^0x[0-9a-f]{40}$/.test(address)) {
+    res.status(400).json({ message: "Invalid address" });
+    return;
+  }
+  const [user] = await db.select().from(usersTable)
+    .where(eq(usersTable.walletAddress, address))
+    .limit(1);
+  if (!user) {
+    res.status(404).json({ message: "No user found with this wallet address" });
+    return;
+  }
+  res.json({
+    userId: user.id,
+    name: user.name,
+    email: user.email,
+    tradingProfitBalance: parseFloat(user.tradingProfitBalance ?? "0"),
+    teamBenefitBalance: parseFloat(user.teamBenefitBalance ?? "0"),
+  });
+});
+
+/**
  * POST /api/admin/wallet/sell-for-user
  * Admin sells WTA tokens on behalf of a user (from the platform withdraw wallet)
  * and credits USDT to the user's withdraw balance automatically.
