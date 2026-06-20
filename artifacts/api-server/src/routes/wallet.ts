@@ -2,8 +2,9 @@ import { Router } from "express";
 import { db, usersTable, platformSettingsTable, offersTable, noticesTable, noticeViewsTable, p2pTransfersTable, tokenSalesTable } from "@workspace/db";
 import { eq, or, isNull, lte, gte, and, inArray } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
+import { requireAdmin } from "../middlewares/auth";
 import { resolveKey } from "../lib/keyEncryption.js";
-import { getTokenPrices, buyTokens, sellTokens, isValidAddress, TOKEN_DECIMALS } from "../lib/tokenChain";
+import { getTokenPrices, buyTokens, sellTokens, signSell, isValidAddress, TOKEN_DECIMALS } from "../lib/tokenChain";
 import { ethers } from "ethers";
 import { logger } from "../lib/logger";
 
@@ -235,8 +236,26 @@ router.post("/wallet/convert", requireAuth, async (req, res) => {
     return;
   }
 
+  // Generate server-side sell signature (required when contract is in signed mode)
+  let sellOpts: { nonce?: string; expiry?: number; signature?: string } = {};
+  try {
+    const rawSignerKey = settings.tokenSignerPrivateKey;
+    const withdrawWallet = new ethers.Wallet(withdrawKey);
+    if (rawSignerKey && settings.tokenReferralMode === "signed") {
+      const plainSignerKey = await resolveKey(rawSignerKey);
+      sellOpts = await signSell({
+        contractAddress,
+        sellerAddress: withdrawWallet.address,
+        signerPrivateKey: plainSignerKey,
+        rpcUrl,
+      });
+    }
+  } catch (sigErr: any) {
+    logger.warn({ err: sigErr }, "wallet/convert: sell signature generation failed — proceeding unsigned");
+  }
+
   // Sell the tokens from the platform's withdraw wallet (they are already there from distribution)
-  const sellResult = await sellTokens(reservedTokens, contractAddress, withdrawKey, gasKey, rpcUrl);
+  const sellResult = await sellTokens(reservedTokens, contractAddress, withdrawKey, gasKey, rpcUrl, sellOpts);
   if (!sellResult.success || sellResult.usdtReceived === undefined) {
     // Refund tokens to user's source balance on failure
     logger.error({ err: sellResult.error }, "Wallet convert: sell failed — refunding tokens to user");
@@ -455,6 +474,151 @@ router.post("/wallet/p2p/transfer", requireAuth, async (req, res) => {
     message: `$${transferAmount.toFixed(2)} ${coin.toUpperCase()} sent to ${recipientName}`,
     walletBalance: parseFloat(updatedSender!.walletBalance ?? "0"),
     hyperCoinBalance: parseFloat(updatedSender!.hyperCoinBalance ?? "0"),
+  });
+});
+
+/**
+ * POST /api/admin/wallet/sell-for-user
+ * Admin sells WTA tokens on behalf of a user (from the platform withdraw wallet)
+ * and credits USDT to the user's withdraw balance automatically.
+ *
+ * Body: { userAddress: string, tokenAmount: number, source: "trading" | "team" }
+ *   - userAddress: the user's registered wallet address (used to look them up)
+ *   - tokenAmount: how many WTA tokens to sell
+ *   - source: which token balance to deduct from ("trading" or "team")
+ */
+router.post("/admin/wallet/sell-for-user", requireAdmin, async (req, res) => {
+  const { userAddress, tokenAmount, source } = req.body;
+
+  if (!userAddress || !/^0x[0-9a-fA-F]{40}$/.test(userAddress)) {
+    res.status(400).json({ message: "Invalid userAddress — must be a valid 0x wallet address" });
+    return;
+  }
+  if (!source || !["trading", "team"].includes(source)) {
+    res.status(400).json({ message: "source must be 'trading' or 'team'" });
+    return;
+  }
+  const sellAmount = parseFloat(tokenAmount);
+  if (!sellAmount || sellAmount <= 0) {
+    res.status(400).json({ message: "tokenAmount must be greater than 0" });
+    return;
+  }
+
+  // Look up user by wallet address
+  const [targetUser] = await db.select().from(usersTable)
+    .where(eq(usersTable.walletAddress, userAddress.toLowerCase()))
+    .limit(1);
+  if (!targetUser) {
+    res.status(404).json({ message: `No user found with wallet address ${userAddress}` });
+    return;
+  }
+
+  const settings = await getSettings();
+  if (!settings) {
+    res.status(500).json({ message: "Platform settings not configured" });
+    return;
+  }
+  const contractAddress = (settings.tokenContractAddress || "").trim();
+  if (!isValidAddress(contractAddress)) {
+    res.status(400).json({ message: "Token contract not configured" });
+    return;
+  }
+  const withdrawKey = resolveKey(settings.withdrawWalletPrivateKey);
+  const gasKey = resolveKey(settings.gasWalletPrivateKey);
+  if (!withdrawKey || !gasKey) {
+    res.status(400).json({ message: "Platform wallet not configured" });
+    return;
+  }
+  const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
+  const tokensToSellWei = ethers.parseUnits(sellAmount.toString(), TOKEN_DECIMALS);
+
+  // Atomically deduct from user's token balance
+  let reservedTokens = 0n;
+  try {
+    await db.transaction(async (tx) => {
+      const [fresh] = await tx.select().from(usersTable).where(eq(usersTable.id, targetUser.id)).limit(1);
+      if (!fresh) throw Object.assign(new Error("User not found"), { status: 404 });
+      const currentBal = parseFloat((source === "trading" ? fresh.tradingProfitBalance : fresh.teamBenefitBalance) ?? "0");
+      if (sellAmount > currentBal) {
+        const label = source === "trading" ? "Trading Profit" : "Team Benefit";
+        throw Object.assign(
+          new Error(`Insufficient ${label} balance. User has ${currentBal.toFixed(4)} WTA`),
+          { status: 400 }
+        );
+      }
+      reservedTokens = tokensToSellWei;
+      const newBal = (currentBal - sellAmount).toFixed(6);
+      await tx.update(usersTable)
+        .set(source === "trading" ? { tradingProfitBalance: newBal } : { teamBenefitBalance: newBal })
+        .where(eq(usersTable.id, targetUser.id));
+    });
+  } catch (err: any) {
+    res.status(err?.status ?? 500).json({ message: err?.message ?? "Could not reserve balance" });
+    return;
+  }
+
+  // Generate sell signature
+  let sellOpts: { nonce?: string; expiry?: number; signature?: string } = {};
+  try {
+    const rawSignerKey = settings.tokenSignerPrivateKey;
+    const withdrawWallet = new ethers.Wallet(withdrawKey);
+    if (rawSignerKey && settings.tokenReferralMode === "signed") {
+      const plainSignerKey = await resolveKey(rawSignerKey);
+      sellOpts = await signSell({
+        contractAddress,
+        sellerAddress: withdrawWallet.address,
+        signerPrivateKey: plainSignerKey,
+        rpcUrl,
+      });
+    }
+  } catch (sigErr: any) {
+    logger.warn({ err: sigErr }, "admin/sell-for-user: sell signature failed — proceeding unsigned");
+  }
+
+  // Execute on-chain sell from platform wallet
+  const sellResult = await sellTokens(reservedTokens, contractAddress, withdrawKey, gasKey, rpcUrl, sellOpts);
+  if (!sellResult.success || sellResult.usdtReceived === undefined) {
+    // Refund tokens
+    const [fresh] = await db.select().from(usersTable).where(eq(usersTable.id, targetUser.id)).limit(1);
+    const currentBal = parseFloat((source === "trading" ? fresh?.tradingProfitBalance : fresh?.teamBenefitBalance) ?? "0");
+    await db.update(usersTable)
+      .set(source === "trading"
+        ? { tradingProfitBalance: (currentBal + sellAmount).toFixed(6) }
+        : { teamBenefitBalance: (currentBal + sellAmount).toFixed(6) }
+      )
+      .where(eq(usersTable.id, targetUser.id));
+    res.status(502).json({ message: sellResult.error || "Token sell failed. User balance has been restored." });
+    return;
+  }
+
+  const usdtReceived = sellResult.usdtReceived;
+
+  // Credit USDT proceeds to user's withdraw balance
+  await db.transaction(async (tx) => {
+    const [fresh] = await tx.select().from(usersTable).where(eq(usersTable.id, targetUser.id)).limit(1);
+    const wdBal = parseFloat(fresh?.withdrawBalance ?? "0");
+    await tx.update(usersTable)
+      .set({ withdrawBalance: (wdBal + usdtReceived).toFixed(6) })
+      .where(eq(usersTable.id, targetUser.id));
+    await tx.insert(tokenSalesTable).values({
+      userId: targetUser.id,
+      tokenAmount: ethers.formatUnits(reservedTokens, TOKEN_DECIMALS),
+      usdtReceived: usdtReceived.toString(),
+      sellTxHash: sellResult.txHash ?? null,
+      status: "completed",
+    });
+  });
+
+  const [after] = await db.select().from(usersTable).where(eq(usersTable.id, targetUser.id)).limit(1);
+  logger.info({ adminId: (req as any).user?.id, userId: targetUser.id, sellAmount, usdtReceived, txHash: sellResult.txHash }, "Admin sold tokens for user");
+  res.json({
+    success: true,
+    userId: targetUser.id,
+    userName: targetUser.name,
+    sold: sellAmount,
+    usdtReceived,
+    sellTxHash: sellResult.txHash,
+    withdrawBalance: parseFloat(after?.withdrawBalance ?? "0"),
   });
 });
 

@@ -15,7 +15,7 @@ export const TOKEN_DECIMALS = 18;
 
 const TOKEN_ABI = [
   "function buy(uint256 usdtAmount, uint256 minTokensOut, address[] referrers)",
-  "function sell(uint256 tokenAmount, uint256 minUsdtOut)",
+  "function sell(uint256 tokenAmount, uint256 minUsdtOut, bytes32 nonce, uint256 expiry, bytes calldata sig)",
   "function getBuyPrice() view returns (uint256)",
   "function getSellPrice() view returns (uint256)",
   "function quoteBuy(uint256 usdtAmount) view returns (uint256)",
@@ -369,6 +369,7 @@ export async function sellTokens(
   withdrawWalletPrivateKey: string,
   gasWalletPrivateKey: string,
   rpcUrl: string,
+  opts?: { nonce?: string; expiry?: number; signature?: string },
 ): Promise<SellResult> {
   try {
     const provider = getProvider(rpcUrl);
@@ -402,8 +403,12 @@ export async function sellTokens(
       minUsdtOut = 0n;
     }
 
+    const nonce = opts?.nonce ?? ethers.hexlify(ethers.randomBytes(32));
+    const expiry = BigInt(opts?.expiry ?? Math.floor(Date.now() / 1000) + 300);
+    const sig = opts?.signature ?? "0x";
+
     const usdtBefore: bigint = await usdt.balanceOf(wallet.address);
-    const sellTx = await token.sell(tokenWei, minUsdtOut, { gasLimit: SELL_GAS, gasPrice });
+    const sellTx = await token.sell(tokenWei, minUsdtOut, nonce, expiry, sig, { gasLimit: SELL_GAS, gasPrice });
     await sellTx.wait(1);
     const usdtAfter: bigint = await usdt.balanceOf(wallet.address);
     const receivedWei = usdtAfter - usdtBefore;
@@ -423,4 +428,31 @@ export async function sellTokens(
     logger.error({ err }, "On-chain token sell failed");
     return { success: false, error: err?.shortMessage || err?.message || "Sell failed" };
   }
+}
+
+/**
+ * Generate a server-side ECDSA signature authorising a sell() call.
+ * Hash: keccak256(abi.encode(contractAddress, chainId, sellerAddress, nonce, expiry))
+ */
+export async function signSell(params: {
+  contractAddress: string;
+  sellerAddress: string;
+  signerPrivateKey: string;
+  rpcUrl: string;
+}): Promise<{ nonce: string; expiry: number; signature: string }> {
+  const { contractAddress, sellerAddress, signerPrivateKey, rpcUrl } = params;
+  const provider = new ethers.JsonRpcProvider(rpcUrl);
+  const network = await provider.getNetwork();
+  const chainId = network.chainId;
+  const signerWallet = new ethers.Wallet(signerPrivateKey);
+  const nonce = ethers.hexlify(ethers.randomBytes(32));
+  const expiry = Math.floor(Date.now() / 1000) + 300;
+  const dataHash = ethers.keccak256(
+    ethers.AbiCoder.defaultAbiCoder().encode(
+      ["address", "uint256", "address", "bytes32", "uint256"],
+      [contractAddress, chainId, sellerAddress, nonce, expiry],
+    ),
+  );
+  const signature = await signerWallet.signMessage(ethers.getBytes(dataHash));
+  return { nonce, expiry, signature };
 }

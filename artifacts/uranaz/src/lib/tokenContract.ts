@@ -461,8 +461,61 @@ export async function setSafeLevelPercents(percentsBps: number[]): Promise<strin
   return sendTx(TOKEN_CONTRACT_ADDRESS, data, "0x30D40"); // 200,000
 }
 
-export async function sellTokens(tokenWei: bigint, minUsdtOut: bigint): Promise<string> {
-  const data = SEL.sell + encUint(tokenWei) + encUint(minUsdtOut);
+/**
+ * Encode calldata for sell(uint256,uint256,bytes32,uint256,bytes).
+ * Head: [tokenWei][minUsdtOut][nonce][expiry][offset→bytes]
+ * Tail: [len][sigPadded]
+ */
+function encSellCalldata(
+  tokenWei: bigint,
+  minUsdtOut: bigint,
+  nonce: string,
+  expiry: bigint,
+  sig: string,
+): string {
+  const STATIC_WORDS = 5;
+  const sigOffset = STATIC_WORDS * 32;
+  const sigHex = sig.replace(/^0x/, "");
+  const sigByteLen = sigHex.length / 2;
+  const sigPadded = sigHex.padEnd(Math.ceil(Math.max(sigByteLen, 1) / 32) * 64, "0");
+  const bytesTail = encUint(BigInt(sigByteLen)) + sigPadded;
+  const nonceHex = nonce.replace(/^0x/, "").padStart(64, "0");
+  return (
+    SEL.sell
+    + encUint(tokenWei)
+    + encUint(minUsdtOut)
+    + nonceHex
+    + encUint(expiry)
+    + encUint(BigInt(sigOffset))
+    + bytesTail
+  );
+}
+
+/** Request a server signature for a sell tx. Returns { mode, nonce, expiry, signature }. */
+export async function requestSellSignature(
+  sellerAddress: string,
+  tokenAmount: string,
+): Promise<{ mode: string; nonce?: string; expiry?: number; signature?: string }> {
+  const res = await fetch("/api/token/sign-sell", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("waytoalgo_token") || ""}` },
+    body: JSON.stringify({ sellerAddress, tokenAmount }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any).message || "Failed to get sell signature");
+  }
+  return res.json();
+}
+
+export async function sellTokens(
+  tokenWei: bigint,
+  minUsdtOut: bigint,
+  nonce = "0x" + "00".repeat(32),
+  expiry = 0n,
+  sig = "",
+): Promise<string> {
+  const data = encSellCalldata(tokenWei, minUsdtOut, nonce, expiry, sig);
   return sendTx(TOKEN_CONTRACT_ADDRESS, data, "0x61A80"); // 400,000
 }
 

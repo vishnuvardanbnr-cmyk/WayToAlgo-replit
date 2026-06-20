@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import AdminTokenReferral from "@/components/AdminTokenReferral";
 import AdminTokenSafeReferral from "@/components/AdminTokenSafeReferral";
 import AdminTokenDistribution from "@/components/AdminTokenDistribution";
+import AdminSellForUser from "@/components/AdminSellForUser";
 import {
   Settings, Save, Mail, Eye, EyeOff, Wallet, ShieldAlert, RefreshCw, Database,
   AlertTriangle, CheckCircle2, ArrowUpRight, TrendingUp, SlidersHorizontal, Coins, Server,
@@ -1145,6 +1146,14 @@ export default function AdminSettings() {
           description="Distribute the day's trading profit as WTA — buy new tokens with USDT, or hand out tokens already sent to the withdraw wallet. Preview eligible users and amount before confirming."
         >
           <AdminTokenDistribution />
+        </SectionCard>
+
+        <SectionCard
+          icon={Coins}
+          title="Sell Tokens For User"
+          description="Sell WTA tokens on behalf of a user. Enter their wallet address — the platform sells the tokens from the withdraw wallet and credits the USDT proceeds directly to the user's Withdraw Balance."
+        >
+          <AdminSellForUser />
         </SectionCard>
 
         <SectionCard

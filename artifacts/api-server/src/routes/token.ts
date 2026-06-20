@@ -537,4 +537,66 @@ router.post("/token/sign-buy", requireAuth, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/token/sign-sell
+ *
+ * Returns a server signature authorising a sell() call for the requesting
+ * user's wallet. The contract verifies: keccak256(contractAddress, chainId,
+ * sellerAddress, nonce, expiry) signed by the trustedSigner.
+ *
+ * Body:    { sellerAddress: string, tokenAmount?: string }
+ * Returns (open mode):   { mode: "open" }
+ * Returns (signed mode): { mode: "signed", nonce: string, expiry: number, signature: string }
+ */
+router.post("/token/sign-sell", requireAuth, async (req, res) => {
+  const [settings] = await db.select().from(platformSettingsTable).limit(1);
+
+  if (!settings || settings.tokenReferralMode !== "signed") {
+    res.json({ mode: "open" });
+    return;
+  }
+
+  const { sellerAddress } = req.body;
+  if (!sellerAddress || !ADDR_RE.test(sellerAddress)) {
+    res.status(400).json({ message: "Invalid sellerAddress" });
+    return;
+  }
+
+  const rawKey = settings.tokenSignerPrivateKey;
+  if (!rawKey) {
+    res.status(503).json({ message: "Platform signer not configured. Ask admin to generate a signer key." });
+    return;
+  }
+  const contractAddress = (settings.tokenContractAddress || "").trim();
+  if (!contractAddress || !ADDR_RE.test(contractAddress)) {
+    res.status(503).json({ message: "Token contract address not configured." });
+    return;
+  }
+
+  try {
+    const plainKey = await resolveKey(rawKey);
+    const signerWallet = new ethers.Wallet(plainKey);
+    const rpcUrl = settings.bscRpcUrl || "https://bsc-dataseed.binance.org/";
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const network = await provider.getNetwork();
+    const chainId = network.chainId;
+
+    const nonce = ethers.hexlify(ethers.randomBytes(32));
+    const expiry = Math.floor(Date.now() / 1000) + 300;
+
+    // keccak256(abi.encode(address(this), block.chainid, msg.sender, _nonce, _expiry))
+    const dataHash = ethers.keccak256(
+      ethers.AbiCoder.defaultAbiCoder().encode(
+        ["address", "uint256", "address", "bytes32", "uint256"],
+        [contractAddress, chainId, sellerAddress, nonce, expiry],
+      ),
+    );
+    const signature = await signerWallet.signMessage(ethers.getBytes(dataHash));
+    res.json({ mode: "signed", nonce, expiry, signature });
+  } catch (err: any) {
+    logger.error({ err }, "sign-sell failed");
+    res.status(500).json({ message: "Signing failed: " + (err?.message ?? "Unknown error") });
+  }
+});
+
 export default router;
