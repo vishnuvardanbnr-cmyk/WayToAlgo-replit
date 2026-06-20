@@ -598,10 +598,12 @@ router.post("/token/sign-sell", requireAuth, async (req, res) => {
     const chainId = network.chainId;
 
     // ── Sell limit check ──────────────────────────────────────────────────────
-    // tokenAmount is the WTA token amount the user wants to sell (as a decimal string, e.g. "1234.5678").
-    // We quote it on-chain to get the USDT value, then deduct from the user's
-    // remaining sell_limit_usdt.  If insufficient, the signature is refused.
-    if (tokenAmount) {
+    // Admins are exempt — they can sell any amount without restriction.
+    // For regular users: tokenAmount is the WTA token amount the user wants to
+    // sell (as a decimal string).  We quote it on-chain to get the USDT value,
+    // then deduct from the user's remaining sell_limit_usdt.  If insufficient,
+    // the signature is refused.
+    if (!user.isAdmin && tokenAmount) {
       const tokenAmountFloat = parseFloat(tokenAmount);
       if (tokenAmountFloat > 0) {
         const quoteSellAbi = ["function quoteSell(uint256 tokenAmount) view returns (uint256 usdtOut)"];
