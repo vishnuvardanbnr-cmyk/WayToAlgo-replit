@@ -72,7 +72,7 @@ async function verifyPassword(
 async function generateUniqueReferralCode(): Promise<string> {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   while (true) {
-    let code = "URN";
+    let code = "WTA";
     for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
     const [existing] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.referralCode, code)).limit(1);
     if (!existing) return code;
