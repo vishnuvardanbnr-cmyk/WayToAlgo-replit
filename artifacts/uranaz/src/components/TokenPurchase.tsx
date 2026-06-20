@@ -11,7 +11,7 @@ import {
   readTokenBalance, readUsdtBalance, readAllowance, readSymbol,
   readTotalLiquidity, readTotalSupply, readHolderCount,
   readLevelPercents, REFERRAL_LEVELS, BPS_DENOMINATOR,
-  approveUsdt, buyTokens, sellTokens,
+  approveUsdt, buyTokens, sellTokens, requestSellSignature,
 } from "@/lib/tokenContract";
 
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
@@ -293,7 +293,12 @@ export default function TokenPurchase({ user: _user }: { user: any }) {
         const quote = await readQuoteSell(wei);
         const minOut = applySlippage(quote);
         setStage("sending");
-        const hash = await sellTokens(wei, minOut);
+        // Request server signature (required when platform is in signed mode)
+        const sellSig = await requestSellSignature(from, formatUnits18(wei, 18));
+        const nonce = sellSig.nonce ?? ("0x" + "00".repeat(32));
+        const expiry = BigInt(sellSig.expiry ?? 0);
+        const sig = sellSig.signature ?? "0x";
+        const hash = await sellTokens(wei, minOut, nonce, expiry, sig);
         setTxHash(hash);
         setStage("confirming");
         const receipt = await waitForReceipt(hash);

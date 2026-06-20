@@ -26,7 +26,7 @@ export function isTokenConfigured(): boolean {
 const SEL = {
   // buy(uint256,uint256,address[],bytes32,uint256,bytes)
   buy: "95c89952",
-  sell: "d79875eb", // sell(uint256,uint256)
+  sell: "39ac9afc", // sell(uint256,uint256,bytes32,uint256,bytes)
   getBuyPrice: "018a25e8", // getBuyPrice()
   getSellPrice: "43d32e9c", // getSellPrice()
   quoteBuy: "4beb394c", // quoteBuy(uint256)
